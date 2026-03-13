@@ -32,7 +32,7 @@ ckpt/
 # Data
 data/
 datasets/
-*.csv
+# *.csv
 *.xlsx
 *.mat
 *.pkl
