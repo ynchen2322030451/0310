@@ -1,0 +1,53 @@
+{
+  "level": 4,
+  "main_threshold_result": {
+    "threshold_MPa": 131.0,
+    "p_fail_predictive": 0.8835111392000864,
+    "p_fail_mean_only": 0.9024390243902439,
+    "p_fail_truth": 0.8292682926829268,
+    "stress_true_mean": 162.9587501665441,
+    "stress_true_std": 31.80679632845483,
+    "stress_pred_mean": 166.52488022315794,
+    "stress_pred_std": 26.404013983964216,
+    "stress_unc_mean": 13.413867884301204,
+    "stress_output": "iteration2_max_global_stress"
+  },
+  "threshold_sweep_results": [
+    {
+      "threshold_MPa": 110.0,
+      "p_fail_predictive": 0.974312830315534,
+      "p_fail_mean_only": 0.9878048780487805,
+      "p_fail_truth": 0.9725609756097561,
+      "stress_true_mean": 162.9587501665441,
+      "stress_true_std": 31.80679632845483,
+      "stress_pred_mean": 166.52488022315794,
+      "stress_pred_std": 26.404013983964216,
+      "stress_unc_mean": 13.413867884301204,
+      "stress_output": "iteration2_max_global_stress"
+    },
+    {
+      "threshold_MPa": 120.0,
+      "p_fail_predictive": 0.9425329233084674,
+      "p_fail_mean_only": 0.9664634146341463,
+      "p_fail_truth": 0.9237804878048781,
+      "stress_true_mean": 162.9587501665441,
+      "stress_true_std": 31.80679632845483,
+      "stress_pred_mean": 166.52488022315794,
+      "stress_pred_std": 26.404013983964216,
+      "stress_unc_mean": 13.413867884301204,
+      "stress_output": "iteration2_max_global_stress"
+    },
+    {
+      "threshold_MPa": 131.0,
+      "p_fail_predictive": 0.8835111392000864,
+      "p_fail_mean_only": 0.9024390243902439,
+      "p_fail_truth": 0.8292682926829268,
+      "stress_true_mean": 162.9587501665441,
+      "stress_true_std": 31.80679632845483,
+      "stress_pred_mean": 166.52488022315794,
+      "stress_pred_std": 26.404013983964216,
+      "stress_unc_mean": 13.413867884301204,
+      "stress_output": "iteration2_max_global_stress"
+    }
+  ]
+}

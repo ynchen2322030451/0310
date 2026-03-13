@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "feature": "alpha_slope",
+    "low_quantile_value": 4.347026297447341e-09,
+    "high_quantile_value": 5.648610831669407e-09,
+    "n_in": 1511,
+    "n_ood": 371
+  },
+  "basic_all_mean": {
+    "MAE_mean": 2.717874765396118,
+    "RMSE_mean": 3.3624284267425537,
+    "R2_mean": -81310471.3140705
+  },
+  "prob90_all_mean": {
+    "PICP_mean": 0.9172843665768193,
+    "MPIW_mean": 10.73760293361839,
+    "CRPS_mean": 1.9121258743503837
+  }
+}

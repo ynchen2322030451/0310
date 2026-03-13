@@ -1,0 +1,49 @@
+{
+  "level": 0,
+  "test_nll_standardized": 0.4066951870918274,
+  "basic_all_mean": {
+    "MAE_mean": 2.674835205078125,
+    "RMSE_mean": 3.6939873695373535,
+    "R2_mean": 0.7052812725305557
+  },
+  "basic_primary_mean": {
+    "MAE_mean": 2.891193151473999,
+    "RMSE_mean": 3.9074065685272217,
+    "R2_mean": 0.759011161327362
+  },
+  "prob90_all_mean": {
+    "PICP_mean": 0.9523628048780488,
+    "MPIW_mean": 14.24345537752778,
+    "CRPS_mean": 1.9843847029356914
+  },
+  "prob90_primary_mean": {
+    "PICP_mean": 0.9573170731707317,
+    "MPIW_mean": 15.917525674458494,
+    "CRPS_mean": 2.155925762796881
+  },
+  "ineq_violation_rates_on_mu": {
+    "iter1_maxfuel_ge_avgfuel_viol_rate": 0.0,
+    "iter2_maxfuel_ge_avgfuel_viol_rate": 0.0,
+    "iter1_stress_nonneg_viol_rate": 0.0,
+    "iter2_stress_nonneg_viol_rate": 0.0
+  },
+  "mono_pairs_top": [],
+  "focus_outputs": {
+    "iteration2_max_global_stress": {
+      "MAE": 6.92924165725708,
+      "RMSE": 9.363546371459961,
+      "R2": 0.9133355617523193,
+      "PICP90": 0.975609756097561,
+      "MPIW90": 44.0215702755983,
+      "CRPS": 5.283054684907534
+    },
+    "iteration2_keff": {
+      "MAE": 0.0002275138394907117,
+      "RMSE": 0.00029364018701016903,
+      "R2": 0.82880699634552,
+      "PICP90": 0.9969512195121951,
+      "MPIW90": 0.002695507220688609,
+      "CRPS": 0.00023731558530676886
+    }
+  }
+}

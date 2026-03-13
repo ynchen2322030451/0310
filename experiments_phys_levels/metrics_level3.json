@@ -1,0 +1,212 @@
+{
+  "level": 3,
+  "test_nll_standardized": 19.749242782592773,
+  "basic_all_mean": {
+    "MAE_mean": 2.579786777496338,
+    "RMSE_mean": 3.3787145614624023,
+    "R2_mean": -224106607.28285348
+  },
+  "basic_iter1": {
+    "MAE_mean": 3.138746500015259,
+    "RMSE_mean": 4.040104866027832,
+    "R2_mean": -448213215.234249
+  },
+  "basic_iter2": {
+    "MAE_mean": 2.020826816558838,
+    "RMSE_mean": 2.7173240184783936,
+    "R2_mean": 0.6685419827699661
+  },
+  "prob90_all_mean": {
+    "PICP_mean": 0.9496466431095406,
+    "MPIW_mean": 11.664475343526332,
+    "CRPS_mean": 1.8306171181476851
+  },
+  "prob90_iter1": {
+    "PICP_mean": 0.9580388692579505,
+    "MPIW_mean": 14.298162391937257,
+    "CRPS_mean": 2.2177672394574657
+  },
+  "prob90_iter2": {
+    "PICP_mean": 0.9412544169611308,
+    "MPIW_mean": 9.03078829511541,
+    "CRPS_mean": 1.4434669968379046
+  },
+  "ineq_violation_rates_on_mu": {
+    "iter1_maxfuel_ge_avgfuel_viol_rate": 0.0,
+    "iter2_maxfuel_ge_avgfuel_viol_rate": 0.0,
+    "iter1_stress_nonneg_viol_rate": 0.0,
+    "iter2_stress_nonneg_viol_rate": 0.0
+  },
+  "mono_pairs_top": [
+    {
+      "x": "alpha_base",
+      "y": "iteration2_wall2",
+      "direction": "increasing",
+      "abs_rho": 0.8851567523362822
+    },
+    {
+      "x": "alpha_base",
+      "y": "iteration1_wall2",
+      "direction": "increasing",
+      "abs_rho": 0.875766559220931
+    },
+    {
+      "x": "alpha_base",
+      "y": "iteration2_Hcore_after",
+      "direction": "increasing",
+      "abs_rho": 0.8491554681997469
+    },
+    {
+      "x": "alpha_base",
+      "y": "iteration1_Hcore_after",
+      "direction": "increasing",
+      "abs_rho": 0.8459347339334277
+    },
+    {
+      "x": "alpha_base",
+      "y": "iteration2_keff",
+      "direction": "decreasing",
+      "abs_rho": 0.8068046155318768
+    },
+    {
+      "x": "E_intercept",
+      "y": "iteration2_max_global_stress",
+      "direction": "increasing",
+      "abs_rho": 0.7710319796987688
+    },
+    {
+      "x": "E_intercept",
+      "y": "iteration1_max_global_stress",
+      "direction": "increasing",
+      "abs_rho": 0.712586024179942
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration1_max_fuel_temp",
+      "direction": "decreasing",
+      "abs_rho": 0.6998956981896718
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration1_max_monolith_temp",
+      "direction": "decreasing",
+      "abs_rho": 0.6998630306770135
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration1_avg_fuel_temp",
+      "direction": "decreasing",
+      "abs_rho": 0.6998372477192895
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration1_monolith_new_temperature",
+      "direction": "decreasing",
+      "abs_rho": 0.6998149749571294
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration2_avg_fuel_temp",
+      "direction": "decreasing",
+      "abs_rho": 0.6339900513820895
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration2_max_fuel_temp",
+      "direction": "decreasing",
+      "abs_rho": 0.6339091859779353
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration2_max_monolith_temp",
+      "direction": "decreasing",
+      "abs_rho": 0.6337155384983437
+    },
+    {
+      "x": "SS316_k_ref",
+      "y": "iteration2_monolith_new_temperature",
+      "direction": "decreasing",
+      "abs_rho": 0.6325521408786506
+    },
+    {
+      "x": "alpha_slope",
+      "y": "iteration1_Hcore_after",
+      "direction": "increasing",
+      "abs_rho": 0.4968180722975155
+    },
+    {
+      "x": "alpha_slope",
+      "y": "iteration2_Hcore_after",
+      "direction": "increasing",
+      "abs_rho": 0.48829222794480504
+    },
+    {
+      "x": "alpha_slope",
+      "y": "iteration2_keff",
+      "direction": "decreasing",
+      "abs_rho": 0.4212569725550716
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration1_monolith_new_temperature",
+      "direction": "increasing",
+      "abs_rho": 0.4149033624816865
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration1_avg_fuel_temp",
+      "direction": "increasing",
+      "abs_rho": 0.41487590766561117
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration1_max_monolith_temp",
+      "direction": "increasing",
+      "abs_rho": 0.4148515343517472
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration1_max_fuel_temp",
+      "direction": "increasing",
+      "abs_rho": 0.4148276567987949
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration2_monolith_new_temperature",
+      "direction": "increasing",
+      "abs_rho": 0.3662450660010882
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration2_max_monolith_temp",
+      "direction": "increasing",
+      "abs_rho": 0.36426661427049345
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration2_avg_fuel_temp",
+      "direction": "increasing",
+      "abs_rho": 0.36391586785584773
+    },
+    {
+      "x": "SS316_T_ref",
+      "y": "iteration2_max_fuel_temp",
+      "direction": "increasing",
+      "abs_rho": 0.36257507155081276
+    },
+    {
+      "x": "alpha_slope",
+      "y": "iteration1_wall2",
+      "direction": "increasing",
+      "abs_rho": 0.3594801765186369
+    }
+  ],
+  "mc_dropout": {
+    "mc_dropout_T": 30,
+    "prob90_PICP_mean_all": 0.9606890459363958,
+    "prob90_MPIW_mean_all": 13.066024880343612,
+    "prob90_CRPS_mean_all": 1.8644592605122408,
+    "epistemic_var_mean_all_stdspace": 0.025970937684178352,
+    "aleatoric_var_mean_all_stdspace": 0.19896282255649567
+  }
+}
