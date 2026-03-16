@@ -1,0 +1,7 @@
+{
+  "feature": "alpha_slope",
+  "low_quantile_value": 4.349803029273764e-09,
+  "high_quantile_value": 5.6506624928148705e-09,
+  "n_in": 1750,
+  "n_ood": 432
+}

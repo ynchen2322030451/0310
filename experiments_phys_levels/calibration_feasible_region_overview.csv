@@ -1,0 +1,4 @@
+﻿threshold_MPa,n_posterior_samples,n_feasible,feasible_fraction
+110.0,2000,0,0.0
+120.0,2000,4,0.002
+131.0,2000,155,0.0775

@@ -1,0 +1,36 @@
+{
+  "final_level": 2,
+  "calibration_holdout_frac": 0.1,
+  "calibration_case_index": 0,
+  "obs_cols": [
+    "iteration2_max_global_stress",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_wall2",
+    "iteration2_keff"
+  ],
+  "prior_type": "trunc_gaussian",
+  "n_mcmc": 25000,
+  "burn_in": 5000,
+  "thin": 10,
+  "obs_noise_frac": 0.02,
+  "proposal_scale": 0.15,
+  "accept_rate": 0.569,
+  "x_true": {
+    "E_slope": -65652678.88239522,
+    "E_intercept": 198619970475.57895,
+    "nu": 0.2552987155497683,
+    "alpha_base": 8.75209874322755e-06,
+    "alpha_slope": 5.308880389665443e-09,
+    "SS316_T_ref": 1007.2546078883324,
+    "SS316_k_ref": 21.49682275003902,
+    "SS316_alpha": 0.0107026341910922
+  },
+  "y_obs": {
+    "iteration2_max_global_stress": 142.6,
+    "iteration2_max_fuel_temp": 1073.58,
+    "iteration2_max_monolith_temp": 1035.86,
+    "iteration2_wall2": 29.88822236993128,
+    "iteration2_keff": 1.104315397368531
+  }
+}

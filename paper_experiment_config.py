@@ -74,7 +74,7 @@ PRIMARY_SA_OUTPUTS = [
 # -----------------------------
 # Paper levels
 # -----------------------------
-PAPER_LEVELS = [0, 1, 2, 4]
+PAPER_LEVELS = [0, 2]
 
 # -----------------------------
 # Safety thresholds

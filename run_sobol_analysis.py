@@ -109,7 +109,7 @@ def main():
     device = get_device()
 
     # only main comparison levels for paper
-    levels_for_sa = [0, 2, 4]
+    levels_for_sa = [0, 2]
 
     all_rows = []
     for level in levels_for_sa:

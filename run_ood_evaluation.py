@@ -203,7 +203,7 @@ def main():
     device = get_device()
     rows = []
 
-    for level in [0, 4]:
+    for level in [0, 2]:
         best_json = os.path.join(OUT_DIR, f"best_level{level}.json")
         if not os.path.exists(best_json):
             raise FileNotFoundError(
