@@ -1,0 +1,18 @@
+{
+  "figure_dir": "./experiments_phys_levels/paper_forward_figures_final",
+  "main_figure_files": [
+    "forward_primary_output_distributions.png",
+    "forward_threshold_risk_curve.png",
+    "forward_cvr_comparison.png",
+    "forward_sobol_bars.png"
+  ],
+  "optional_figure_files": [
+    "forward_joint_stress_keff.png"
+  ],
+  "notes": [
+    "Main-text priority: threshold risk curve, CVR comparison, Sobol bars.",
+    "Primary-output distribution figure is split into 3 panels to avoid unreadable mixed scales.",
+    "Joint stress-keff scatter is optional and more suitable for appendix or discussion.",
+    "This script only reads saved result files and does not rerun forward-UQ or Sobol analysis."
+  ]
+}

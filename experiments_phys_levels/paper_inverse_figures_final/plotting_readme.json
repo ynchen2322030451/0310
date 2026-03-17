@@ -1,0 +1,22 @@
+{
+  "figure_dir": "./experiments_phys_levels/paper_inverse_figures_final",
+  "representative_case_id": 3,
+  "main_figure_files": [
+    "inverse_feasible_fraction_vs_stress.png",
+    "inverse_parameter_coverage90.png",
+    "inverse_parameter_width90.png",
+    "inverse_observable_coverage90.png",
+    "inverse_observable_error.png"
+  ],
+  "optional_figure_files": [
+    "representative_case_003_posterior.png",
+    "representative_case_003_trace.png",
+    "representative_case_003_predictive_fit.png"
+  ],
+  "notes": [
+    "Main-text priority: inverse_feasible_fraction_vs_stress.png",
+    "Representative predictive-fit figure is split into 3 panels to avoid unreadable mixed scales.",
+    "Trace plot is for appendix / diagnostics, not for main text.",
+    "Posterior marginals are more interpretable if plotting branch later adds prior-vs-posterior overlay."
+  ]
+}

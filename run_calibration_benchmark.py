@@ -67,9 +67,10 @@ THIN = 5
 OBS_NOISE_FRAC = 0.02            # fixed observation noise = frac * training std
 PROPOSAL_SCALE = 0.15            # RW proposal std = frac * prior std
 
-SAVE_PER_CASE_POSTERIOR = False  # set True if you want large output files
+SAVE_PER_CASE_POSTERIOR = True  # set True if you want large output files
 
-
+SAVE_REPRESENTATIVE_CHAIN = True
+REPRESENTATIVE_CASE_FOR_TRACE_MODE = "closest_to_threshold"  # "first", "closest_to_threshold"
 # ============================================================
 # Utilities
 # ============================================================
@@ -532,6 +533,25 @@ def main():
         })
 
         # optional save
+
+        # save full chain for one representative case, for trace diagnostics
+        save_this_chain = False
+        if SAVE_REPRESENTATIVE_CHAIN:
+            if REPRESENTATIVE_CASE_FOR_TRACE_MODE == "first" and bench_id == 0:
+                save_this_chain = True
+            elif REPRESENTATIVE_CASE_FOR_TRACE_MODE == "closest_to_threshold":
+                # save the case whose observed stress is closest to 131 MPa
+                # handled after full case list is known is cleaner, but for minimal patch:
+                # save all chains around threshold candidates by simple rule
+                if abs(y_obs[OBS_COLS.index("iteration2_max_global_stress")] - 131.0) <= 5.0:
+                    save_this_chain = True
+
+        if save_this_chain:
+            pd.DataFrame(chain, columns=INPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_full_chain.csv"),
+                index=False, encoding="utf-8-sig"
+            )
+    
         if SAVE_PER_CASE_POSTERIOR:
             pd.DataFrame(post, columns=INPUT_COLS).to_csv(
                 os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_samples.csv"),

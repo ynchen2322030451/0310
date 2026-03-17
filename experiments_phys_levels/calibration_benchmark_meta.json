@@ -16,5 +16,5 @@
   "thin": 5,
   "obs_noise_frac": 0.02,
   "proposal_scale": 0.15,
-  "save_per_case_posterior": false
+  "save_per_case_posterior": true
 }

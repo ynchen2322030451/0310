@@ -1,0 +1,13 @@
+{
+  "representative_case_id": 3,
+  "n_benchmark_cases": 20,
+  "mean_accept_rate": 0.6023687500000001,
+  "mean_obs_fit_error": 1.0606976215113,
+  "mean_obs_coverage90": 1.0,
+  "mean_feasible_fraction_110": 0.04141666666666666,
+  "mean_feasible_fraction_120": 0.080375,
+  "mean_feasible_fraction_131": 0.16629166666666667,
+  "trace_plot_available": true,
+  "representative_posterior_available": true,
+  "representative_predictive_fit_available": true
+}
