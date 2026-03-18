@@ -24,7 +24,10 @@ from run_phys_levels_main import HeteroMLP, get_device
 # Example:
 # HIGH_FIDELITY_SECONDS_PER_CASE = 900.0
 # ------------------------------------------------------------
-HIGH_FIDELITY_SECONDS_PER_CASE = None
+HIGH_FIDELITY_SECONDS_PER_CASE = 3600
+FORWARD_UQ_MONTE_CARLO_SAMPLES = 20000
+INVERSE_BENCHMARK_CASES = 20
+INVERSE_POSTERIOR_SAMPLES_PER_CASE = 1200
 
 LEVEL = 2
 N_WARMUP = 50

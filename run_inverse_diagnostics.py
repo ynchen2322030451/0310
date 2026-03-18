@@ -25,7 +25,8 @@ from paper_experiment_config import OUT_DIR, PRIMARY_STRESS_THRESHOLD
 # -----------------------------
 REPRESENTATIVE_CASE_MODE = "closest_to_threshold"  # "closest_to_threshold", "lowest_stress", "highest_stress", "manual"
 MANUAL_CASE_ID = 3
-
+RUN_TAG = "reduced"   # or "full"
+RUN_SUFFIX = f"_{RUN_TAG}"
 # only used if files exist
 KEY_PARAMS = ["E_intercept", "alpha_base", "alpha_slope", "SS316_k_ref"]
 KEY_OBSERVABLES = [
@@ -36,8 +37,8 @@ KEY_OBSERVABLES = [
     "iteration2_keff",
 ]
 
-FIG_DIR = os.path.join(OUT_DIR, "paper_inverse_figures")
-SUMMARY_JSON = os.path.join(OUT_DIR, "inverse_diagnostics_summary.json")
+FIG_DIR = os.path.join(OUT_DIR, f"paper_inverse_figures{RUN_SUFFIX}")
+SUMMARY_JSON = os.path.join(OUT_DIR, f"inverse_diagnostics_summary{RUN_SUFFIX}.json")
 
 
 def ensure_dir(path: str):
@@ -135,7 +136,7 @@ def plot_representative_posterior_if_available(case_id: int, save_path: str):
     Requires:
       benchmark_caseXXX_posterior_samples.csv
     """
-    path = os.path.join(OUT_DIR, f"benchmark_case{case_id:03d}_posterior_samples.csv")
+    path = os.path.join(OUT_DIR, f"benchmark_case{case_id:03d}_posterior_samples{RUN_SUFFIX}.csv")
     if not os.path.exists(path):
         return False
 
@@ -165,7 +166,7 @@ def plot_representative_trace_if_available(case_id: int, save_path: str):
     Requires:
       benchmark_caseXXX_full_chain.csv
     """
-    path = os.path.join(OUT_DIR, f"benchmark_case{case_id:03d}_full_chain.csv")
+    path = os.path.join(OUT_DIR, f"benchmark_case{case_id:03d}_full_chain{RUN_SUFFIX}.csv")
     if not os.path.exists(path):
         return False
 
@@ -197,8 +198,8 @@ def plot_representative_predictive_fit_if_available(case_id: int, save_path: str
       benchmark_caseXXX_posterior_predictive.csv
       plus row subset from observation_fit detailed csv if available
     """
-    pred_path = os.path.join(OUT_DIR, f"benchmark_case{case_id:03d}_posterior_predictive.csv")
-    fit_path = os.path.join(OUT_DIR, "calibration_benchmark_observation_fit.csv")
+    pred_path = os.path.join(OUT_DIR, f"benchmark_case{case_id:03d}_posterior_predictive{RUN_SUFFIX}.csv")
+    fit_path = os.path.join(OUT_DIR, f"calibration_benchmark_observation_fit{RUN_SUFFIX}.csv")
 
     if not os.path.exists(pred_path):
         return False
@@ -256,9 +257,15 @@ def plot_representative_predictive_fit_if_available(case_id: int, save_path: str
 def main():
     ensure_dir(FIG_DIR)
 
-    case_summary_path = os.path.join(OUT_DIR, "calibration_benchmark_case_summary.csv")
-    param_summary_path = os.path.join(OUT_DIR, "calibration_benchmark_parameter_recovery_summary.csv")
-    obs_summary_path = os.path.join(OUT_DIR, "calibration_benchmark_observation_fit_summary.csv")
+    case_summary_path = os.path.join(
+        OUT_DIR, f"calibration_benchmark_case_summary{RUN_SUFFIX}.csv"
+    )
+    param_summary_path = os.path.join(
+        OUT_DIR, f"calibration_benchmark_parameter_recovery_summary{RUN_SUFFIX}.csv"
+    )
+    obs_summary_path = os.path.join(
+        OUT_DIR, f"calibration_benchmark_observation_fit_summary{RUN_SUFFIX}.csv"
+    )
 
     df_case = load_csv_must(case_summary_path)
     df_param = load_csv_must(param_summary_path)
@@ -269,29 +276,29 @@ def main():
     # Main paper-oriented plots
     plot_feasible_fraction_vs_stress(
         df_case,
-        os.path.join(FIG_DIR, "inverse_feasible_fraction_vs_stress.png")
+        os.path.join(FIG_DIR, f"inverse_feasible_fraction_vs_stress{RUN_SUFFIX}.png")
     )
     plot_parameter_recovery_summary(
         df_param,
-        os.path.join(FIG_DIR, "inverse_parameter_recoverability.png")
+        os.path.join(FIG_DIR, f"inverse_parameter_recoverability{RUN_SUFFIX}.png")
     )
     plot_observation_fit_summary(
         df_obs,
-        os.path.join(FIG_DIR, "inverse_observation_fit_summary.png")
+        os.path.join(FIG_DIR, f"inverse_observation_fit_summary{RUN_SUFFIX}.png")
     )
 
     # Optional representative-case plots
     has_post = plot_representative_posterior_if_available(
         rep_case_id,
-        os.path.join(FIG_DIR, f"representative_case_{rep_case_id:03d}_posterior.png")
+        os.path.join(FIG_DIR, f"representative_case_{rep_case_id:03d}_posterior{RUN_SUFFIX}.png")
     )
     has_trace = plot_representative_trace_if_available(
         rep_case_id,
-        os.path.join(FIG_DIR, f"representative_case_{rep_case_id:03d}_trace.png")
+        os.path.join(FIG_DIR, f"representative_case_{rep_case_id:03d}_trace{RUN_SUFFIX}.png")
     )
     has_predfit = plot_representative_predictive_fit_if_available(
         rep_case_id,
-        os.path.join(FIG_DIR, f"representative_case_{rep_case_id:03d}_predictive_fit.png")
+        os.path.join(FIG_DIR, f"representative_case_{rep_case_id:03d}_predictive_fit{RUN_SUFFIX}.png")
     )
 
     summary = {

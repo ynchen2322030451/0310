@@ -1,10 +1,12 @@
 {
   "level": 2,
   "device": "cuda",
-  "single_sample_latency_sec": 0.00031143132597208025,
+  "single_sample_latency_sec": 0.00015435925498604776,
   "batch_size": 1024,
-  "batch_time_sec": 0.00035015325993299485,
-  "per_sample_batch_latency_sec": 3.419465429033153e-07,
-  "batch_throughput_samples_per_sec": 2924433.718526431,
-  "high_fidelity_seconds_per_case": null
+  "batch_time_sec": 0.0001735260523855686,
+  "per_sample_batch_latency_sec": 1.6945903553278185e-07,
+  "batch_throughput_samples_per_sec": 5901131.1899420675,
+  "high_fidelity_seconds_per_case": 3600,
+  "speedup_single_vs_hf": 23322216.736051217,
+  "speedup_batch_per_sample_vs_hf": 21244072283.791443
 }

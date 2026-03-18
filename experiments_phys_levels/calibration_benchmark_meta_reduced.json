@@ -1,0 +1,28 @@
+{
+  "run_tag": "reduced",
+  "final_level": 2,
+  "calibration_input_cols": [
+    "E_intercept",
+    "alpha_base",
+    "alpha_slope",
+    "SS316_k_ref"
+  ],
+  "calibration_holdout_frac": 0.15,
+  "n_cases": 20,
+  "case_selection": "stress_stratified",
+  "obs_cols": [
+    "iteration2_max_global_stress",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_wall2",
+    "iteration2_keff"
+  ],
+  "prior_type": "trunc_gaussian",
+  "n_total": 8000,
+  "burn_in": 2000,
+  "thin": 5,
+  "obs_noise_frac": 0.02,
+  "proposal_scale": 0.15,
+  "save_prior_samples": true,
+  "save_per_case_posterior": true
+}

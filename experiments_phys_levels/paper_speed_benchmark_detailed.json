@@ -1,0 +1,682 @@
+{
+  "meta": {
+    "timestamp": "2026-03-18T16:53:07.258641",
+    "benchmark_type": "practical_wall_clock_comparison",
+    "note": "This benchmark compares practical wall-clock cost under the standard execution environments of the two workflows, rather than a hardware-normalized algorithmic benchmark on identical devices.",
+    "system": {
+      "cpu_info": {
+        "hostname": "tjzs",
+        "platform": "Linux-6.8.0-87-generic-x86_64-with-glibc2.35",
+        "processor": "x86_64",
+        "python_version": "3.9.19",
+        "physical_cores": 96,
+        "logical_cores": 192,
+        "cpu_freq_current_mhz": 1556.3360416666662,
+        "cpu_freq_min_mhz": 1500.0,
+        "cpu_freq_max_mhz": 2400.0,
+        "memory_total_gb": 566.179,
+        "cpu_model_name": "AMD EPYC 9654 96-Core Processor"
+      },
+      "gpu_info_initial": {
+        "gpu_available": true,
+        "gpu_count": 2,
+        "gpus": [
+          {
+            "name": "NVIDIA GeForce RTX 5090",
+            "memory_total_mb": "32607",
+            "memory_used_mb": "15",
+            "gpu_util_percent": "0",
+            "mem_util_percent": "0",
+            "temperature_c": "27"
+          },
+          {
+            "name": "NVIDIA GeForce RTX 5090",
+            "memory_total_mb": "32607",
+            "memory_used_mb": "211",
+            "gpu_util_percent": "19",
+            "mem_util_percent": "2",
+            "temperature_c": "34"
+          }
+        ],
+        "gpu_processes": []
+      }
+    }
+  },
+  "high_fidelity": {
+    "label": "high_fidelity",
+    "command": [
+      "/home/tjzs/.conda/envs/HP-env/bin/python",
+      "/home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py"
+    ],
+    "command_str": "/home/tjzs/.conda/envs/HP-env/bin/python /home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py",
+    "repeats": 3,
+    "timeout": null,
+    "pre_snapshot": {
+      "timestamp": "2026-03-18T16:53:07.404195",
+      "loadavg": [
+        42.14208984375,
+        128.158203125,
+        283.70654296875
+      ],
+      "cpu_percent_total": 1.1,
+      "memory_percent": 4.5,
+      "memory_used_gb": 19.456,
+      "memory_available_gb": 540.559,
+      "swap_percent": 14.4,
+      "top_processes": [
+        {
+          "pid": 4760,
+          "name": "ToDesk_Service",
+          "username": "root",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.5750419581600312,
+          "cmdline": "/opt/todesk/bin/ToDesk_Service"
+        },
+        {
+          "pid": 3347223,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.38640086811742697,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node /home/tjzs/.vscode-server/extensions/ms-python.vscode-pylance-2026.1.1/dist/server.bundle.js --cancellationReceive=file:f4a206ebcfbfec747cfb7e15c63cd855c5c3dad6d9 --node-ipc --clientProcessId=3346412"
+        },
+        {
+          "pid": 700085,
+          "name": "snap-store",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.2753514990121915,
+          "cmdline": "/snap/snap-store/1216/usr/bin/snap-store --details todesk"
+        },
+        {
+          "pid": 3565,
+          "name": "gnome-shell",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.1473455744387395,
+          "cmdline": "/usr/bin/gnome-shell"
+        },
+        {
+          "pid": 1987717,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.11451924078884157,
+          "cmdline": "/proc/self/exe --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --dns-result-order=ipv4first --experimental-network-inspection --inspect-port=0 --crashpad-handler-pid=1987405 --enable-crash-reporter=f6407c57-8ed4-4163-be19-6829a282883a,no_channel --user-data-dir=/home/tjzs/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,17398069721099902202,5897194593880636021,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync --disable-features=CalculateNativeWinOcclusion,FontationsLinuxSystemFonts,ScreenAIOCREnabled,SpareRendererForSitePerProcess --variations-seed-version"
+        },
+        {
+          "pid": 3359376,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.1119447981280534,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node --dns-result-order=ipv4first /home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/out/bootstrap-fork --type=extensionHost --transformURIs --useHostProxy=false"
+        },
+        {
+          "pid": 3346412,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.10616392452701641,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node --dns-result-order=ipv4first /home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/out/bootstrap-fork --type=extensionHost --transformURIs --useHostProxy=false"
+        },
+        {
+          "pid": 1987522,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.05449989332334298,
+          "cmdline": "/usr/share/code/code --type=zygote"
+        },
+        {
+          "pid": 1317295,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.04760663949907611,
+          "cmdline": "/usr/share/code/code /home/tjzs/.vscode/extensions/ms-python.vscode-pylance-2025.10.4/dist/server.bundle.js --cancellationReceive=file:21cd396af395230370b15c30aecce327c3f5284217 --node-ipc --clientProcessId=1987717"
+        },
+        {
+          "pid": 1365358,
+          "name": "chrome",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.04743078774967394,
+          "cmdline": "/opt/google/chrome/chrome"
+        },
+        {
+          "pid": 1306685,
+          "name": "ToDesk",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.03895958451123124,
+          "cmdline": "/opt/todesk/bin/ToDesk"
+        },
+        {
+          "pid": 2740,
+          "name": "Xorg",
+          "username": "tjzs",
+          "cpu_percent": 0.0,
+          "memory_percent": 0.03387672781586724,
+          "cmdline": "/usr/lib/xorg/Xorg vt2 -displayfd 3 -auth /run/user/1000/gdm/Xauthority -nolisten tcp -background none -noreset -keeptty -novtswitch -verbose 3"
+        }
+      ]
+    },
+    "pre_gpu_info": {
+      "gpu_available": true,
+      "gpu_count": 2,
+      "gpus": [
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "15",
+          "gpu_util_percent": "0",
+          "mem_util_percent": "0",
+          "temperature_c": "27"
+        },
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "211",
+          "gpu_util_percent": "16",
+          "mem_util_percent": "1",
+          "temperature_c": "34"
+        }
+      ],
+      "gpu_processes": []
+    },
+    "runs": [
+      {
+        "returncode": 1,
+        "wall_clock_sec": 3.690065521746874,
+        "stdout": "",
+        "stderr": "[tjzs:3426696] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\n2026-03-18 16:53:09.716596: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F AVX512_VNNI AVX512_BF16 FMA\nTo enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2026-03-18 16:53:09.895298: I tensorflow/core/util/port.cc:104] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\n2026-03-18 16:53:09.898428: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory\n2026-03-18 16:53:09.898444: I tensorflow/compiler/xla/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.\n2026-03-18 16:53:10.336654: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory\n2026-03-18 16:53:10.336727: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory\n2026-03-18 16:53:10.336739: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.\nTraceback (most recent call last):\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py\", line 69, in <module>\n    output, original_path = output_func(param_values, use_percentage=True, percentage=0.1)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py\", line 41, in output_func\n    keff, original_path = generater.start_generater(inputs, counts, use_percentage, percentage)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/generater.py\", line 476, in start_generater\n    keffs, original_path = update_dic_and_starting(settings_dic, parameters_dic, base_path)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/generater.py\", line 312, in update_dic_and_starting\n    import Mega_new_compling  # 延迟导入，避免循环依赖\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/Mega_new_compling.py\", line 20, in <module>\n    import mega_fenics_test\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/mega_fenics_test.py\", line 7, in <module>\n    import fenics_thermal_TE\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/fenics_thermal_TE.py\", line 1, in <module>\n    from dolfin import *\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/__init__.py\", line 142, in <module>\n    from .fem.assembling import (assemble, assemble_system, assemble_multimesh,\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/fem/assembling.py\", line 34, in <module>\n    from dolfin.fem.form import Form\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/fem/form.py\", line 12, in <module>\n    from dolfin.jit.jit import dolfin_pc, ffc_jit\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/jit/jit.py\", line 18, in <module>\n    raise RuntimeError(\"Could not find DOLFIN pkg-config file. Please make sure appropriate paths are set.\")\nRuntimeError: Could not find DOLFIN pkg-config file. Please make sure appropriate paths are set.\n",
+        "run_id": 1
+      },
+      {
+        "returncode": 1,
+        "wall_clock_sec": 3.6859078258275986,
+        "stdout": "",
+        "stderr": "[tjzs:3426853] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\n2026-03-18 16:53:13.413575: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F AVX512_VNNI AVX512_BF16 FMA\nTo enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2026-03-18 16:53:13.588130: I tensorflow/core/util/port.cc:104] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\n2026-03-18 16:53:13.591226: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory\n2026-03-18 16:53:13.591240: I tensorflow/compiler/xla/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.\n2026-03-18 16:53:14.029182: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory\n2026-03-18 16:53:14.029254: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory\n2026-03-18 16:53:14.029261: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.\nTraceback (most recent call last):\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py\", line 69, in <module>\n    output, original_path = output_func(param_values, use_percentage=True, percentage=0.1)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py\", line 41, in output_func\n    keff, original_path = generater.start_generater(inputs, counts, use_percentage, percentage)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/generater.py\", line 476, in start_generater\n    keffs, original_path = update_dic_and_starting(settings_dic, parameters_dic, base_path)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/generater.py\", line 312, in update_dic_and_starting\n    import Mega_new_compling  # 延迟导入，避免循环依赖\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/Mega_new_compling.py\", line 20, in <module>\n    import mega_fenics_test\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/mega_fenics_test.py\", line 7, in <module>\n    import fenics_thermal_TE\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/fenics_thermal_TE.py\", line 1, in <module>\n    from dolfin import *\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/__init__.py\", line 142, in <module>\n    from .fem.assembling import (assemble, assemble_system, assemble_multimesh,\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/fem/assembling.py\", line 34, in <module>\n    from dolfin.fem.form import Form\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/fem/form.py\", line 12, in <module>\n    from dolfin.jit.jit import dolfin_pc, ffc_jit\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/jit/jit.py\", line 18, in <module>\n    raise RuntimeError(\"Could not find DOLFIN pkg-config file. Please make sure appropriate paths are set.\")\nRuntimeError: Could not find DOLFIN pkg-config file. Please make sure appropriate paths are set.\n",
+        "run_id": 2
+      },
+      {
+        "returncode": 1,
+        "wall_clock_sec": 3.7110909670591354,
+        "stdout": "",
+        "stderr": "[tjzs:3427014] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\n2026-03-18 16:53:17.126229: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F AVX512_VNNI AVX512_BF16 FMA\nTo enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2026-03-18 16:53:17.299139: I tensorflow/core/util/port.cc:104] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\n2026-03-18 16:53:17.302260: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory\n2026-03-18 16:53:17.302275: I tensorflow/compiler/xla/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.\n2026-03-18 16:53:17.740203: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory\n2026-03-18 16:53:17.740280: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory\n2026-03-18 16:53:17.740287: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.\nTraceback (most recent call last):\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py\", line 69, in <module>\n    output, original_path = output_func(param_values, use_percentage=True, percentage=0.1)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/0405-UQ-test-fenics.py\", line 41, in output_func\n    keff, original_path = generater.start_generater(inputs, counts, use_percentage, percentage)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/generater.py\", line 476, in start_generater\n    keffs, original_path = update_dic_and_starting(settings_dic, parameters_dic, base_path)\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/generater.py\", line 312, in update_dic_and_starting\n    import Mega_new_compling  # 延迟导入，避免循环依赖\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/Mega_new_compling.py\", line 20, in <module>\n    import mega_fenics_test\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/mega_fenics_test.py\", line 7, in <module>\n    import fenics_thermal_TE\n  File \"/home/tjzs/Documents/fenics_data/fenics_data/fenics_thermal_TE.py\", line 1, in <module>\n    from dolfin import *\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/__init__.py\", line 142, in <module>\n    from .fem.assembling import (assemble, assemble_system, assemble_multimesh,\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/fem/assembling.py\", line 34, in <module>\n    from dolfin.fem.form import Form\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/fem/form.py\", line 12, in <module>\n    from dolfin.jit.jit import dolfin_pc, ffc_jit\n  File \"/home/tjzs/.conda/envs/HP-env/lib/python3.10/site-packages/dolfin/jit/jit.py\", line 18, in <module>\n    raise RuntimeError(\"Could not find DOLFIN pkg-config file. Please make sure appropriate paths are set.\")\nRuntimeError: Could not find DOLFIN pkg-config file. Please make sure appropriate paths are set.\n",
+        "run_id": 3
+      }
+    ],
+    "post_snapshot": {
+      "timestamp": "2026-03-18T16:53:19.433539",
+      "loadavg": [
+        36.04345703125,
+        124.02001953125,
+        280.693359375
+      ],
+      "cpu_percent_total": 1.4,
+      "memory_percent": 4.5,
+      "memory_used_gb": 19.582,
+      "memory_available_gb": 540.43,
+      "swap_percent": 14.4,
+      "top_processes": [
+        {
+          "pid": 3565,
+          "name": "gnome-shell",
+          "username": "tjzs",
+          "cpu_percent": 202.8,
+          "memory_percent": 0.1473455744387395,
+          "cmdline": "/usr/bin/gnome-shell"
+        },
+        {
+          "pid": 4760,
+          "name": "ToDesk_Service",
+          "username": "root",
+          "cpu_percent": 7.4,
+          "memory_percent": 0.5750419581600312,
+          "cmdline": "/opt/todesk/bin/ToDesk_Service"
+        },
+        {
+          "pid": 1987522,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 5.8,
+          "memory_percent": 0.05501734214917006,
+          "cmdline": "/usr/share/code/code --type=zygote"
+        },
+        {
+          "pid": 2740,
+          "name": "Xorg",
+          "username": "tjzs",
+          "cpu_percent": 3.7,
+          "memory_percent": 0.03387672781586724,
+          "cmdline": "/usr/lib/xorg/Xorg vt2 -displayfd 3 -auth /run/user/1000/gdm/Xauthority -nolisten tcp -background none -noreset -keeptty -novtswitch -verbose 3"
+        },
+        {
+          "pid": 1306685,
+          "name": "ToDesk",
+          "username": "tjzs",
+          "cpu_percent": 3.6,
+          "memory_percent": 0.03895958451123124,
+          "cmdline": "/opt/todesk/bin/ToDesk"
+        },
+        {
+          "pid": 1987634,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 3.2,
+          "memory_percent": 0.01719371951338735,
+          "cmdline": "/usr/share/code/code --type=zygote --no-zygote-sandbox"
+        },
+        {
+          "pid": 3426674,
+          "name": "python",
+          "username": "tjzs",
+          "cpu_percent": 2.3,
+          "memory_percent": 0.004915763845357346,
+          "cmdline": "/home/tjzs/.conda/envs/pytorch-env/bin/python /home/tjzs/Documents/0310/run_practical_speed_benchmark.py"
+        },
+        {
+          "pid": 3401148,
+          "name": "top",
+          "username": "tjzs",
+          "cpu_percent": 1.8,
+          "memory_percent": 0.0007761732387406336,
+          "cmdline": "top"
+        },
+        {
+          "pid": 1385948,
+          "name": "tailscaled",
+          "username": "root",
+          "cpu_percent": 0.7,
+          "memory_percent": 0.007462582284975051,
+          "cmdline": "/usr/sbin/tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=41641"
+        },
+        {
+          "pid": 3346412,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 0.6,
+          "memory_percent": 0.10616392452701641,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node --dns-result-order=ipv4first /home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/out/bootstrap-fork --type=extensionHost --transformURIs --useHostProxy=false"
+        },
+        {
+          "pid": 3346639,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 0.6,
+          "memory_percent": 0.010426459088117452,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node /home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/out/bootstrap-fork --type=ptyHost --logsPath /home/tjzs/.vscode-server/data/logs/20260318T112207"
+        },
+        {
+          "pid": 700085,
+          "name": "snap-store",
+          "username": "tjzs",
+          "cpu_percent": 0.3,
+          "memory_percent": 0.2753514990121915,
+          "cmdline": "/snap/snap-store/1216/usr/bin/snap-store --details todesk"
+        }
+      ]
+    },
+    "post_gpu_info": {
+      "gpu_available": true,
+      "gpu_count": 2,
+      "gpus": [
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "15",
+          "gpu_util_percent": "0",
+          "mem_util_percent": "0",
+          "temperature_c": "27"
+        },
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "211",
+          "gpu_util_percent": "16",
+          "mem_util_percent": "1",
+          "temperature_c": "33"
+        }
+      ],
+      "gpu_processes": []
+    },
+    "summary": {
+      "n_success": 0,
+      "n_total": 3,
+      "mean_sec": null,
+      "std_sec": null,
+      "min_sec": null,
+      "max_sec": null
+    }
+  },
+  "neural_surrogate": {
+    "label": "neural_surrogate",
+    "command": [
+      "/home/tjzs/.conda/envs/pytorch-env/bin/python",
+      "/home/tjzs/Documents/0310/run_speedup_benchmark.py"
+    ],
+    "command_str": "/home/tjzs/.conda/envs/pytorch-env/bin/python /home/tjzs/Documents/0310/run_speedup_benchmark.py",
+    "repeats": 5,
+    "timeout": null,
+    "pre_snapshot": {
+      "timestamp": "2026-03-18T16:53:20.317655",
+      "loadavg": [
+        36.04345703125,
+        124.02001953125,
+        280.693359375
+      ],
+      "cpu_percent_total": 1.4,
+      "memory_percent": 4.5,
+      "memory_used_gb": 19.594,
+      "memory_available_gb": 540.42,
+      "swap_percent": 14.4,
+      "top_processes": [
+        {
+          "pid": 3565,
+          "name": "gnome-shell",
+          "username": "tjzs",
+          "cpu_percent": 225.9,
+          "memory_percent": 0.1473455744387395,
+          "cmdline": "/usr/bin/gnome-shell"
+        },
+        {
+          "pid": 3426674,
+          "name": "python",
+          "username": "tjzs",
+          "cpu_percent": 31.6,
+          "memory_percent": 0.004915763845357346,
+          "cmdline": "/home/tjzs/.conda/envs/pytorch-env/bin/python /home/tjzs/Documents/0310/run_practical_speed_benchmark.py"
+        },
+        {
+          "pid": 4760,
+          "name": "ToDesk_Service",
+          "username": "root",
+          "cpu_percent": 7.9,
+          "memory_percent": 0.5750419581600312,
+          "cmdline": "/opt/todesk/bin/ToDesk_Service"
+        },
+        {
+          "pid": 1987522,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 5.6,
+          "memory_percent": 0.05501734214917006,
+          "cmdline": "/usr/share/code/code --type=zygote"
+        },
+        {
+          "pid": 2740,
+          "name": "Xorg",
+          "username": "tjzs",
+          "cpu_percent": 4.5,
+          "memory_percent": 0.03387672781586724,
+          "cmdline": "/usr/lib/xorg/Xorg vt2 -displayfd 3 -auth /run/user/1000/gdm/Xauthority -nolisten tcp -background none -noreset -keeptty -novtswitch -verbose 3"
+        },
+        {
+          "pid": 1306685,
+          "name": "ToDesk",
+          "username": "tjzs",
+          "cpu_percent": 3.4,
+          "memory_percent": 0.03895958451123124,
+          "cmdline": "/opt/todesk/bin/ToDesk"
+        },
+        {
+          "pid": 1987634,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 3.4,
+          "memory_percent": 0.01719371951338735,
+          "cmdline": "/usr/share/code/code --type=zygote --no-zygote-sandbox"
+        },
+        {
+          "pid": 700085,
+          "name": "snap-store",
+          "username": "tjzs",
+          "cpu_percent": 1.1,
+          "memory_percent": 0.2753514990121915,
+          "cmdline": "/snap/snap-store/1216/usr/bin/snap-store --details todesk"
+        },
+        {
+          "pid": 2130345,
+          "name": "update-manager",
+          "username": "tjzs",
+          "cpu_percent": 1.1,
+          "memory_percent": 0.018047375323703655,
+          "cmdline": "/usr/bin/python3 /usr/bin/update-manager --no-update --no-focus-on-map"
+        },
+        {
+          "pid": 3346639,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 1.1,
+          "memory_percent": 0.010426459088117452,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node /home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/out/bootstrap-fork --type=ptyHost --logsPath /home/tjzs/.vscode-server/data/logs/20260318T112207"
+        },
+        {
+          "pid": 1385948,
+          "name": "tailscaled",
+          "username": "root",
+          "cpu_percent": 1.1,
+          "memory_percent": 0.007462582284975051,
+          "cmdline": "/usr/sbin/tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=41641"
+        },
+        {
+          "pid": 16,
+          "name": "ksoftirqd/0",
+          "username": "root",
+          "cpu_percent": 1.1,
+          "memory_percent": 0.0,
+          "cmdline": ""
+        }
+      ]
+    },
+    "pre_gpu_info": {
+      "gpu_available": true,
+      "gpu_count": 2,
+      "gpus": [
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "15",
+          "gpu_util_percent": "0",
+          "mem_util_percent": "0",
+          "temperature_c": "27"
+        },
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "211",
+          "gpu_util_percent": "19",
+          "mem_util_percent": "2",
+          "temperature_c": "33"
+        }
+      ],
+      "gpu_processes": []
+    },
+    "runs": [
+      {
+        "returncode": 0,
+        "wall_clock_sec": 2.6803119480609894,
+        "stdout": "[DONE] Speed benchmark saved to: ./experiments_phys_levels/paper_speedup_benchmark.json\n{\n  \"level\": 2,\n  \"device\": \"cuda\",\n  \"single_sample_latency_sec\": 0.00015306704863905907,\n  \"batch_size\": 1024,\n  \"batch_time_sec\": 0.00017497599124908448,\n  \"per_sample_batch_latency_sec\": 1.7087499145418406e-07,\n  \"batch_throughput_samples_per_sec\": 5852231.455813272,\n  \"high_fidelity_seconds_per_case\": 3600,\n  \"speedup_single_vs_hf\": 23519105.07198063,\n  \"speedup_batch_per_sample_vs_hf\": 21068033240.92778\n}\n",
+        "stderr": "",
+        "run_id": 1
+      },
+      {
+        "returncode": 0,
+        "wall_clock_sec": 2.568490168079734,
+        "stdout": "[DONE] Speed benchmark saved to: ./experiments_phys_levels/paper_speedup_benchmark.json\n{\n  \"level\": 2,\n  \"device\": \"cuda\",\n  \"single_sample_latency_sec\": 0.0001574719436466694,\n  \"batch_size\": 1024,\n  \"batch_time_sec\": 0.000176638625562191,\n  \"per_sample_batch_latency_sec\": 1.7249865777557716e-07,\n  \"batch_throughput_samples_per_sec\": 5797146.5569373425,\n  \"high_fidelity_seconds_per_case\": 3600,\n  \"speedup_single_vs_hf\": 22861215.25290605,\n  \"speedup_batch_per_sample_vs_hf\": 20869727604.97443\n}\n",
+        "stderr": "",
+        "run_id": 2
+      },
+      {
+        "returncode": 0,
+        "wall_clock_sec": 2.6326902136206627,
+        "stdout": "[DONE] Speed benchmark saved to: ./experiments_phys_levels/paper_speedup_benchmark.json\n{\n  \"level\": 2,\n  \"device\": \"cuda\",\n  \"single_sample_latency_sec\": 0.00015314896777272224,\n  \"batch_size\": 1024,\n  \"batch_time_sec\": 0.0001757623627781868,\n  \"per_sample_batch_latency_sec\": 1.7164293240057304e-07,\n  \"batch_throughput_samples_per_sec\": 5826048.21540943,\n  \"high_fidelity_seconds_per_case\": 3600,\n  \"speedup_single_vs_hf\": 23506524.740947064,\n  \"speedup_batch_per_sample_vs_hf\": 20973773575.47395\n}\n",
+        "stderr": "",
+        "run_id": 3
+      },
+      {
+        "returncode": 0,
+        "wall_clock_sec": 2.5735392551869154,
+        "stdout": "[DONE] Speed benchmark saved to: ./experiments_phys_levels/paper_speedup_benchmark.json\n{\n  \"level\": 2,\n  \"device\": \"cuda\",\n  \"single_sample_latency_sec\": 0.00015753202512860297,\n  \"batch_size\": 1024,\n  \"batch_time_sec\": 0.00017436347901821135,\n  \"per_sample_batch_latency_sec\": 1.7027683497872202e-07,\n  \"batch_throughput_samples_per_sec\": 5872789.449750819,\n  \"high_fidelity_seconds_per_case\": 3600,\n  \"speedup_single_vs_hf\": 22852496.164263114,\n  \"speedup_batch_per_sample_vs_hf\": 21142042019.10295\n}\n",
+        "stderr": "",
+        "run_id": 4
+      },
+      {
+        "returncode": 0,
+        "wall_clock_sec": 2.6320434622466564,
+        "stdout": "[DONE] Speed benchmark saved to: ./experiments_phys_levels/paper_speedup_benchmark.json\n{\n  \"level\": 2,\n  \"device\": \"cuda\",\n  \"single_sample_latency_sec\": 0.00015435925498604776,\n  \"batch_size\": 1024,\n  \"batch_time_sec\": 0.0001735260523855686,\n  \"per_sample_batch_latency_sec\": 1.6945903553278185e-07,\n  \"batch_throughput_samples_per_sec\": 5901131.1899420675,\n  \"high_fidelity_seconds_per_case\": 3600,\n  \"speedup_single_vs_hf\": 23322216.736051217,\n  \"speedup_batch_per_sample_vs_hf\": 21244072283.791443\n}\n",
+        "stderr": "",
+        "run_id": 5
+      }
+    ],
+    "post_snapshot": {
+      "timestamp": "2026-03-18T16:53:34.305820",
+      "loadavg": [
+        28.57568359375,
+        118.05908203125,
+        276.2314453125
+      ],
+      "cpu_percent_total": 1.2,
+      "memory_percent": 4.6,
+      "memory_used_gb": 20.026,
+      "memory_available_gb": 539.989,
+      "swap_percent": 14.4,
+      "top_processes": [
+        {
+          "pid": 3565,
+          "name": "gnome-shell",
+          "username": "tjzs",
+          "cpu_percent": 193.1,
+          "memory_percent": 0.1473455744387395,
+          "cmdline": "/usr/bin/gnome-shell"
+        },
+        {
+          "pid": 4760,
+          "name": "ToDesk_Service",
+          "username": "root",
+          "cpu_percent": 7.0,
+          "memory_percent": 0.5750419581600312,
+          "cmdline": "/opt/todesk/bin/ToDesk_Service"
+        },
+        {
+          "pid": 1987522,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 4.8,
+          "memory_percent": 0.05501734214917006,
+          "cmdline": "/usr/share/code/code --type=zygote"
+        },
+        {
+          "pid": 1306685,
+          "name": "ToDesk",
+          "username": "tjzs",
+          "cpu_percent": 3.6,
+          "memory_percent": 0.03895958451123124,
+          "cmdline": "/opt/todesk/bin/ToDesk"
+        },
+        {
+          "pid": 2740,
+          "name": "Xorg",
+          "username": "tjzs",
+          "cpu_percent": 3.1,
+          "memory_percent": 0.03387672781586724,
+          "cmdline": "/usr/lib/xorg/Xorg vt2 -displayfd 3 -auth /run/user/1000/gdm/Xauthority -nolisten tcp -background none -noreset -keeptty -novtswitch -verbose 3"
+        },
+        {
+          "pid": 1987634,
+          "name": "code",
+          "username": "tjzs",
+          "cpu_percent": 3.1,
+          "memory_percent": 0.01719371951338735,
+          "cmdline": "/usr/share/code/code --type=zygote --no-zygote-sandbox"
+        },
+        {
+          "pid": 3426674,
+          "name": "python",
+          "username": "tjzs",
+          "cpu_percent": 2.1,
+          "memory_percent": 0.004915763845357346,
+          "cmdline": "/home/tjzs/.conda/envs/pytorch-env/bin/python /home/tjzs/Documents/0310/run_practical_speed_benchmark.py"
+        },
+        {
+          "pid": 3401148,
+          "name": "top",
+          "username": "tjzs",
+          "cpu_percent": 2.0,
+          "memory_percent": 0.0007761732387406336,
+          "cmdline": "top"
+        },
+        {
+          "pid": 3346412,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 1.9,
+          "memory_percent": 0.10616392452701641,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node --dns-result-order=ipv4first /home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/out/bootstrap-fork --type=extensionHost --transformURIs --useHostProxy=false"
+        },
+        {
+          "pid": 4107,
+          "name": "tracker-miner-fs-3",
+          "username": "tjzs",
+          "cpu_percent": 0.8,
+          "memory_percent": 0.0036221417807896237,
+          "cmdline": "/usr/libexec/tracker-miner-fs-3"
+        },
+        {
+          "pid": 3346639,
+          "name": "node",
+          "username": "tjzs",
+          "cpu_percent": 0.6,
+          "memory_percent": 0.010426459088117452,
+          "cmdline": "/home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/node /home/tjzs/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/out/bootstrap-fork --type=ptyHost --logsPath /home/tjzs/.vscode-server/data/logs/20260318T112207"
+        },
+        {
+          "pid": 1385948,
+          "name": "tailscaled",
+          "username": "root",
+          "cpu_percent": 0.6,
+          "memory_percent": 0.007462582284975051,
+          "cmdline": "/usr/sbin/tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=41641"
+        }
+      ]
+    },
+    "post_gpu_info": {
+      "gpu_available": true,
+      "gpu_count": 2,
+      "gpus": [
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "15",
+          "gpu_util_percent": "0",
+          "mem_util_percent": "0",
+          "temperature_c": "30"
+        },
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "memory_total_mb": "32607",
+          "memory_used_mb": "211",
+          "gpu_util_percent": "11",
+          "mem_util_percent": "1",
+          "temperature_c": "34"
+        }
+      ],
+      "gpu_processes": []
+    },
+    "summary": {
+      "n_success": 5,
+      "n_total": 5,
+      "mean_sec": 2.6174150094389916,
+      "std_sec": 0.04669601239820777,
+      "min_sec": 2.568490168079734,
+      "max_sec": 2.6803119480609894
+    }
+  },
+  "comparison": {
+    "hf_mean_sec": null,
+    "nn_mean_sec": 2.6174150094389916,
+    "speedup_hf_over_nn": null
+  }
+}

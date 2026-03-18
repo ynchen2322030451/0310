@@ -2,16 +2,25 @@
 # ============================================================
 # Repeated synthetic calibration benchmark for inverse UQ
 #
-# Goal:
-#   1) reserve an independent calibration pool
-#   2) retrain a clean surrogate (Level2 by default) on emulator-only data
-#   3) run repeated synthetic-truth Bayesian calibration benchmarks
+# Supports:
+#   - full inverse (all INPUT_COLS)
+#   - reduced inverse (selected dominant parameters)
 #
-# Outputs:
-#   - calibration_benchmark_case_summary.csv
-#   - calibration_benchmark_parameter_recovery.csv
-#   - calibration_benchmark_observation_fit.csv
-#   - calibration_benchmark_meta.json
+# Main outputs:
+#   - calibration_benchmark_case_summary_full.csv / _reduced.csv
+#   - calibration_benchmark_parameter_recovery_full.csv / _reduced.csv
+#   - calibration_benchmark_observation_fit_full.csv / _reduced.csv
+#   - calibration_benchmark_parameter_recovery_summary_full.csv / _reduced.csv
+#   - calibration_benchmark_observation_fit_summary_full.csv / _reduced.csv
+#   - calibration_benchmark_meta_full.json / _reduced.json
+#   - inverse_diagnostics_summary_full.json / _reduced.json
+#   - calibration_benchmark_compare_full_vs_reduced.csv
+#
+# Optional per-case outputs:
+#   - benchmark_caseXXX_prior_samples_full.csv / _reduced.csv
+#   - benchmark_caseXXX_posterior_samples_full.csv / _reduced.csv
+#   - benchmark_caseXXX_posterior_predictive_full.csv / _reduced.csv
+#   - benchmark_caseXXX_full_chain_full.csv / _reduced.csv
 # ============================================================
 
 import os
@@ -40,14 +49,12 @@ from run_phys_levels_main import (
     train_with_params,
 )
 
-
 # ============================================================
 # User settings
 # ============================================================
 
 FINAL_LEVEL = 2
-CALIB_HOLDOUT_FRAC = 0.15        # independent calibration pool
-N_CASES = 20                     # repeated synthetic truths
+CALIB_HOLDOUT_FRAC = 0.15
 CASE_SELECTION = "stress_stratified"   # "random" or "stress_stratified"
 
 OBS_COLS = [
@@ -60,17 +67,32 @@ OBS_COLS = [
 
 PRIOR_TYPE = "trunc_gaussian"    # "trunc_gaussian" or "uniform"
 
-N_MCMC = 8000
+RUN_TAG = "reduced"   # "full" or "reduced"
+
+if RUN_TAG == "full":
+    CALIBRATION_INPUT_COLS = INPUT_COLS
+elif RUN_TAG == "reduced":
+    CALIBRATION_INPUT_COLS = ["E_intercept", "alpha_base", "alpha_slope", "SS316_k_ref"]
+else:
+    raise ValueError("RUN_TAG must be 'full' or 'reduced'")
+
+N_CASES = 20
+N_TOTAL = 8000
 BURN_IN = 2000
 THIN = 5
 
-OBS_NOISE_FRAC = 0.02            # fixed observation noise = frac * training std
-PROPOSAL_SCALE = 0.15            # RW proposal std = frac * prior std
+OBS_NOISE_FRAC = 0.02
+PROPOSAL_SCALE = 0.15
 
-SAVE_PER_CASE_POSTERIOR = True  # set True if you want large output files
+SAVE_PRIOR_SAMPLES = True
+N_PRIOR_EXPORT = 5000
 
-SAVE_REPRESENTATIVE_CHAIN = True
-REPRESENTATIVE_CASE_FOR_TRACE_MODE = "closest_to_threshold"  # "first", "closest_to_threshold"
+SAVE_PER_CASE_POSTERIOR = True
+SAVE_FULL_CHAIN_FOR_REP_CASES = True
+REPRESENTATIVE_CASE_FOR_TRACE_MODE = "closest_to_threshold"   # "first", "closest_to_threshold"
+PRIMARY_STRESS_THRESHOLD = 131.0
+REP_CASE_STRESS_WINDOW = 5.0
+
 # ============================================================
 # Utilities
 # ============================================================
@@ -102,6 +124,31 @@ def load_best_params(level: int):
     with open(path, "r", encoding="utf-8") as f:
         obj = json.load(f)
     return obj["best_params"]
+
+
+def build_run_suffix():
+    return f"_{RUN_TAG}"
+
+
+def subset_input_array(x_full: np.ndarray, full_cols, sub_cols):
+    idx = [full_cols.index(c) for c in sub_cols]
+    return x_full[:, idx]
+
+
+def expand_reduced_to_full(x_reduced: np.ndarray, reduced_cols, full_reference_row: np.ndarray, full_cols):
+    out = np.tile(full_reference_row.reshape(1, -1), (x_reduced.shape[0], 1))
+    for j, c in enumerate(reduced_cols):
+        full_j = full_cols.index(c)
+        out[:, full_j] = x_reduced[:, j]
+    return out
+
+
+def sample_uniform_prior(n: int, bounds_dict: dict, cols: list, rng: np.random.RandomState):
+    arr = np.zeros((n, len(cols)), dtype=float)
+    for j, c in enumerate(cols):
+        lo, hi = bounds_dict[c]
+        arr[:, j] = rng.uniform(lo, hi, size=n)
+    return arr
 
 
 def split_for_benchmark(df):
@@ -173,8 +220,8 @@ def build_training_args(split, device):
 
 
 @torch.no_grad()
-def predict_single_x(model, sx, sy, x_raw, device):
-    x_s = sx.transform(x_raw.reshape(1, -1))
+def predict_single_x_full(model, sx, sy, x_full_raw, device):
+    x_s = sx.transform(x_full_raw.reshape(1, -1))
     x = torch.tensor(x_s, dtype=torch.float32, device=device)
     mu_s, logvar_s = model(x)
 
@@ -183,15 +230,16 @@ def predict_single_x(model, sx, sy, x_raw, device):
 
     mu_raw = sy.inverse_transform(mu_s.reshape(1, -1))[0]
     sigma_raw = np.sqrt(np.exp(logvar_s)) * sy.scale_
-
     return mu_raw, sigma_raw
 
 
 def get_prior_stats(split):
-    X_ref = split["X_tr"]
+    X_ref_full = split["X_tr"]
+    X_ref_sub = subset_input_array(X_ref_full, INPUT_COLS, CALIBRATION_INPUT_COLS)
+
     stats = {}
-    for i, c in enumerate(INPUT_COLS):
-        col = X_ref[:, i]
+    for i, c in enumerate(CALIBRATION_INPUT_COLS):
+        col = X_ref_sub[:, i]
         stats[c] = {
             "mean": float(np.mean(col)),
             "std": float(np.std(col) + 1e-12),
@@ -201,10 +249,10 @@ def get_prior_stats(split):
     return stats
 
 
-def log_prior(x, prior_stats, prior_type="trunc_gaussian"):
+def log_prior_sub(theta_sub, prior_stats, prior_type="trunc_gaussian"):
     lp = 0.0
-    for i, c in enumerate(INPUT_COLS):
-        xi = x[i]
+    for i, c in enumerate(CALIBRATION_INPUT_COLS):
+        xi = theta_sub[i]
         lo = prior_stats[c]["min"]
         hi = prior_stats[c]["max"]
 
@@ -213,7 +261,6 @@ def log_prior(x, prior_stats, prior_type="trunc_gaussian"):
 
         if prior_type == "uniform":
             continue
-
         elif prior_type == "trunc_gaussian":
             mu = prior_stats[c]["mean"]
             sd = prior_stats[c]["std"]
@@ -225,33 +272,9 @@ def log_prior(x, prior_stats, prior_type="trunc_gaussian"):
     return float(lp)
 
 
-def log_likelihood(x, model, sx, sy, y_obs, obs_idx, obs_noise_sigma, device):
-    mu_raw, sigma_raw = predict_single_x(model, sx, sy, x, device)
-
-    ll = 0.0
-    for k, j in enumerate(obs_idx):
-        mu = float(mu_raw[j])
-        sigma_model = max(float(sigma_raw[j]), 1e-12)
-        sigma_obs = max(float(obs_noise_sigma[k]), 1e-12)
-
-        sigma_total = math.sqrt(sigma_model**2 + sigma_obs**2)
-        r = y_obs[k] - mu
-        ll += -0.5 * (r / sigma_total) ** 2 - math.log(sigma_total) - 0.5 * math.log(2 * math.pi)
-
-    return float(ll)
-
-
-def log_posterior(x, prior_stats, model, sx, sy, y_obs, obs_idx, obs_noise_sigma, device):
-    lp = log_prior(x, prior_stats, prior_type=PRIOR_TYPE)
-    if not np.isfinite(lp):
-        return -np.inf
-    ll = log_likelihood(x, model, sx, sy, y_obs, obs_idx, obs_noise_sigma, device)
-    return lp + ll
-
-
-def reflect_to_bounds(x, prior_stats):
-    y = x.copy()
-    for i, c in enumerate(INPUT_COLS):
+def reflect_to_bounds_sub(theta_sub, prior_stats):
+    y = theta_sub.copy()
+    for i, c in enumerate(CALIBRATION_INPUT_COLS):
         lo = prior_stats[c]["min"]
         hi = prior_stats[c]["max"]
         if y[i] < lo:
@@ -262,51 +285,121 @@ def reflect_to_bounds(x, prior_stats):
     return y
 
 
-def run_mh(x0, prior_stats, model, sx, sy, y_obs, obs_idx, obs_noise_sigma, device):
-    x_curr = x0.copy()
-    curr_lp = log_posterior(
-        x_curr, prior_stats, model, sx, sy,
-        y_obs, obs_idx, obs_noise_sigma, device
+def log_likelihood_sub(
+    theta_sub,
+    model,
+    sx,
+    sy,
+    x_ref_full,
+    y_obs,
+    obs_idx,
+    obs_noise_sigma,
+    device
+):
+    x_full = expand_reduced_to_full(
+        theta_sub.reshape(1, -1),
+        reduced_cols=CALIBRATION_INPUT_COLS,
+        full_reference_row=x_ref_full,
+        full_cols=INPUT_COLS
+    )[0]
+
+    mu_raw, sigma_raw = predict_single_x_full(model, sx, sy, x_full, device)
+
+    ll = 0.0
+    for k, j in enumerate(obs_idx):
+        mu = float(mu_raw[j])
+        sigma_model = max(float(sigma_raw[j]), 1e-12)
+        sigma_obs = max(float(obs_noise_sigma[k]), 1e-12)
+        sigma_total = math.sqrt(sigma_model**2 + sigma_obs**2)
+
+        r = y_obs[k] - mu
+        ll += -0.5 * (r / sigma_total) ** 2 - math.log(sigma_total) - 0.5 * math.log(2 * math.pi)
+
+    return float(ll)
+
+
+def log_posterior_sub(
+    theta_sub,
+    prior_stats,
+    model,
+    sx,
+    sy,
+    x_ref_full,
+    y_obs,
+    obs_idx,
+    obs_noise_sigma,
+    device
+):
+    lp = log_prior_sub(theta_sub, prior_stats, prior_type=PRIOR_TYPE)
+    if not np.isfinite(lp):
+        return -np.inf
+    ll = log_likelihood_sub(theta_sub, model, sx, sy, x_ref_full, y_obs, obs_idx, obs_noise_sigma, device)
+    return lp + ll
+
+
+def run_mh_sub(
+    x0_sub,
+    prior_stats,
+    model,
+    sx,
+    sy,
+    x_ref_full,
+    y_obs,
+    obs_idx,
+    obs_noise_sigma,
+    device
+):
+    theta_curr = x0_sub.copy()
+    curr_lp = log_posterior_sub(
+        theta_curr, prior_stats, model, sx, sy,
+        x_ref_full, y_obs, obs_idx, obs_noise_sigma, device
     )
 
     proposal_std = np.array(
-        [prior_stats[c]["std"] * PROPOSAL_SCALE for c in INPUT_COLS],
+        [prior_stats[c]["std"] * PROPOSAL_SCALE for c in CALIBRATION_INPUT_COLS],
         dtype=float
     )
     proposal_std = np.maximum(proposal_std, 1e-12)
 
-    chain = np.zeros((N_MCMC, len(INPUT_COLS)), dtype=float)
-    logp_chain = np.zeros(N_MCMC, dtype=float)
+    chain = np.zeros((N_TOTAL, len(CALIBRATION_INPUT_COLS)), dtype=float)
+    logp_chain = np.zeros(N_TOTAL, dtype=float)
 
     n_accept = 0
 
-    for t in range(N_MCMC):
-        prop = x_curr + np.random.normal(0.0, proposal_std, size=len(INPUT_COLS))
-        prop = reflect_to_bounds(prop, prior_stats)
+    for t in range(N_TOTAL):
+        prop = theta_curr + np.random.normal(0.0, proposal_std, size=len(CALIBRATION_INPUT_COLS))
+        prop = reflect_to_bounds_sub(prop, prior_stats)
 
-        prop_lp = log_posterior(
+        prop_lp = log_posterior_sub(
             prop, prior_stats, model, sx, sy,
-            y_obs, obs_idx, obs_noise_sigma, device
+            x_ref_full, y_obs, obs_idx, obs_noise_sigma, device
         )
 
         if np.log(np.random.rand()) < (prop_lp - curr_lp):
-            x_curr = prop
+            theta_curr = prop
             curr_lp = prop_lp
             n_accept += 1
 
-        chain[t] = x_curr
+        chain[t] = theta_curr
         logp_chain[t] = curr_lp
 
-    accept_rate = n_accept / float(N_MCMC)
+    accept_rate = n_accept / float(N_TOTAL)
     return chain, logp_chain, accept_rate
 
 
-def posterior_predictive(samples, model, sx, sy, device):
+def posterior_predictive_from_subspace(samples_sub, model, sx, sy, x_ref_full, device):
     mus = []
     sigmas = []
 
-    for x in samples:
-        mu_raw, sigma_raw = predict_single_x(model, sx, sy, x, device)
+    X_full = expand_reduced_to_full(
+        samples_sub,
+        reduced_cols=CALIBRATION_INPUT_COLS,
+        full_reference_row=x_ref_full,
+        full_cols=INPUT_COLS
+    )
+
+    for x_full in X_full:
+        mu_raw, sigma_raw = predict_single_x_full(model, sx, sy, x_full, device)
         mus.append(mu_raw)
         sigmas.append(sigma_raw)
 
@@ -316,29 +409,9 @@ def posterior_predictive(samples, model, sx, sy, device):
     return mus, sigmas, y_pred
 
 
-def summarize_case_posterior(samples):
-    rows = []
-    for i, c in enumerate(INPUT_COLS):
-        v = samples[:, i]
-        rows.append({
-            "parameter": c,
-            "mean": float(np.mean(v)),
-            "std": float(np.std(v)),
-            "q05": float(np.quantile(v, 0.05)),
-            "q25": float(np.quantile(v, 0.25)),
-            "q50": float(np.quantile(v, 0.50)),
-            "q75": float(np.quantile(v, 0.75)),
-            "q95": float(np.quantile(v, 0.95)),
-            "min": float(np.min(v)),
-            "max": float(np.max(v)),
-        })
-    return rows
-
-
 def choose_case_indices(split):
     """
     Select multiple synthetic truths from calibration pool.
-    Default: stress-stratified selection.
     """
     n_pool = split["X_cal"].shape[0]
     if N_CASES > n_pool:
@@ -366,12 +439,18 @@ def choose_case_indices(split):
         raise ValueError(f"Unsupported CASE_SELECTION: {CASE_SELECTION}")
 
 
-def compute_feasible_fraction(samples, model, sx, sy, device):
+def compute_feasible_fraction(samples_sub, model, sx, sy, x_ref_full, device):
     stress_idx = OUTPUT_COLS.index("iteration2_max_global_stress")
+    X_full = expand_reduced_to_full(
+        samples_sub,
+        reduced_cols=CALIBRATION_INPUT_COLS,
+        full_reference_row=x_ref_full,
+        full_cols=INPUT_COLS
+    )
 
     mus = []
-    for x in samples:
-        mu_raw, _ = predict_single_x(model, sx, sy, x, device)
+    for x_full in X_full:
+        mu_raw, _ = predict_single_x_full(model, sx, sy, x_full, device)
         mus.append(mu_raw)
     mus = np.asarray(mus)
 
@@ -382,21 +461,18 @@ def compute_feasible_fraction(samples, model, sx, sy, device):
         mask = stress_mu <= thr
         rows.append({
             "threshold_MPa": float(thr),
-            "n_posterior_samples": int(samples.shape[0]),
+            "n_posterior_samples": int(samples_sub.shape[0]),
             "n_feasible": int(np.sum(mask)),
             "feasible_fraction": float(np.mean(mask)),
         })
     return rows
 
 
-# ============================================================
-# Main
-# ============================================================
-
 def main():
     seed_all(SEED)
     ensure_dir(OUT_DIR)
     device = get_device()
+    run_suffix = build_run_suffix()
 
     # 1) data split
     df = load_dataset()
@@ -432,20 +508,45 @@ def main():
     param_recovery_rows = []
     obs_fit_rows = []
 
+    # for comparison table
+    compare_rows = []
+
     for bench_id, case_idx in enumerate(case_indices):
-        x_true = split["X_cal"][case_idx]
+        x_true_full = split["X_cal"][case_idx]
         y_true = split["Y_cal"][case_idx]
         y_obs = y_true[obs_idx].copy()
 
-        # initialize at prior mean
-        x0 = np.array([prior_stats[c]["mean"] for c in INPUT_COLS], dtype=float)
+        x_true_sub = subset_input_array(
+            x_true_full.reshape(1, -1), INPUT_COLS, CALIBRATION_INPUT_COLS
+        )[0]
 
-        chain, logp_chain, accept_rate = run_mh(
-            x0=x0,
+        # fill non-calibrated parameters with training mean
+        x_ref_full = np.mean(split["X_tr"], axis=0)
+
+        # initialize at prior mean
+        x0_sub = np.array([prior_stats[c]["mean"] for c in CALIBRATION_INPUT_COLS], dtype=float)
+
+        # export prior samples
+        if SAVE_PRIOR_SAMPLES:
+            rng_prior = np.random.RandomState(SEED + 10000 + bench_id)
+            prior_sub = sample_uniform_prior(
+                n=N_PRIOR_EXPORT,
+                bounds_dict={c: (prior_stats[c]["min"], prior_stats[c]["max"]) for c in CALIBRATION_INPUT_COLS},
+                cols=CALIBRATION_INPUT_COLS,
+                rng=rng_prior
+            )
+            pd.DataFrame(prior_sub, columns=CALIBRATION_INPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_prior_samples{run_suffix}.csv"),
+                index=False, encoding="utf-8-sig"
+            )
+
+        chain, logp_chain, accept_rate = run_mh_sub(
+            x0_sub=x0_sub,
             prior_stats=prior_stats,
             model=model,
             sx=split["sx"],
             sy=split["sy"],
+            x_ref_full=x_ref_full,
             y_obs=y_obs,
             obs_idx=obs_idx,
             obs_noise_sigma=obs_noise_sigma,
@@ -456,14 +557,14 @@ def main():
         logp_post = logp_chain[BURN_IN::THIN]
 
         # posterior summary for parameters
-        for i, c in enumerate(INPUT_COLS):
+        for i, c in enumerate(CALIBRATION_INPUT_COLS):
             v = post[:, i]
             q05 = float(np.quantile(v, 0.05))
             q25 = float(np.quantile(v, 0.25))
             q50 = float(np.quantile(v, 0.50))
             q75 = float(np.quantile(v, 0.75))
             q95 = float(np.quantile(v, 0.95))
-            true_val = float(x_true[i])
+            true_val = float(x_true_sub[i])
 
             param_recovery_rows.append({
                 "benchmark_case_id": int(bench_id),
@@ -483,7 +584,9 @@ def main():
             })
 
         # posterior predictive
-        mus, sigmas, y_pred = posterior_predictive(post, model, split["sx"], split["sy"], device)
+        mus, sigmas, y_pred = posterior_predictive_from_subspace(
+            post, model, split["sx"], split["sy"], x_ref_full, device
+        )
 
         for k, c in enumerate(OBS_COLS):
             j = OUTPUT_COLS.index(c)
@@ -510,7 +613,9 @@ def main():
             })
 
         # feasible fractions under thresholds
-        feasible_rows = compute_feasible_fraction(post, model, split["sx"], split["sy"], device)
+        feasible_rows = compute_feasible_fraction(
+            post, model, split["sx"], split["sy"], x_ref_full, device
+        )
         feasible_map = {r["threshold_MPa"]: r["feasible_fraction"] for r in feasible_rows}
 
         # case-level summary
@@ -532,55 +637,52 @@ def main():
             "feasible_fraction_131": float(feasible_map.get(131.0, np.nan)),
         })
 
-        # optional save
-
-        # save full chain for one representative case, for trace diagnostics
+        # save representative full chain
         save_this_chain = False
-        if SAVE_REPRESENTATIVE_CHAIN:
+        if SAVE_FULL_CHAIN_FOR_REP_CASES:
             if REPRESENTATIVE_CASE_FOR_TRACE_MODE == "first" and bench_id == 0:
                 save_this_chain = True
             elif REPRESENTATIVE_CASE_FOR_TRACE_MODE == "closest_to_threshold":
-                # save the case whose observed stress is closest to 131 MPa
-                # handled after full case list is known is cleaner, but for minimal patch:
-                # save all chains around threshold candidates by simple rule
-                if abs(y_obs[OBS_COLS.index("iteration2_max_global_stress")] - 131.0) <= 5.0:
+                if abs(y_obs[OBS_COLS.index("iteration2_max_global_stress")] - PRIMARY_STRESS_THRESHOLD) <= REP_CASE_STRESS_WINDOW:
                     save_this_chain = True
 
         if save_this_chain:
-            pd.DataFrame(chain, columns=INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_full_chain.csv"),
+            pd.DataFrame(chain, columns=CALIBRATION_INPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_full_chain{run_suffix}.csv"),
                 index=False, encoding="utf-8-sig"
             )
-    
+
         if SAVE_PER_CASE_POSTERIOR:
-            pd.DataFrame(post, columns=INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_samples.csv"),
+            pd.DataFrame(post, columns=CALIBRATION_INPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_samples{run_suffix}.csv"),
                 index=False, encoding="utf-8-sig"
             )
             pd.DataFrame(y_pred, columns=OUTPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_predictive.csv"),
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_predictive{run_suffix}.csv"),
                 index=False, encoding="utf-8-sig"
             )
 
         print(f"[OK] Finished benchmark case {bench_id+1}/{len(case_indices)}")
 
-    # 4) save outputs
-    pd.DataFrame(case_summary_rows).to_csv(
-        os.path.join(OUT_DIR, "calibration_benchmark_case_summary.csv"),
+    # 4) save raw outputs
+    df_case = pd.DataFrame(case_summary_rows)
+    df_param = pd.DataFrame(param_recovery_rows)
+    df_obs = pd.DataFrame(obs_fit_rows)
+
+    df_case.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_case_summary{run_suffix}.csv"),
         index=False, encoding="utf-8-sig"
     )
-    pd.DataFrame(param_recovery_rows).to_csv(
-        os.path.join(OUT_DIR, "calibration_benchmark_parameter_recovery.csv"),
+    df_param.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_parameter_recovery{run_suffix}.csv"),
         index=False, encoding="utf-8-sig"
     )
-    pd.DataFrame(obs_fit_rows).to_csv(
-        os.path.join(OUT_DIR, "calibration_benchmark_observation_fit.csv"),
+    df_obs.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_observation_fit{run_suffix}.csv"),
         index=False, encoding="utf-8-sig"
     )
 
     # 5) aggregate summaries for paper
-    # parameter-level aggregate
-    df_param = pd.DataFrame(param_recovery_rows)
     df_param_agg = df_param.groupby("parameter").agg(
         mean_abs_error=("abs_error_mean", "mean"),
         mean_width90=("width_90", "mean"),
@@ -588,12 +690,10 @@ def main():
         coverage50=("covered_50", "mean"),
     ).reset_index()
     df_param_agg.to_csv(
-        os.path.join(OUT_DIR, "calibration_benchmark_parameter_recovery_summary.csv"),
+        os.path.join(OUT_DIR, f"calibration_benchmark_parameter_recovery_summary{run_suffix}.csv"),
         index=False, encoding="utf-8-sig"
     )
 
-    # observable-level aggregate
-    df_obs = pd.DataFrame(obs_fit_rows)
     df_obs_agg = df_obs.groupby("observable").agg(
         mean_abs_error=("abs_error_mean", "mean"),
         mean_width90=("width_90", "mean"),
@@ -601,27 +701,65 @@ def main():
         coverage95=("covered_95", "mean"),
     ).reset_index()
     df_obs_agg.to_csv(
-        os.path.join(OUT_DIR, "calibration_benchmark_observation_fit_summary.csv"),
+        os.path.join(OUT_DIR, f"calibration_benchmark_observation_fit_summary{run_suffix}.csv"),
         index=False, encoding="utf-8-sig"
     )
 
+    diag = {
+        "run_tag": RUN_TAG,
+        "n_benchmark_cases": int(len(df_case)),
+        "mean_accept_rate": float(df_case["accept_rate"].mean()),
+        "mean_obs_fit_error": float(df_case["mean_abs_obs_fit_error"].mean()),
+        "mean_obs_coverage90": float(df_case["obs_coverage90_mean"].mean()),
+        "mean_feasible_fraction_110": float(df_case["feasible_fraction_110"].mean()),
+        "mean_feasible_fraction_120": float(df_case["feasible_fraction_120"].mean()),
+        "mean_feasible_fraction_131": float(df_case["feasible_fraction_131"].mean()),
+    }
+    save_json(diag, os.path.join(OUT_DIR, f"inverse_diagnostics_summary{run_suffix}.json"))
+
     meta = {
+        "run_tag": RUN_TAG,
         "final_level": FINAL_LEVEL,
+        "calibration_input_cols": CALIBRATION_INPUT_COLS,
         "calibration_holdout_frac": CALIB_HOLDOUT_FRAC,
         "n_cases": N_CASES,
         "case_selection": CASE_SELECTION,
         "obs_cols": OBS_COLS,
         "prior_type": PRIOR_TYPE,
-        "n_mcmc": N_MCMC,
+        "n_total": N_TOTAL,
         "burn_in": BURN_IN,
         "thin": THIN,
         "obs_noise_frac": OBS_NOISE_FRAC,
         "proposal_scale": PROPOSAL_SCALE,
+        "save_prior_samples": SAVE_PRIOR_SAMPLES,
         "save_per_case_posterior": SAVE_PER_CASE_POSTERIOR,
     }
-    save_json(meta, os.path.join(OUT_DIR, "calibration_benchmark_meta.json"))
+    save_json(meta, os.path.join(OUT_DIR, f"calibration_benchmark_meta{run_suffix}.json"))
 
-    print("[DONE] Repeated synthetic calibration benchmark completed.")
+    # 6) comparison table
+    compare_row = {
+        "run_tag": RUN_TAG,
+        "n_cases": int(len(df_case)),
+        "n_calibration_parameters": int(len(CALIBRATION_INPUT_COLS)),
+        "mean_accept_rate": float(df_case["accept_rate"].mean()),
+        "mean_obs_fit_error": float(df_case["mean_abs_obs_fit_error"].mean()),
+        "mean_obs_coverage90": float(df_case["obs_coverage90_mean"].mean()),
+        "mean_feasible_fraction_110": float(df_case["feasible_fraction_110"].mean()),
+        "mean_feasible_fraction_120": float(df_case["feasible_fraction_120"].mean()),
+        "mean_feasible_fraction_131": float(df_case["feasible_fraction_131"].mean()),
+    }
+
+    compare_path = os.path.join(OUT_DIR, "calibration_benchmark_compare_full_vs_reduced.csv")
+    df_row = pd.DataFrame([compare_row])
+    if os.path.exists(compare_path):
+        df_old = pd.read_csv(compare_path)
+        df_new = pd.concat([df_old, df_row], ignore_index=True)
+        df_new = df_new.drop_duplicates(subset=["run_tag"], keep="last")
+    else:
+        df_new = df_row
+    df_new.to_csv(compare_path, index=False, encoding="utf-8-sig")
+
+    print(f"[DONE] Repeated synthetic calibration benchmark completed ({RUN_TAG}).")
 
 
 if __name__ == "__main__":

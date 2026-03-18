@@ -1,0 +1,2 @@
+﻿run_tag,n_cases,n_calibration_parameters,mean_accept_rate,mean_obs_fit_error,mean_obs_coverage90,mean_feasible_fraction_110,mean_feasible_fraction_120,mean_feasible_fraction_131
+reduced,20,4,0.62840625,1.2265506885330766,1.0,0.03725,0.07920833333333334,0.16670833333333335
