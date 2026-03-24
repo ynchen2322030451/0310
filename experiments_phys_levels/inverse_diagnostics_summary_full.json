@@ -1,0 +1,10 @@
+{
+  "run_tag": "full",
+  "n_benchmark_cases": 20,
+  "mean_accept_rate": 0.4494187500000001,
+  "mean_obs_fit_error": 1.050578085815306,
+  "mean_obs_coverage90": 1.0,
+  "mean_feasible_fraction_110": 0.04658333333333333,
+  "mean_feasible_fraction_120": 0.073375,
+  "mean_feasible_fraction_131": 0.1365
+}

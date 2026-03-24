@@ -1,0 +1,11 @@
+﻿level,base_output,iter1_top3,iter2_top3,top3_overlap_count,stable_iter1_top,stable_iter2_top,same_top1,same_top3_set
+0,avg_fuel_temp,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",3,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",True,True
+0,max_fuel_temp,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",3,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",True,True
+0,max_monolith_temp,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",3,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",True,True
+0,max_global_stress,"E_intercept, SS316_k_ref, alpha_base","E_intercept, alpha_base, nu",2,"E_intercept, SS316_k_ref, alpha_base","E_intercept, alpha_base, nu",True,False
+0,wall2,"alpha_base, alpha_slope, nu","alpha_base, alpha_slope, nu",3,"alpha_base, alpha_slope, nu","alpha_base, alpha_slope, nu",True,True
+2,avg_fuel_temp,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",3,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",True,True
+2,max_fuel_temp,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",3,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",True,True
+2,max_monolith_temp,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",3,"SS316_k_ref, SS316_T_ref, SS316_alpha","SS316_k_ref, SS316_T_ref, SS316_alpha",True,True
+2,max_global_stress,"E_intercept, SS316_k_ref, alpha_base","E_intercept, alpha_base, E_slope",2,"E_intercept, SS316_k_ref, alpha_base","E_intercept, alpha_base, E_slope",True,False
+2,wall2,"alpha_base, alpha_slope, nu","alpha_base, alpha_slope, nu",3,"alpha_base, alpha_slope, nu","alpha_base, alpha_slope, nu",True,True

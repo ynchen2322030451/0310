@@ -1,0 +1,12 @@
+{
+  "run_tag": "reduced_maintext",
+  "final_level": 2,
+  "fixed_surrogate": true,
+  "n_benchmark_cases": 50,
+  "mean_accept_rate": 0.6018950000000001,
+  "mean_obs_fit_error": 2.4594180789881577,
+  "mean_obs_coverage90": 0.904,
+  "mean_feasible_fraction_110": 0.019649999999999997,
+  "mean_feasible_fraction_120": 0.053783333333333336,
+  "mean_feasible_fraction_131": 0.1343
+}

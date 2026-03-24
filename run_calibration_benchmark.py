@@ -7,20 +7,20 @@
 #   - reduced inverse (selected dominant parameters)
 #
 # Main outputs:
-#   - calibration_benchmark_case_summary_full.csv / _reduced.csv
-#   - calibration_benchmark_parameter_recovery_full.csv / _reduced.csv
-#   - calibration_benchmark_observation_fit_full.csv / _reduced.csv
-#   - calibration_benchmark_parameter_recovery_summary_full.csv / _reduced.csv
-#   - calibration_benchmark_observation_fit_summary_full.csv / _reduced.csv
-#   - calibration_benchmark_meta_full.json / _reduced.json
-#   - inverse_diagnostics_summary_full.json / _reduced.json
+#   - calibration_benchmark_case_summary_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_parameter_recovery_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_observation_fit_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_parameter_recovery_summary_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_observation_fit_summary_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_meta_full.json / _reduced_maintext.json
+#   - inverse_diagnostics_summary_full.json / _reduced_maintext.json
 #   - calibration_benchmark_compare_full_vs_reduced.csv
 #
 # Optional per-case outputs:
-#   - benchmark_caseXXX_prior_samples_full.csv / _reduced.csv
-#   - benchmark_caseXXX_posterior_samples_full.csv / _reduced.csv
-#   - benchmark_caseXXX_posterior_predictive_full.csv / _reduced.csv
-#   - benchmark_caseXXX_full_chain_full.csv / _reduced.csv
+#   - benchmark_caseXXX_prior_samples_full.csv / _reduced_maintext.csv
+#   - benchmark_caseXXX_posterior_samples_full.csv / _reduced_maintext.csv
+#   - benchmark_caseXXX_posterior_predictive_full.csv / _reduced_maintext.csv
+#   - benchmark_caseXXX_full_chain_full.csv / _reduced_maintext.csv
 # ============================================================
 
 import os
@@ -50,7 +50,7 @@ from run_phys_levels_main import (
 )
 
 # ============================================================
-# User settings
+# User settings 2
 # ============================================================
 
 FINAL_LEVEL = 2
@@ -67,16 +67,26 @@ OBS_COLS = [
 
 PRIOR_TYPE = "trunc_gaussian"    # "trunc_gaussian" or "uniform"
 
-RUN_TAG = "reduced"   # "full" or "reduced"
+RUN_TAG = "reduced_maintext"   # "full" or "reduced_maintext"
 
 if RUN_TAG == "full":
     CALIBRATION_INPUT_COLS = INPUT_COLS
-elif RUN_TAG == "reduced":
-    CALIBRATION_INPUT_COLS = ["E_intercept", "alpha_base", "alpha_slope", "SS316_k_ref"]
+
+elif RUN_TAG == "reduced_maintext":
+    # Main-text steady-state risk reduced set
+    # Chosen from stable dominant contributors of:
+    #   - iteration2_max_global_stress
+    #   - iteration2_keff
+    # Final set:
+    #   E_intercept, alpha_base, alpha_slope, nu
+    CALIBRATION_INPUT_COLS = ["E_intercept", "alpha_base", "alpha_slope", "nu"]
+
 else:
-    raise ValueError("RUN_TAG must be 'full' or 'reduced'")
+    raise ValueError("RUN_TAG must be 'full' or 'reduced_maintext'")
 
 N_CASES = 20
+N_POST_SAMPLES = 1200
+N_BURNIN = 2000
 N_TOTAL = 8000
 BURN_IN = 2000
 THIN = 5
@@ -150,6 +160,36 @@ def sample_uniform_prior(n: int, bounds_dict: dict, cols: list, rng: np.random.R
         arr[:, j] = rng.uniform(lo, hi, size=n)
     return arr
 
+def sample_trunc_gaussian_prior(n: int, prior_stats: dict, cols: list, rng: np.random.RandomState):
+    """
+    Draw independent samples from per-parameter truncated Gaussian priors:
+      x ~ N(mean, std^2), truncated to [min, max]
+    using rejection sampling.
+
+    Returns
+    -------
+    arr : np.ndarray, shape [n, len(cols)]
+    """
+    arr = np.zeros((n, len(cols)), dtype=float)
+
+    for j, c in enumerate(cols):
+        mu = float(prior_stats[c]["mean"])
+        sd = float(prior_stats[c]["std"])
+        lo = float(prior_stats[c]["min"])
+        hi = float(prior_stats[c]["max"])
+
+        vals = []
+        batch = max(1000, n)
+
+        while len(vals) < n:
+            cand = rng.normal(loc=mu, scale=sd, size=batch)
+            cand = cand[(cand >= lo) & (cand <= hi)]
+            if cand.size > 0:
+                vals.extend(cand.tolist())
+
+        arr[:, j] = np.asarray(vals[:n], dtype=float)
+
+    return arr
 
 def split_for_benchmark(df):
     """
@@ -509,7 +549,7 @@ def main():
     obs_fit_rows = []
 
     # for comparison table
-    compare_rows = []
+    # compare_rows = []
 
     for bench_id, case_idx in enumerate(case_indices):
         x_true_full = split["X_cal"][case_idx]
@@ -529,14 +569,26 @@ def main():
         # export prior samples
         if SAVE_PRIOR_SAMPLES:
             rng_prior = np.random.RandomState(SEED + 10000 + bench_id)
-            prior_sub = sample_uniform_prior(
-                n=N_PRIOR_EXPORT,
-                bounds_dict={c: (prior_stats[c]["min"], prior_stats[c]["max"]) for c in CALIBRATION_INPUT_COLS},
-                cols=CALIBRATION_INPUT_COLS,
-                rng=rng_prior
-            )
+
+            if PRIOR_TYPE == "uniform":
+                prior_sub = sample_uniform_prior(
+                    n=N_PRIOR_EXPORT,
+                    bounds_dict={c: (prior_stats[c]["min"], prior_stats[c]["max"]) for c in CALIBRATION_INPUT_COLS},
+                    cols=CALIBRATION_INPUT_COLS,
+                    rng=rng_prior
+                )
+            elif PRIOR_TYPE == "trunc_gaussian":
+                prior_sub = sample_trunc_gaussian_prior(
+                    n=N_PRIOR_EXPORT,
+                    prior_stats=prior_stats,
+                    cols=CALIBRATION_INPUT_COLS,
+                    rng=rng_prior
+                )
+            else:
+                raise ValueError(f"Unsupported PRIOR_TYPE for prior export: {PRIOR_TYPE}")
+
             pd.DataFrame(prior_sub, columns=CALIBRATION_INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_prior_samples{run_suffix}.csv"),
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_prior_samples{build_run_suffix()}.csv"),
                 index=False, encoding="utf-8-sig"
             )
 
@@ -648,17 +700,17 @@ def main():
 
         if save_this_chain:
             pd.DataFrame(chain, columns=CALIBRATION_INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_full_chain{run_suffix}.csv"),
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_full_chain{build_run_suffix()}.csv"),
                 index=False, encoding="utf-8-sig"
             )
 
         if SAVE_PER_CASE_POSTERIOR:
             pd.DataFrame(post, columns=CALIBRATION_INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_samples{run_suffix}.csv"),
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_samples{build_run_suffix()}.csv"),
                 index=False, encoding="utf-8-sig"
             )
             pd.DataFrame(y_pred, columns=OUTPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_predictive{run_suffix}.csv"),
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_predictive{build_run_suffix()}.csv"),
                 index=False, encoding="utf-8-sig"
             )
 
@@ -718,20 +770,19 @@ def main():
     save_json(diag, os.path.join(OUT_DIR, f"inverse_diagnostics_summary{run_suffix}.json"))
 
     meta = {
-        "run_tag": RUN_TAG,
         "final_level": FINAL_LEVEL,
+        "run_tag": RUN_TAG,
         "calibration_input_cols": CALIBRATION_INPUT_COLS,
         "calibration_holdout_frac": CALIB_HOLDOUT_FRAC,
         "n_cases": N_CASES,
         "case_selection": CASE_SELECTION,
         "obs_cols": OBS_COLS,
         "prior_type": PRIOR_TYPE,
-        "n_total": N_TOTAL,
+        "n_mcmc": N_TOTAL,
         "burn_in": BURN_IN,
         "thin": THIN,
         "obs_noise_frac": OBS_NOISE_FRAC,
         "proposal_scale": PROPOSAL_SCALE,
-        "save_prior_samples": SAVE_PRIOR_SAMPLES,
         "save_per_case_posterior": SAVE_PER_CASE_POSTERIOR,
     }
     save_json(meta, os.path.join(OUT_DIR, f"calibration_benchmark_meta{run_suffix}.json"))
