@@ -1,0 +1,65 @@
+{
+  "run_tag": "reduced",
+  "n_cases": 20,
+  "parameters": [
+    "E_intercept",
+    "alpha_base",
+    "alpha_slope",
+    "SS316_k_ref"
+  ],
+  "main_takeaway": "Posterior contraction is supported when posterior width/variance is consistently smaller than the corresponding prior width/variance across repeated synthetic benchmarks.",
+  "summary": [
+    {
+      "parameter": "E_intercept",
+      "n_cases": 20,
+      "prior_width90_mean": 101964311154.62393,
+      "posterior_width90_mean": 25200258908.77387,
+      "width90_ratio_mean": 0.24715853121786086,
+      "width90_ratio_median": 0.2383272390230201,
+      "var_ratio_mean": 0.0561021815888787,
+      "var_ratio_median": 0.05048812724690677,
+      "mean_shift_abs_mean": 9057209088.385246,
+      "fraction_width90_contract": 1.0,
+      "fraction_var_contract": 1.0
+    },
+    {
+      "parameter": "alpha_base",
+      "n_cases": 20,
+      "prior_width90_mean": 5.317431716338496e-06,
+      "posterior_width90_mean": 1.3806883484626632e-06,
+      "width90_ratio_mean": 0.2596238184395216,
+      "width90_ratio_median": 0.25498008133593386,
+      "var_ratio_mean": 0.06129606203230605,
+      "var_ratio_median": 0.05915870327838092,
+      "mean_shift_abs_mean": 1.1735362653854316e-06,
+      "fraction_width90_contract": 1.0,
+      "fraction_var_contract": 1.0
+    },
+    {
+      "parameter": "alpha_slope",
+      "n_cases": 20,
+      "prior_width90_mean": 2.6499970930696017e-09,
+      "posterior_width90_mean": 1.361246815093058e-09,
+      "width90_ratio_mean": 0.5137292285450484,
+      "width90_ratio_median": 0.501465241466962,
+      "var_ratio_mean": 0.24666742608929354,
+      "var_ratio_median": 0.2349304324256527,
+      "mean_shift_abs_mean": 2.7656815532692293e-10,
+      "fraction_width90_contract": 1.0,
+      "fraction_var_contract": 1.0
+    },
+    {
+      "parameter": "SS316_k_ref",
+      "n_cases": 20,
+      "prior_width90_mean": 12.802567405896756,
+      "posterior_width90_mean": 4.40693476708125,
+      "width90_ratio_mean": 0.34416917839622274,
+      "width90_ratio_median": 0.33842902202196856,
+      "var_ratio_mean": 0.10914786669573984,
+      "var_ratio_median": 0.10598874833331537,
+      "mean_shift_abs_mean": 1.7934002043284294,
+      "fraction_width90_contract": 1.0,
+      "fraction_var_contract": 1.0
+    }
+  ]
+}

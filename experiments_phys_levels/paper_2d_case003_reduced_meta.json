@@ -1,0 +1,20 @@
+{
+  "run_tag": "reduced",
+  "case_id": 3,
+  "level": 2,
+  "param_x": "E_intercept",
+  "param_y": "alpha_base",
+  "thresholds": [
+    131.0,
+    120.0
+  ],
+  "grid_shape": [
+    120,
+    120
+  ],
+  "other_reduced_params_fixed_to": {
+    "alpha_slope": 4.578069786509318e-09,
+    "SS316_k_ref": 25.436061621356743
+  },
+  "note": "Grid map uses posterior median values for reduced parameters not shown in the 2D plane."
+}

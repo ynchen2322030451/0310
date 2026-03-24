@@ -1,0 +1,46 @@
+{
+  "full": {
+    "run_tag": "full",
+    "n_cases": 20,
+    "mean_accept_rate": 0.6023687500000001,
+    "std_accept_rate": 0.04276576107967313,
+    "mean_obs_fit_error": 1.0606976215113,
+    "std_obs_fit_error": 0.7584647871735223,
+    "mean_obs_coverage90": 1.0,
+    "mean_feasible_fraction_110": 0.04141666666666666,
+    "mean_feasible_fraction_120": 0.080375,
+    "mean_feasible_fraction_131": 0.16629166666666667,
+    "mean_obs_stress": 163.2605,
+    "stress_min": 96.34,
+    "stress_max": 244.17
+  },
+  "reduced": {
+    "run_tag": "reduced",
+    "n_cases": 20,
+    "mean_accept_rate": 0.62840625,
+    "std_accept_rate": 0.045413231954058914,
+    "mean_obs_fit_error": 1.2265506885330766,
+    "std_obs_fit_error": 0.8531574687726265,
+    "mean_obs_coverage90": 1.0,
+    "mean_feasible_fraction_110": 0.03725,
+    "mean_feasible_fraction_120": 0.07920833333333333,
+    "mean_feasible_fraction_131": 0.16670833333333335,
+    "mean_obs_stress": 163.2605,
+    "stress_min": 96.34,
+    "stress_max": 244.17
+  },
+  "main_takeaway": "Use reduced inverse as an interpretability-enhanced formulation only if feasible-fraction conclusions remain close to the full inverse while dominant-parameter posterior widths become narrower.",
+  "recommended_key_parameters": [
+    "E_intercept",
+    "alpha_base",
+    "alpha_slope",
+    "SS316_k_ref"
+  ],
+  "recommended_key_observables": [
+    "iteration2_max_global_stress",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_wall2",
+    "iteration2_keff"
+  ]
+}

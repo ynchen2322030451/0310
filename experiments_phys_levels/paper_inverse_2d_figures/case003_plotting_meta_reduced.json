@@ -1,0 +1,19 @@
+{
+  "case_id": 3,
+  "run_tag": "reduced",
+  "param_x": "E_intercept",
+  "param_y": "alpha_base",
+  "figure_dir": "./experiments_phys_levels/paper_inverse_2d_figures",
+  "input_files": {
+    "prior": "./experiments_phys_levels/paper_2d_case003_reduced_prior_points.csv",
+    "posterior": "./experiments_phys_levels/paper_2d_case003_reduced_posterior_points.csv",
+    "grid": "./experiments_phys_levels/paper_2d_case003_reduced_grid_map.csv",
+    "meta": "./experiments_phys_levels/paper_2d_case003_reduced_meta.json",
+    "feasible_131": "./experiments_phys_levels/paper_2d_case003_reduced_feasible_points_thr131.csv"
+  },
+  "generated_figures": [
+    "case003_prior_vs_posterior_density_reduced.png",
+    "case003_stress_mean_map_thr131_reduced.png",
+    "case003_posterior_overlay_thr131_reduced.png"
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "source_file": "./experiments_phys_levels/paper_sobol_results_with_ci.csv",
+  "primary_outputs": [
+    "iteration2_max_global_stress",
+    "iteration2_keff"
+  ],
+  "main_levels": [
+    0,
+    2
+  ],
+  "topk_per_output": 3,
+  "interpretation_rule": {
+    "dominant": "top contributors ranked by ST_mean",
+    "stable": "ST_ci_low > 0",
+    "caution": "Rows whose CI crosses zero should not be over-interpreted"
+  },
+  "summary_by_output_level": {
+    "level0__iteration2_max_global_stress": [
+      {
+        "input": "E_intercept",
+        "rank_by_ST": 1,
+        "ST_mean": 0.7390654772520066,
+        "ST_ci": [
+          0.7215433018504708,
+          0.7565876526535423
+        ],
+        "S1_raw_mean": 0.7087239414453507,
+        "S1_ci": [
+          0.6988365319612603,
+          0.7186113509294411
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "alpha_base",
+        "rank_by_ST": 2,
+        "ST_mean": 0.1261163383722305,
+        "ST_ci": [
+          0.1218365326590613,
+          0.1303961440853996
+        ],
+        "S1_raw_mean": 0.1114298313856125,
+        "S1_ci": [
+          0.0965132024316442,
+          0.1263464603395807
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "nu",
+        "rank_by_ST": 3,
+        "ST_mean": 0.0595415879040956,
+        "ST_ci": [
+          0.0579252004987011,
+          0.0611579753094901
+        ],
+        "S1_raw_mean": 0.0448540866374969,
+        "S1_ci": [
+          0.0270041861303588,
+          0.062703987144635
+        ],
+        "label": "stable dominant contributor"
+      }
+    ],
+    "level0__iteration2_keff": [
+      {
+        "input": "alpha_base",
+        "rank_by_ST": 1,
+        "ST_mean": 0.7625121295452117,
+        "ST_ci": [
+          0.7465621379973097,
+          0.7784621210931137
+        ],
+        "S1_raw_mean": 0.7464575409889221,
+        "S1_ci": [
+          0.7401693093044756,
+          0.7527457726733687
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "alpha_slope",
+        "rank_by_ST": 2,
+        "ST_mean": 0.1634030990302562,
+        "ST_ci": [
+          0.1588908661860388,
+          0.1679153318744737
+        ],
+        "S1_raw_mean": 0.1622257560491561,
+        "S1_ci": [
+          0.1430601688258587,
+          0.1813913432724536
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "nu",
+        "rank_by_ST": 3,
+        "ST_mean": 0.0448511181399226,
+        "ST_ci": [
+          0.0432741402171329,
+          0.0464280960627122
+        ],
+        "S1_raw_mean": 0.0428999572992324,
+        "S1_ci": [
+          0.0226710423751327,
+          0.0631288722233321
+        ],
+        "label": "stable dominant contributor"
+      }
+    ],
+    "level2__iteration2_max_global_stress": [
+      {
+        "input": "E_intercept",
+        "rank_by_ST": 1,
+        "ST_mean": 0.6693903684616089,
+        "ST_ci": [
+          0.6530557799065515,
+          0.6857249570166664
+        ],
+        "S1_raw_mean": 0.6256247103214264,
+        "S1_ci": [
+          0.61585364394192,
+          0.6353957767009328
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "alpha_base",
+        "rank_by_ST": 2,
+        "ST_mean": 0.1430730506777763,
+        "ST_ci": [
+          0.1395847121272087,
+          0.1465613892283439
+        ],
+        "S1_raw_mean": 0.1187647193670272,
+        "S1_ci": [
+          0.095786237899149,
+          0.1417432008349055
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "nu",
+        "rank_by_ST": 3,
+        "ST_mean": 0.0717164829373359,
+        "ST_ci": [
+          0.0689906562246139,
+          0.0744423096500579
+        ],
+        "S1_raw_mean": 0.0521552443504333,
+        "S1_ci": [
+          0.0308639017742129,
+          0.0734465869266537
+        ],
+        "label": "stable dominant contributor"
+      }
+    ],
+    "level2__iteration2_keff": [
+      {
+        "input": "alpha_base",
+        "rank_by_ST": 1,
+        "ST_mean": 0.7267138123512268,
+        "ST_ci": [
+          0.7092299658746447,
+          0.7441976588278089
+        ],
+        "S1_raw_mean": 0.7169017404317856,
+        "S1_ci": [
+          0.7099691845171855,
+          0.7238342963463856
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "alpha_slope",
+        "rank_by_ST": 2,
+        "ST_mean": 0.2180897019803524,
+        "ST_ci": [
+          0.2121767225468612,
+          0.2240026814138435
+        ],
+        "S1_raw_mean": 0.2011769413948059,
+        "S1_ci": [
+          0.1777383619324009,
+          0.2246155208572109
+        ],
+        "label": "stable dominant contributor"
+      },
+      {
+        "input": "nu",
+        "rank_by_ST": 3,
+        "ST_mean": 0.0455096734687685,
+        "ST_ci": [
+          0.0442060762229494,
+          0.0468132707145877
+        ],
+        "S1_raw_mean": 0.0347460150718689,
+        "S1_ci": [
+          0.0171147509513286,
+          0.0523772791924091
+        ],
+        "label": "stable dominant contributor"
+      }
+    ]
+  },
+  "caution_rows": [
+    {
+      "level": 0,
+      "output": "iteration2_max_global_stress",
+      "input": "alpha_slope",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 0,
+      "output": "iteration2_max_global_stress",
+      "input": "SS316_T_ref",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 0,
+      "output": "iteration2_max_global_stress",
+      "input": "SS316_alpha",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 0,
+      "output": "iteration2_keff",
+      "input": "SS316_k_ref",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 0,
+      "output": "iteration2_keff",
+      "input": "SS316_alpha",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 0,
+      "output": "iteration2_keff",
+      "input": "SS316_T_ref",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 0,
+      "output": "iteration2_keff",
+      "input": "E_slope",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_max_global_stress",
+      "input": "alpha_slope",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_max_global_stress",
+      "input": "SS316_T_ref",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_max_global_stress",
+      "input": "SS316_alpha",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_keff",
+      "input": "SS316_k_ref",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_keff",
+      "input": "SS316_T_ref",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_keff",
+      "input": "E_intercept",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_keff",
+      "input": "SS316_alpha",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    },
+    {
+      "level": 2,
+      "output": "iteration2_keff",
+      "input": "E_slope",
+      "S1_flag": "crosses_zero",
+      "ST_flag": "stable_positive"
+    }
+  ]
+}

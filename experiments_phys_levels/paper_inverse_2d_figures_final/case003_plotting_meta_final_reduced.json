@@ -1,0 +1,12 @@
+{
+  "case_id": 3,
+  "run_tag": "reduced",
+  "param_x": "E_intercept",
+  "param_y": "alpha_base",
+  "generated": [
+    "./experiments_phys_levels/paper_inverse_2d_figures_final/case003_prior_posterior_contours_reduced.png",
+    "./experiments_phys_levels/paper_inverse_2d_figures_final/case003_stress_mean_map_clean_reduced.png",
+    "./experiments_phys_levels/paper_inverse_2d_figures_final/case003_posterior_overlay_final_reduced.png"
+  ],
+  "note": "Other reduced parameters are fixed at posterior medians in the 2D grid map."
+}
