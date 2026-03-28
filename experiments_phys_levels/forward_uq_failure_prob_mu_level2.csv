@@ -1,0 +1,4 @@
+﻿level,tag,threshold_MPa,n_samples,failure_probability
+2,mu,110.0,20000,0.9788
+2,mu,120.0,20000,0.9382
+2,mu,131.0,20000,0.84725

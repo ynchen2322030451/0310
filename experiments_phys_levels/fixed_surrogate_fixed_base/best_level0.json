@@ -1,0 +1,23 @@
+{
+  "level": 0,
+  "best_value": 2.932427406311035,
+  "best_params": {
+    "width": 72,
+    "depth": 7,
+    "dropout": 0.17326925248364017,
+    "lr": 0.00017068402650481662,
+    "wd": 1.215383931115372e-08,
+    "batch": 32,
+    "epochs": 203,
+    "clip": 1.257909898782668,
+    "w_data": 0.8091026450055024,
+    "w_fp": 0.0,
+    "w_mono": 0.0,
+    "w_ineq": 0.0,
+    "rho_abs_min": 0.25,
+    "mono_topk": 40
+  },
+  "run_tag": "fixed_base",
+  "fixed_surrogate": true,
+  "split_meta_path": "experiments_phys_levels/fixed_split/split_meta.json"
+}

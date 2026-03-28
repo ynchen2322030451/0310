@@ -1,22 +1,83 @@
-0310 项目代码汇总
-====================================================================================================
+0310 项目代码汇总（精选版）
+========================================================================================================================
+生成时间: 2026-03-27 12:53:35
+项目根目录: /home/tjzs/Documents/0310
 
-####################################################################################################
+【目录索引】
+
+- A_core_config_and_training
+  说明: 核心配置与统一训练入口，支撑所有下游分析。
+    * paper_experiment_config.py -- 统一管理论文实验配置，包括输入/输出、主阈值、主输出、层级定义、路径与随机种子。
+    * run_phys_levels_main.py -- 主训练与主评估脚本，负责 baseline / regularized surrogate 的训练、测试和指标输出。
+    * run_prepare_fixed_surrogate.py -- 生成固定 train/val/test 划分并保存索引与数据文件，保证后续所有实验共享同一数据拆分。
+    * run_fixed_surrogate_train_base.py -- 在固定数据划分上训练 baseline surrogate，作为与正则化模型对照的统一基线。
+
+- B_forward_risk_sensitivity
+  说明: 主文的正向不确定性传播、风险量化与全局敏感性主链。
+    * run_forward_uq_analysis.py -- 基于固定 surrogate 进行正向不确定性传播，输出分布统计、CVR 和失效概率。
+    * run_safety_threshold_analysis.py -- 针对主应力阈值进行 test-set 风险分析，比较 predictive probability、mean-only 判断与真实标签。
+    * run_sobol_analysis.py -- 执行 Sobol 全局敏感性分析，输出 S1/ST 指标及其不确定性统计。
+    * run_sobol_ci_methods_summary.py -- 将 Sobol 原始结果进一步整理为带 CI 的 methods-ready 与 results-ready 汇总表。
+
+- C_inverse_pipeline
+  说明: 主文 inverse benchmark、收缩分析与 full/reduced 对照主链。
+    * run_inverse_benchmark_fixed_surrogate.py -- 在固定 surrogate 条件下执行 inverse benchmark，是当前主文 inverse UQ 的核心脚本。
+    * run_inverse_diagnostics.py -- 汇总 inverse benchmark 结果，生成参数恢复、观测拟合、接受率和可行域等诊断结果。
+    * run_inverse_full_vs_reduced_compare.py -- 比较 full inverse 与 reduced inverse 的观测层面和参数层面差异。
+    * run_prior_posterior_contraction_summary.py -- 量化 prior 到 posterior 的宽度收缩、方差收缩和均值偏移。
+
+- D_feasible_region_and_plotting
+  说明: 二维可行域导出与主文图绘制脚本。
+    * run_export_2d_feasible_region.py -- 导出二维主导参数平面上的 prior / posterior / feasible region 数据。
+    * plot_2d_inverse_feasible_region_final.py -- 绘制最终版二维 feasible-region 与 posterior contraction 图。
+    * plot_forward_uq_and_sobol_figures.py -- 绘制正向 UQ、risk curve、Sobol、CVR 等主文图。
+    * plot_inverse_figures.py -- 绘制 inverse benchmark 主图，包括参数恢复、观测拟合和代表性 case 图。
+
+- E_speed_ood_and_supporting_analysis
+  说明: 速度、OOD 与 iter1/iter2 对比等补充分析。
+    * run_speedup_benchmark.py -- 执行代理模型与高保真流程的速度对比基准测试。
+    * run_practical_speed_benchmark.py -- 记录实际运行环境下的 HF CPU 与 surrogate GPU 的 wall-clock 对比。
+    * run_ood_evaluation.py -- 对选定参数进行 OOD 外推测试，作为附录/讨论支撑。
+    * run_iter1_iter2_forward_compare.py -- 比较 iter1 与 iter2 输出在 forward UQ 下的统计差异。
+    * run_iter1_iter2_sobol_compare.py -- 比较 iter1 与 iter2 输出的 Sobol 主导因子变化。
+
+
+========================================================================================================================
+[分组] A_core_config_and_training
+[分组说明] 核心配置与统一训练入口，支撑所有下游分析。
+========================================================================================================================
+
+########################################################################################################################
 文件: paper_experiment_config.py
-用途: 统一管理论文实验配置，包括输入/输出、主阈值、主输出、主文模型层级等。
+类别: A_core_config_and_training
+用途: 统一管理论文实验配置，包括输入/输出、主阈值、主输出、层级定义、路径与随机种子。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 3.6 KB
+------------------------------------------------------------------------------------------------------------------------
 # paper_experiment_config.py
 # ============================================================
 # Frozen paper experiment specification
 # ============================================================
-
+import os
 # -----------------------------
 # Paths
 # -----------------------------
 DATA_ROOT = "/home/tjzs/Documents/fenics_data/fenics_data/txt_extract"
 CSV_PATH = f"{DATA_ROOT}/dataset_v3.csv"
 OUT_DIR = "./experiments_phys_levels"
+
+# -----------------------------
+# Fixed surrogate paths
+# -----------------------------
+FIXED_SURROGATE_TAG = "fixed_level2"
+FIXED_SURROGATE_DIR = os.path.join(OUT_DIR, f"fixed_surrogate_{FIXED_SURROGATE_TAG}")
+FIXED_SPLIT_DIR = os.path.join(OUT_DIR, "fixed_split")
+
+FIXED_CKPT_PATH = os.path.join(FIXED_SURROGATE_DIR, "checkpoint_level2.pt")
+FIXED_SCALER_PATH = os.path.join(FIXED_SURROGATE_DIR, "scalers_level2.pkl")
+FIXED_META_PATH = os.path.join(FIXED_SURROGATE_DIR, "metrics_level2.json")
+FIXED_TEST_PRED_PATH = os.path.join(FIXED_SURROGATE_DIR, "test_predictions_level2.json")
+FIXED_BEST_PARAM_PATH = os.path.join(FIXED_SURROGATE_DIR, "best_level2.json")
 
 # -----------------------------
 # Randomness / device / search
@@ -110,11 +171,13 @@ PARAM_META = {
     "SS316_alpha": {"unit": "W/(m·K^2)", "meaning": "k_slope in k(T)"},
 }
 
-####################################################################################################
+########################################################################################################################
 文件: run_phys_levels_main.py
-用途: 主训练与主评估流程，生成 baseline / regularized 模型结果。
+类别: A_core_config_and_training
+用途: 主训练与主评估脚本，负责 baseline / regularized surrogate 的训练、测试和指标输出。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 30.9 KB
+------------------------------------------------------------------------------------------------------------------------
 # run_phys_levels_main.py
 # ============================================================
 # Main training / evaluation script for paper experiments
@@ -982,26 +1045,1010 @@ def main():
 if __name__ == "__main__":
     main()
 
-####################################################################################################
-文件: run_forward_uq_analysis.py
-用途: 正向不确定性传播、输出分布、CVR 与失效概率分析主脚本。
+########################################################################################################################
+文件: run_prepare_fixed_surrogate.py
+类别: A_core_config_and_training
+用途: 生成固定 train/val/test 划分并保存索引与数据文件，保证后续所有实验共享同一数据拆分。
 存在: 是
-----------------------------------------------------------------------------------------------------
-# run_forward_uq_analysis.py
+大小: 14.5 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_prepare_fixed_surrogate.py
 # ============================================================
-# Forward UQ analysis for paper
-# Final comparison: Level0 vs Level2
-# Main outputs:
-#   - iteration2_max_global_stress
-#   - iteration2_keff
-#   - iteration2_max_fuel_temp
-#   - iteration2_max_monolith_temp
-#   - iteration2_wall2
+# Prepare one fixed surrogate for all downstream experiments
+#
+# This script ONLY does:
+#   1) freeze train/val/test split
+#   2) run Optuna hyperparameter search
+#   3) train one final surrogate
+#   4) save checkpoint / scalers / split / metrics / predictions
+#
+# Downstream scripts should ONLY load the saved artifacts,
+# and must NOT retrain a new neural network.
 # ============================================================
 
 import os
 import json
-import math
+import pickle
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
+import optuna
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from paper_experiment_config import (
+    CSV_PATH,
+    OUT_DIR,
+    SEED,
+    TRIALS,
+    INPUT_COLS,
+    OUTPUT_COLS,
+    ITER1_IDX,
+    ITER2_IDX,
+    PRIMARY_OUTPUTS,
+)
+from run_phys_levels_main import (
+    load_dataset,
+    seed_all,
+    get_device,
+    ensure_dir,
+    summarize,
+    print_stats,
+    objective_factory,
+    train_with_params,
+    gaussian_nll,
+    compute_basic_metrics,
+    compute_prob_metrics_gaussian,
+    eval_inequality_violation,
+    _to_numpy,
+)
+
+# ============================================================
+# User settings
+# ============================================================
+
+LEVEL = 2                      # fixed surrogate level for downstream experiments
+TEST_FRAC = 0.15
+VAL_FRAC_WITHIN_TRAIN = 0.1765  # gives ~70/15/15 overall
+REMAKE_SPLIT = False           # True = overwrite frozen split
+RUN_TAG = "fixed_level2"
+
+# Optional: if you later want baseline fixed surrogate too, set LEVEL = 0 once and rerun.
+
+
+# ============================================================
+# Paths
+# ============================================================
+
+ROOT_OUT = Path(OUT_DIR)
+SPLIT_DIR = ROOT_OUT / "fixed_split"
+ART_DIR = ROOT_OUT / f"fixed_surrogate_{RUN_TAG}"
+
+SPLIT_META_JSON = SPLIT_DIR / "split_meta.json"
+TRAIN_CSV = SPLIT_DIR / "train.csv"
+VAL_CSV = SPLIT_DIR / "val.csv"
+TEST_CSV = SPLIT_DIR / "test.csv"
+TRAIN_IDX_CSV = SPLIT_DIR / "train_indices.csv"
+VAL_IDX_CSV = SPLIT_DIR / "val_indices.csv"
+TEST_IDX_CSV = SPLIT_DIR / "test_indices.csv"
+
+BEST_JSON = ART_DIR / f"best_level{LEVEL}.json"
+CKPT_PT = ART_DIR / f"checkpoint_level{LEVEL}.pt"
+SCALERS_PKL = ART_DIR / f"scalers_level{LEVEL}.pkl"
+META_STATS_JSON = ART_DIR / "meta_stats.json"
+METRICS_JSON = ART_DIR / f"metrics_level{LEVEL}.json"
+PER_DIM_CSV = ART_DIR / f"paper_metrics_per_dim_level{LEVEL}.csv"
+TEST_PRED_JSON = ART_DIR / f"test_predictions_level{LEVEL}.json"
+SANITY_CSV = ART_DIR / f"sanity_level{LEVEL}.csv"
+
+
+# ============================================================
+# Split helpers
+# ============================================================
+
+def save_split_indices(idx_train, idx_val, idx_test):
+    pd.DataFrame({"index": idx_train}).to_csv(TRAIN_IDX_CSV, index=False, encoding="utf-8-sig")
+    pd.DataFrame({"index": idx_val}).to_csv(VAL_IDX_CSV, index=False, encoding="utf-8-sig")
+    pd.DataFrame({"index": idx_test}).to_csv(TEST_IDX_CSV, index=False, encoding="utf-8-sig")
+
+
+def make_split_once(df: pd.DataFrame):
+    idx_all = np.arange(len(df))
+
+    idx_trainval, idx_test = train_test_split(
+        idx_all,
+        test_size=TEST_FRAC,
+        random_state=SEED,
+        shuffle=True,
+    )
+
+    idx_train, idx_val = train_test_split(
+        idx_trainval,
+        test_size=VAL_FRAC_WITHIN_TRAIN,
+        random_state=SEED,
+        shuffle=True,
+    )
+
+    idx_train = np.sort(idx_train)
+    idx_val = np.sort(idx_val)
+    idx_test = np.sort(idx_test)
+
+    df_train = df.iloc[idx_train].reset_index(drop=True)
+    df_val = df.iloc[idx_val].reset_index(drop=True)
+    df_test = df.iloc[idx_test].reset_index(drop=True)
+
+    save_split_indices(idx_train, idx_val, idx_test)
+
+    df_train.to_csv(TRAIN_CSV, index=False, encoding="utf-8-sig")
+    df_val.to_csv(VAL_CSV, index=False, encoding="utf-8-sig")
+    df_test.to_csv(TEST_CSV, index=False, encoding="utf-8-sig")
+
+    split_meta = {
+        "csv_path": CSV_PATH,
+        "seed": SEED,
+        "test_frac": TEST_FRAC,
+        "val_frac_within_train": VAL_FRAC_WITHIN_TRAIN,
+        "n_total": int(len(df)),
+        "n_train": int(len(df_train)),
+        "n_val": int(len(df_val)),
+        "n_test": int(len(df_test)),
+        "input_cols": INPUT_COLS,
+        "output_cols": OUTPUT_COLS,
+    }
+    with open(SPLIT_META_JSON, "w", encoding="utf-8") as f:
+        json.dump(split_meta, f, indent=2, ensure_ascii=False)
+
+    return df_train, df_val, df_test, idx_train, idx_val, idx_test
+
+
+def load_frozen_split():
+    df_train = pd.read_csv(TRAIN_CSV)
+    df_val = pd.read_csv(VAL_CSV)
+    df_test = pd.read_csv(TEST_CSV)
+
+    idx_train = pd.read_csv(TRAIN_IDX_CSV)["index"].to_numpy(dtype=int)
+    idx_val = pd.read_csv(VAL_IDX_CSV)["index"].to_numpy(dtype=int)
+    idx_test = pd.read_csv(TEST_IDX_CSV)["index"].to_numpy(dtype=int)
+
+    return df_train, df_val, df_test, idx_train, idx_val, idx_test
+
+
+def get_or_make_split(df: pd.DataFrame):
+    if (
+        (not REMAKE_SPLIT)
+        and TRAIN_CSV.exists()
+        and VAL_CSV.exists()
+        and TEST_CSV.exists()
+        and TRAIN_IDX_CSV.exists()
+        and VAL_IDX_CSV.exists()
+        and TEST_IDX_CSV.exists()
+        and SPLIT_META_JSON.exists()
+    ):
+        print("[INFO] Loading frozen split from disk.")
+        return load_frozen_split()
+
+    print("[INFO] Creating new frozen split.")
+    return make_split_once(df)
+
+
+# ============================================================
+# Prepare tensors + scalers
+# ============================================================
+
+def build_scaled_pack(df_train, df_val, df_test, device):
+    X_tr = df_train[INPUT_COLS].to_numpy(dtype=float)
+    Y_tr = df_train[OUTPUT_COLS].to_numpy(dtype=float)
+
+    X_va = df_val[INPUT_COLS].to_numpy(dtype=float)
+    Y_va = df_val[OUTPUT_COLS].to_numpy(dtype=float)
+
+    X_te = df_test[INPUT_COLS].to_numpy(dtype=float)
+    Y_te = df_test[OUTPUT_COLS].to_numpy(dtype=float)
+
+    sx = StandardScaler().fit(X_tr)
+    sy = StandardScaler().fit(Y_tr)
+
+    Xtr_s = sx.transform(X_tr)
+    Xva_s = sx.transform(X_va)
+    Xte_s = sx.transform(X_te)
+
+    Ytr_s = sy.transform(Y_tr)
+    Yva_s = sy.transform(Y_va)
+    Yte_s = sy.transform(Y_te)
+
+    delta_tr = Ytr_s[:, ITER2_IDX] - Ytr_s[:, ITER1_IDX]
+    bias_delta = delta_tr.mean(axis=0)
+    bias_delta_t = torch.tensor(bias_delta, dtype=torch.float32, device=device)
+
+    x_tr = torch.tensor(Xtr_s, dtype=torch.float32, device=device)
+    y_tr = torch.tensor(Ytr_s, dtype=torch.float32, device=device)
+    x_va = torch.tensor(Xva_s, dtype=torch.float32, device=device)
+    y_va = torch.tensor(Yva_s, dtype=torch.float32, device=device)
+    x_te = torch.tensor(Xte_s, dtype=torch.float32, device=device)
+    y_te = torch.tensor(Yte_s, dtype=torch.float32, device=device)
+
+    return {
+        "X_tr": X_tr, "Y_tr": Y_tr,
+        "X_va": X_va, "Y_va": Y_va,
+        "X_te": X_te, "Y_te": Y_te,
+        "Xtr_s": Xtr_s, "Ytr_s": Ytr_s,
+        "Xva_s": Xva_s, "Yva_s": Yva_s,
+        "Xte_s": Xte_s, "Yte_s": Yte_s,
+        "sx": sx, "sy": sy,
+        "x_tr": x_tr, "y_tr": y_tr,
+        "x_va": x_va, "y_va": y_va,
+        "x_te": x_te, "y_te": y_te,
+        "bias_delta_t": bias_delta_t,
+    }
+
+
+# ============================================================
+# Main
+# ============================================================
+
+def main():
+    seed_all(SEED)
+    ensure_dir(str(ROOT_OUT))
+    ensure_dir(str(SPLIT_DIR))
+    ensure_dir(str(ART_DIR))
+
+    device = get_device()
+    print(f"[INFO] device = {device}")
+
+    # 1) load full dataset
+    df = load_dataset()
+
+    in_stats = summarize(df, INPUT_COLS)
+    out_stats = summarize(df, OUTPUT_COLS)
+    print_stats("INPUT STATS", in_stats)
+    print_stats("OUTPUT STATS", out_stats)
+
+    with open(META_STATS_JSON, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "input_stats": in_stats,
+                "output_stats": out_stats,
+                "input_cols": INPUT_COLS,
+                "output_cols": OUTPUT_COLS,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    # 2) freeze split
+    df_train, df_val, df_test, idx_train, idx_val, idx_test = get_or_make_split(df)
+
+    # 3) build tensors/scalers
+    pack = build_scaled_pack(df_train, df_val, df_test, device)
+
+    # 4) hyperparameter search
+    print(f"\n================= OPTUNA FIXED SURROGATE LEVEL {LEVEL} =================")
+    study = optuna.create_study(
+        direction="minimize",
+        sampler=optuna.samplers.TPESampler(seed=SEED),
+        pruner=optuna.pruners.MedianPruner(n_warmup_steps=8),
+    )
+
+    study.optimize(
+        objective_factory(
+            level=LEVEL,
+            x_tr=pack["x_tr"],
+            y_tr=pack["y_tr"],
+            x_va=pack["x_va"],
+            y_va=pack["y_va"],
+            Xtr_np=pack["Xtr_s"],
+            Ytr_np=pack["Ytr_s"],
+            bias_delta_t=pack["bias_delta_t"],
+            device=device,
+        ),
+        n_trials=TRIALS
+    )
+
+    best_params = study.best_params
+    best_value = float(study.best_value)
+
+    with open(BEST_JSON, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "level": LEVEL,
+                "best_value": best_value,
+                "best_params": best_params,
+                "run_tag": RUN_TAG,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    print(f"[BEST] level={LEVEL}  value={best_value:.6g}")
+    print(best_params)
+
+    # 5) train final fixed surrogate
+    model, mono_pairs = train_with_params(
+        best_params=best_params,
+        level=LEVEL,
+        x_tr=pack["x_tr"],
+        y_tr=pack["y_tr"],
+        x_va=pack["x_va"],
+        y_va=pack["y_va"],
+        Xtr_np=pack["Xtr_s"],
+        Ytr_np=pack["Ytr_s"],
+        bias_delta_t=pack["bias_delta_t"],
+        device=device,
+    )
+
+    # 6) save checkpoint + scalers
+    torch.save(
+        {
+            "level": LEVEL,
+            "run_tag": RUN_TAG,
+            "best_params": best_params,
+            "model_state_dict": model.state_dict(),
+            "split_meta_path": str(SPLIT_META_JSON),
+            "train_indices_path": str(TRAIN_IDX_CSV),
+            "val_indices_path": str(VAL_IDX_CSV),
+            "test_indices_path": str(TEST_IDX_CSV),
+        },
+        CKPT_PT,
+    )
+
+    with open(SCALERS_PKL, "wb") as f:
+        pickle.dump({"sx": pack["sx"], "sy": pack["sy"]}, f)
+
+    # 7) evaluate on frozen test set
+    with torch.no_grad():
+        mu_te_s, logvar_te = model(pack["x_te"])
+        var_te_s = torch.exp(logvar_te)
+
+    mu_te_s_np = _to_numpy(mu_te_s)
+    y_te_s_np = _to_numpy(pack["y_te"])
+
+    mu_te = pack["sy"].inverse_transform(mu_te_s_np)
+    y_te_true = pack["sy"].inverse_transform(y_te_s_np)
+    sigma_te = np.sqrt(_to_numpy(var_te_s)) * pack["sy"].scale_
+
+    basic = compute_basic_metrics(y_te_true, mu_te)
+    prob90 = compute_prob_metrics_gaussian(y_te_true, mu_te, sigma_te, alpha=0.10)
+    test_nll = float(gaussian_nll(pack["y_te"], mu_te_s, logvar_te).item())
+
+    idx_map = {c: i for i, c in enumerate(OUTPUT_COLS)}
+    viol = eval_inequality_violation(mu_te, idx_map)
+
+    primary_idx = [OUTPUT_COLS.index(c) for c in PRIMARY_OUTPUTS]
+
+    metrics = {
+        "level": LEVEL,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "split_meta_path": str(SPLIT_META_JSON),
+        "test_nll_standardized": test_nll,
+        "basic_all_mean": {
+            "MAE_mean": float(np.mean(basic["MAE"])),
+            "RMSE_mean": float(np.mean(basic["RMSE"])),
+            "R2_mean": float(np.mean(basic["R2"])),
+        },
+        "basic_primary_mean": {
+            "MAE_mean": float(np.mean(basic["MAE"][primary_idx])),
+            "RMSE_mean": float(np.mean(basic["RMSE"][primary_idx])),
+            "R2_mean": float(np.mean(basic["R2"][primary_idx])),
+        },
+        "prob90_all_mean": {
+            "PICP_mean": float(np.mean(prob90["PICP"])),
+            "MPIW_mean": float(np.mean(prob90["MPIW"])),
+            "CRPS_mean": float(np.mean(prob90["CRPS"])),
+        },
+        "prob90_primary_mean": {
+            "PICP_mean": float(np.mean(prob90["PICP"][primary_idx])),
+            "MPIW_mean": float(np.mean(prob90["MPIW"][primary_idx])),
+            "CRPS_mean": float(np.mean(prob90["CRPS"][primary_idx])),
+        },
+        "ineq_violation_rates_on_mu": viol,
+        "n_train": int(len(df_train)),
+        "n_val": int(len(df_val)),
+        "n_test": int(len(df_test)),
+    }
+
+    with open(METRICS_JSON, "w", encoding="utf-8") as f:
+        json.dump(metrics, f, indent=2, ensure_ascii=False)
+
+    # 8) save per-dim table
+    per_dim_rows = []
+    for j, name in enumerate(OUTPUT_COLS):
+        per_dim_rows.append({
+            "level": LEVEL,
+            "run_tag": RUN_TAG,
+            "output": name,
+            "iter": "iter1" if j < 8 else "iter2",
+            "MAE": float(basic["MAE"][j]),
+            "RMSE": float(basic["RMSE"][j]),
+            "R2": float(basic["R2"][j]),
+            "PICP90": float(prob90["PICP"][j]),
+            "MPIW90": float(prob90["MPIW"][j]),
+            "CRPS": float(prob90["CRPS"][j]),
+        })
+    pd.DataFrame(per_dim_rows).to_csv(PER_DIM_CSV, index=False, encoding="utf-8-sig")
+
+    # 9) save raw test predictions
+    pred_dump = {
+        "level": LEVEL,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "y_true": y_te_true.tolist(),
+        "mu": mu_te.tolist(),
+        "sigma": sigma_te.tolist(),
+        "output_names": OUTPUT_COLS,
+        "split_meta_path": str(SPLIT_META_JSON),
+    }
+    with open(TEST_PRED_JSON, "w", encoding="utf-8") as f:
+        json.dump(pred_dump, f, indent=2, ensure_ascii=False)
+
+    # 10) save sanity csv
+    sanity_rows = []
+    for j, name in enumerate(OUTPUT_COLS):
+        yt = y_te_true[:, j]
+        yp = mu_te[:, j]
+        sanity_rows.append({
+            "output": name,
+            "y_true_mean": float(np.mean(yt)),
+            "y_true_std": float(np.std(yt)),
+            "y_pred_mean": float(np.mean(yp)),
+            "y_pred_std": float(np.std(yp)),
+            "y_true_min": float(np.min(yt)),
+            "y_true_max": float(np.max(yt)),
+            "y_pred_min": float(np.min(yp)),
+            "y_pred_max": float(np.max(yp)),
+        })
+    pd.DataFrame(sanity_rows).to_csv(SANITY_CSV, index=False, encoding="utf-8-sig")
+
+    print("\n[DONE] Fixed surrogate prepared successfully.")
+    print(f"[ART] split saved to: {SPLIT_DIR}")
+    print(f"[ART] surrogate artifacts saved to: {ART_DIR}")
+    print(f"[ART] checkpoint: {CKPT_PT}")
+    print(f"[ART] scalers:   {SCALERS_PKL}")
+    print(f"[ART] metrics:   {METRICS_JSON}")
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+文件: run_fixed_surrogate_train_base.py
+类别: A_core_config_and_training
+用途: 在固定数据划分上训练 baseline surrogate，作为与正则化模型对照的统一基线。
+存在: 是
+大小: 14.9 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_fixed_surrogate_train_base.py
+# ============================================================
+# Train fixed-split BASE surrogate (level 0 only)
+# Reuse the same fixed split as fixed_level2
+# and keep artifact layout consistent with fixed-surrogate pipeline
+# ============================================================
+
+import json
+import pickle
+import random
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
+import optuna
+from sklearn.preprocessing import StandardScaler
+
+from paper_experiment_config import (
+    OUT_DIR,
+    INPUT_COLS,
+    OUTPUT_COLS,
+    PRIMARY_OUTPUTS,
+    SEED,
+)
+
+from run_phys_levels_main import (
+    get_device,
+    gaussian_nll,
+    compute_basic_metrics,
+    compute_prob_metrics_gaussian,
+    eval_inequality_violation,
+    train_with_params,
+)
+
+# ============================================================
+# Settings
+# ============================================================
+
+LEVEL = 0
+RUN_TAG = "fixed_base"
+N_TRIALS = 40   # 可先 20 快跑，正式再 40
+
+ROOT_OUT = Path(OUT_DIR)
+SPLIT_DIR = ROOT_OUT / "fixed_split"
+ART_DIR = ROOT_OUT / f"fixed_surrogate_{RUN_TAG}"
+
+SPLIT_META_JSON = SPLIT_DIR / "split_meta.json"
+TRAIN_CSV = SPLIT_DIR / "train.csv"
+VAL_CSV = SPLIT_DIR / "val.csv"
+TEST_CSV = SPLIT_DIR / "test.csv"
+TRAIN_IDX_CSV = SPLIT_DIR / "train_indices.csv"
+VAL_IDX_CSV = SPLIT_DIR / "val_indices.csv"
+TEST_IDX_CSV = SPLIT_DIR / "test_indices.csv"
+
+BEST_JSON = ART_DIR / f"best_level{LEVEL}.json"
+CKPT_PT = ART_DIR / f"checkpoint_level{LEVEL}.pt"
+SCALERS_PKL = ART_DIR / f"scalers_level{LEVEL}.pkl"
+META_STATS_JSON = ART_DIR / "meta_stats.json"
+METRICS_JSON = ART_DIR / f"metrics_level{LEVEL}.json"
+PER_DIM_CSV = ART_DIR / f"paper_metrics_per_dim_level{LEVEL}.csv"
+FOCUS_CSV = ART_DIR / f"paper_focus_metrics_level{LEVEL}.csv"
+TEST_PRED_JSON = ART_DIR / f"test_predictions_level{LEVEL}.json"
+SANITY_JSON = ART_DIR / f"sanity_level{LEVEL}.json"
+SANITY_CSV = ART_DIR / f"sanity_level{LEVEL}.csv"
+
+# ============================================================
+# Utilities
+# ============================================================
+
+def seed_all(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def ensure_dir(path: Path):
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def require_file(path: Path):
+    if not path.exists():
+        raise FileNotFoundError(f"Missing required file: {path}")
+
+
+def save_json(obj, path: Path):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(obj, f, indent=2, ensure_ascii=False)
+
+
+def compute_output_sanity(y_true, y_pred, output_cols, near_constant_std_tol=1e-8):
+    rows = []
+    for j, name in enumerate(output_cols):
+        yt = y_true[:, j]
+        yp = y_pred[:, j]
+        rows.append({
+            "output": name,
+            "y_true_mean": float(np.mean(yt)),
+            "y_true_std": float(np.std(yt)),
+            "y_true_min": float(np.min(yt)),
+            "y_true_max": float(np.max(yt)),
+            "y_pred_mean": float(np.mean(yp)),
+            "y_pred_std": float(np.std(yp)),
+            "y_pred_min": float(np.min(yp)),
+            "y_pred_max": float(np.max(yp)),
+            "is_near_constant_target": bool(np.std(yt) < near_constant_std_tol),
+        })
+    return rows
+
+
+def load_fixed_split():
+    for p in [
+        SPLIT_META_JSON,
+        TRAIN_CSV,
+        VAL_CSV,
+        TEST_CSV,
+        TRAIN_IDX_CSV,
+        VAL_IDX_CSV,
+        TEST_IDX_CSV,
+    ]:
+        require_file(p)
+
+    df_train = pd.read_csv(TRAIN_CSV)
+    df_val = pd.read_csv(VAL_CSV)
+    df_test = pd.read_csv(TEST_CSV)
+
+    idx_train = pd.read_csv(TRAIN_IDX_CSV)["index"].to_numpy(dtype=int)
+    idx_val = pd.read_csv(VAL_IDX_CSV)["index"].to_numpy(dtype=int)
+    idx_test = pd.read_csv(TEST_IDX_CSV)["index"].to_numpy(dtype=int)
+
+    X_tr = df_train[INPUT_COLS].to_numpy(dtype=float)
+    X_va = df_val[INPUT_COLS].to_numpy(dtype=float)
+    X_te = df_test[INPUT_COLS].to_numpy(dtype=float)
+
+    Y_tr = df_train[OUTPUT_COLS].to_numpy(dtype=float)
+    Y_va = df_val[OUTPUT_COLS].to_numpy(dtype=float)
+    Y_te = df_test[OUTPUT_COLS].to_numpy(dtype=float)
+
+    return {
+        "df_train": df_train,
+        "df_val": df_val,
+        "df_test": df_test,
+        "idx_train": idx_train,
+        "idx_val": idx_val,
+        "idx_test": idx_test,
+        "X_tr": X_tr,
+        "X_va": X_va,
+        "X_te": X_te,
+        "Y_tr": Y_tr,
+        "Y_va": Y_va,
+        "Y_te": Y_te,
+    }
+
+
+def scale_split(split):
+    sx = StandardScaler().fit(split["X_tr"])
+    sy = StandardScaler().fit(split["Y_tr"])
+
+    Xtr_s = sx.transform(split["X_tr"])
+    Xva_s = sx.transform(split["X_va"])
+    Xte_s = sx.transform(split["X_te"])
+
+    Ytr_s = sy.transform(split["Y_tr"])
+    Yva_s = sy.transform(split["Y_va"])
+    Yte_s = sy.transform(split["Y_te"])
+
+    return {
+        **split,
+        "sx": sx,
+        "sy": sy,
+        "Xtr_s": Xtr_s,
+        "Xva_s": Xva_s,
+        "Xte_s": Xte_s,
+        "Ytr_s": Ytr_s,
+        "Yva_s": Yva_s,
+        "Yte_s": Yte_s,
+    }
+
+
+def make_tensors(split_s, device):
+    x_tr = torch.tensor(split_s["Xtr_s"], dtype=torch.float32, device=device)
+    y_tr = torch.tensor(split_s["Ytr_s"], dtype=torch.float32, device=device)
+    x_va = torch.tensor(split_s["Xva_s"], dtype=torch.float32, device=device)
+    y_va = torch.tensor(split_s["Yva_s"], dtype=torch.float32, device=device)
+    x_te = torch.tensor(split_s["Xte_s"], dtype=torch.float32, device=device)
+    y_te = torch.tensor(split_s["Yte_s"], dtype=torch.float32, device=device)
+
+    # level 0 不使用 fixed-point / monotonicity / inequality
+    # 但 train_with_params 仍要求传入
+    bias_delta_t = torch.zeros(8, dtype=torch.float32, device=device)
+
+    return {
+        "x_tr": x_tr,
+        "y_tr": y_tr,
+        "x_va": x_va,
+        "y_va": y_va,
+        "x_te": x_te,
+        "y_te": y_te,
+        "bias_delta_t": bias_delta_t,
+    }
+
+
+def save_meta_stats(split):
+    input_stats = {}
+    output_stats = {}
+
+    X_all = np.vstack([split["X_tr"], split["X_va"], split["X_te"]])
+    Y_all = np.vstack([split["Y_tr"], split["Y_va"], split["Y_te"]])
+
+    for i, c in enumerate(INPUT_COLS):
+        col = X_all[:, i]
+        input_stats[c] = {
+            "mean": float(np.mean(col)),
+            "std": float(np.std(col)),
+            "min": float(np.min(col)),
+            "max": float(np.max(col)),
+        }
+
+    for j, c in enumerate(OUTPUT_COLS):
+        col = Y_all[:, j]
+        output_stats[c] = {
+            "mean": float(np.mean(col)),
+            "std": float(np.std(col)),
+            "min": float(np.min(col)),
+            "max": float(np.max(col)),
+        }
+
+    meta = {
+        "run_tag": RUN_TAG,
+        "level": LEVEL,
+        "input_cols": INPUT_COLS,
+        "output_cols": OUTPUT_COLS,
+        "input_stats": input_stats,
+        "output_stats": output_stats,
+    }
+    save_json(meta, META_STATS_JSON)
+
+
+# ============================================================
+# Optuna objective for BASE model
+# ============================================================
+
+def objective_factory_base(x_tr, y_tr, x_va, y_va, Xtr_np, Ytr_np, bias_delta_t, device):
+    def objective(trial):
+        best_params = {
+            "width": trial.suggest_int("width", 64, 256, log=True),
+            "depth": trial.suggest_int("depth", 3, 8),
+            "dropout": trial.suggest_float("dropout", 0.0, 0.2),
+            "lr": trial.suggest_float("lr", 1e-4, 3e-3, log=True),
+            "wd": trial.suggest_float("wd", 1e-8, 1e-3, log=True),
+            "batch": trial.suggest_categorical("batch", [32, 64, 128]),
+            "epochs": trial.suggest_int("epochs", 120, 300),
+            "clip": trial.suggest_float("clip", 0.5, 5.0, log=True),
+
+            "w_data": trial.suggest_float("w_data", 0.5, 5.0, log=True),
+            "w_fp": 0.0,
+            "w_mono": 0.0,
+            "w_ineq": 0.0,
+
+            # level0 不实际使用，但保留键更稳
+            "rho_abs_min": 0.25,
+            "mono_topk": 40,
+        }
+
+        model, _ = train_with_params(
+            best_params=best_params,
+            level=LEVEL,
+            x_tr=x_tr,
+            y_tr=y_tr,
+            x_va=x_va,
+            y_va=y_va,
+            Xtr_np=Xtr_np,
+            Ytr_np=Ytr_np,
+            bias_delta_t=bias_delta_t,
+            device=device,
+        )
+
+        model.eval()
+        with torch.no_grad():
+            mu_va, logvar_va = model(x_va)
+            val = gaussian_nll(y_va, mu_va, logvar_va).item()
+
+        return float(val)
+
+    return objective
+
+
+# ============================================================
+# Main
+# ============================================================
+
+def main():
+    seed_all(SEED)
+    ensure_dir(ART_DIR)
+    device = get_device()
+
+    split = load_fixed_split()
+    split_s = scale_split(split)
+    ten = make_tensors(split_s, device)
+
+    save_meta_stats(split)
+
+    print("\n================= OPTUNA BASE =================")
+    study = optuna.create_study(
+        direction="minimize",
+        sampler=optuna.samplers.TPESampler(seed=SEED),
+        pruner=optuna.pruners.MedianPruner(n_warmup_steps=8),
+    )
+
+    study.optimize(
+        objective_factory_base(
+            x_tr=ten["x_tr"],
+            y_tr=ten["y_tr"],
+            x_va=ten["x_va"],
+            y_va=ten["y_va"],
+            Xtr_np=split_s["Xtr_s"],
+            Ytr_np=split_s["Ytr_s"],
+            bias_delta_t=ten["bias_delta_t"],
+            device=device,
+        ),
+        n_trials=N_TRIALS,
+    )
+
+    best_params = study.best_params.copy()
+    best_params.update({
+        "w_fp": 0.0,
+        "w_mono": 0.0,
+        "w_ineq": 0.0,
+        "rho_abs_min": 0.25,
+        "mono_topk": 40,
+    })
+
+    print(f"[BEST BASE] value={study.best_value:.6g}")
+    print(best_params)
+
+    save_json({
+        "level": LEVEL,
+        "best_value": float(study.best_value),
+        "best_params": best_params,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "split_meta_path": str(SPLIT_META_JSON),
+    }, BEST_JSON)
+
+    # -------------------------
+    # Retrain with best params
+    # -------------------------
+    model, mono_pairs = train_with_params(
+        best_params=best_params,
+        level=LEVEL,
+        x_tr=ten["x_tr"],
+        y_tr=ten["y_tr"],
+        x_va=ten["x_va"],
+        y_va=ten["y_va"],
+        Xtr_np=split_s["Xtr_s"],
+        Ytr_np=split_s["Ytr_s"],
+        bias_delta_t=ten["bias_delta_t"],
+        device=device,
+    )
+
+    # -------------------------
+    # Test evaluation
+    # -------------------------
+    model.eval()
+    with torch.no_grad():
+        mu_te_s, logvar_te = model(ten["x_te"])
+        var_te_s = torch.exp(logvar_te)
+
+    mu_te_s_np = mu_te_s.detach().cpu().numpy()
+    y_te_s_np = ten["y_te"].detach().cpu().numpy()
+    sigma_te = np.sqrt(var_te_s.detach().cpu().numpy()) * split_s["sy"].scale_
+
+    mu_te = split_s["sy"].inverse_transform(mu_te_s_np)
+    y_te_true = split_s["sy"].inverse_transform(y_te_s_np)
+
+    basic = compute_basic_metrics(y_te_true, mu_te)
+    prob90 = compute_prob_metrics_gaussian(y_te_true, mu_te, sigma_te, alpha=0.10)
+    viol = eval_inequality_violation(mu_te, OUTPUT_COLS)
+    test_nll = float(gaussian_nll(ten["y_te"], mu_te_s, logvar_te).item())
+
+    sanity_rows = compute_output_sanity(y_te_true, mu_te, OUTPUT_COLS)
+    save_json(sanity_rows, SANITY_JSON)
+    pd.DataFrame(sanity_rows).to_csv(SANITY_CSV, index=False, encoding="utf-8-sig")
+
+    primary_idx = [OUTPUT_COLS.index(c) for c in PRIMARY_OUTPUTS]
+
+    metrics = {
+        "level": LEVEL,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "split_meta_path": str(SPLIT_META_JSON),
+        "test_nll_standardized": test_nll,
+        "basic_all_mean": {
+            "MAE_mean": float(np.mean(basic["MAE"])),
+            "RMSE_mean": float(np.mean(basic["RMSE"])),
+            "R2_mean": float(np.mean(basic["R2"])),
+        },
+        "basic_primary_mean": {
+            "MAE_mean": float(np.mean(basic["MAE"][primary_idx])),
+            "RMSE_mean": float(np.mean(basic["RMSE"][primary_idx])),
+            "R2_mean": float(np.mean(basic["R2"][primary_idx])),
+        },
+        "prob90_all_mean": {
+            "PICP_mean": float(np.mean(prob90["PICP"])),
+            "MPIW_mean": float(np.mean(prob90["MPIW"])),
+            "CRPS_mean": float(np.mean(prob90["CRPS"])),
+        },
+        "prob90_primary_mean": {
+            "PICP_mean": float(np.mean(prob90["PICP"][primary_idx])),
+            "MPIW_mean": float(np.mean(prob90["MPIW"][primary_idx])),
+            "CRPS_mean": float(np.mean(prob90["CRPS"][primary_idx])),
+        },
+        "ineq_violation_rates_on_mu": viol,
+        "n_train": int(split["X_tr"].shape[0]),
+        "n_val": int(split["X_va"].shape[0]),
+        "n_test": int(split["X_te"].shape[0]),
+    }
+    save_json(metrics, METRICS_JSON)
+
+    pred_dump = {
+        "level": LEVEL,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "y_true": y_te_true.tolist(),
+        "mu": mu_te.tolist(),
+        "sigma": sigma_te.tolist(),
+        "output_names": OUTPUT_COLS,
+    }
+    save_json(pred_dump, TEST_PRED_JSON)
+
+    ckpt = {
+        "model_state_dict": model.state_dict(),
+        "best_params": best_params,
+        "level": LEVEL,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "input_cols": INPUT_COLS,
+        "output_cols": OUTPUT_COLS,
+        "mono_pairs": mono_pairs,
+    }
+    torch.save(ckpt, CKPT_PT)
+
+    with open(SCALERS_PKL, "wb") as f:
+        pickle.dump({"sx": split_s["sx"], "sy": split_s["sy"]}, f)
+
+    per_dim_rows = []
+    for j, name in enumerate(OUTPUT_COLS):
+        per_dim_rows.append({
+            "level": LEVEL,
+            "run_tag": RUN_TAG,
+            "output": name,
+            "iter": "iter1" if j < 8 else "iter2",
+            "group": "primary" if name in PRIMARY_OUTPUTS else "secondary",
+            "MAE": float(basic["MAE"][j]),
+            "RMSE": float(basic["RMSE"][j]),
+            "R2": float(basic["R2"][j]),
+            "PICP90": float(prob90["PICP"][j]),
+            "MPIW90": float(prob90["MPIW"][j]),
+            "CRPS": float(prob90["CRPS"][j]),
+        })
+    pd.DataFrame(per_dim_rows).to_csv(PER_DIM_CSV, index=False, encoding="utf-8-sig")
+
+    focus_rows = []
+    for name in PRIMARY_OUTPUTS:
+        j = OUTPUT_COLS.index(name)
+        focus_rows.append({
+            "level": LEVEL,
+            "run_tag": RUN_TAG,
+            "output": name,
+            "MAE": float(basic["MAE"][j]),
+            "RMSE": float(basic["RMSE"][j]),
+            "R2": float(basic["R2"][j]),
+            "PICP90": float(prob90["PICP"][j]),
+            "MPIW90": float(prob90["MPIW"][j]),
+            "CRPS": float(prob90["CRPS"][j]),
+        })
+    pd.DataFrame(focus_rows).to_csv(FOCUS_CSV, index=False, encoding="utf-8-sig")
+
+    print("\n[OK] Finished fixed base surrogate training.")
+    print("Saved:")
+    print(" -", BEST_JSON)
+    print(" -", CKPT_PT)
+    print(" -", SCALERS_PKL)
+    print(" -", META_STATS_JSON)
+    print(" -", METRICS_JSON)
+    print(" -", PER_DIM_CSV)
+    print(" -", FOCUS_CSV)
+    print(" -", TEST_PRED_JSON)
+    print(" -", SANITY_JSON)
+    print(" -", SANITY_CSV)
+
+
+if __name__ == "__main__":
+    main()
+
+========================================================================================================================
+[分组] B_forward_risk_sensitivity
+[分组说明] 主文的正向不确定性传播、风险量化与全局敏感性主链。
+========================================================================================================================
+
+########################################################################################################################
+文件: run_forward_uq_analysis.py
+类别: B_forward_risk_sensitivity
+用途: 基于固定 surrogate 进行正向不确定性传播，输出分布统计、CVR 和失效概率。
+存在: 是
+大小: 12.2 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_forward_uq_analysis.py
+# ============================================================
+# Forward UQ analysis for paper
+#
+# Main purpose:
+#   1) use frozen baseline / regularized surrogate
+#   2) propagate input uncertainty
+#   3) export primary-output summaries
+#   4) export threshold-based stress failure probabilities
+#   5) export stress-keff joint samples
+#   6) export CVR comparison metrics
+#
+# Notes:
+#   - level 2 is forced to load the fixed surrogate artifacts
+#   - level 0 still loads the legacy baseline artifacts
+# ============================================================
+
+import os
+import json
 import pickle
 import numpy as np
 import pandas as pd
@@ -1015,24 +2062,47 @@ from paper_experiment_config import (
     PRIMARY_STRESS_OUTPUT,
     PRIMARY_AUXILIARY_OUTPUT,
     THRESHOLD_SWEEP,
+    PAPER_LEVELS,
     SEED,
+    FIXED_CKPT_PATH,
+    FIXED_SCALER_PATH,
 )
 from run_phys_levels_main import HeteroMLP, get_device
 
 
-# -----------------------------
-# Settings
-# -----------------------------
-FORWARD_LEVELS = [0, 2]
+# ============================================================
+# User settings
+# ============================================================
+
 N_SAMPLES = 20000
-DRAW_PREDICTIVE_SAMPLES = True   # True: sample y ~ N(mu, sigma^2); False: use mu only
+DRAW_PREDICTIVE_SAMPLES = True
+LEVELS_TO_RUN = [lv for lv in PAPER_LEVELS if lv in [0, 2]]
+
+# input sampling mode:
+#   "uniform_meta"  -> use min/max from meta_stats.json
+INPUT_SAMPLING_MODE = "uniform_meta"
+
+META_STATS_CANDIDATES = [
+    os.path.join(OUT_DIR, "fixed_surrogate_fixed_level2", "meta_stats.json"),
+    os.path.join(OUT_DIR, "meta_stats.json"),
+]
+
+PRIMARY_QS = [0.05, 0.25, 0.50, 0.75, 0.95]
 
 
-# -----------------------------
+# ============================================================
 # Helpers
-# -----------------------------
+# ============================================================
+
 def ensure_dir(path: str):
     os.makedirs(path, exist_ok=True)
+
+
+def seed_all(seed: int):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 def load_json(path: str):
@@ -1040,326 +2110,469 @@ def load_json(path: str):
         return json.load(f)
 
 
+def find_existing_meta_stats():
+    for p in META_STATS_CANDIDATES:
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError(
+        "Cannot find meta_stats.json in any candidate path:\n" + "\n".join(META_STATS_CANDIDATES)
+    )
+
+
+def load_input_bounds():
+    meta_path = find_existing_meta_stats()
+    meta = load_json(meta_path)
+
+    if "input_stats" not in meta:
+        raise ValueError(f"Missing 'input_stats' in {meta_path}")
+
+    bounds = []
+    for c in INPUT_COLS:
+        st = meta["input_stats"][c]
+        lo = float(st["min"])
+        hi = float(st["max"])
+        if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
+            raise ValueError(f"Invalid bound for {c}: ({lo}, {hi})")
+        bounds.append((lo, hi))
+    return bounds, meta_path
+
+
+def sample_inputs_uniform_meta(n: int, bounds, rng: np.random.RandomState):
+    x = np.zeros((n, len(bounds)), dtype=float)
+    for j, (lo, hi) in enumerate(bounds):
+        x[:, j] = rng.uniform(lo, hi, size=n)
+    return x
+
+
+# run_forward_uq_analysis.py 里替换
+def get_artifact_dir(level: int) -> str:
+    mapping = {
+        0: os.path.join(OUT_DIR, "fixed_surrogate_fixed_base"),
+        2: os.path.join(OUT_DIR, "fixed_surrogate_fixed_level2"),
+    }
+    if level not in mapping:
+        raise ValueError(f"Unsupported level for fixed surrogate: {level}")
+    return mapping[level]
+
+
 def load_checkpoint_and_scalers(level: int):
-    ckpt_path = os.path.join(OUT_DIR, f"checkpoint_level{level}.pt")
-    scaler_path = os.path.join(OUT_DIR, f"scalers_level{level}.pkl")
+    art_dir = get_artifact_dir(level)
+    ckpt_path = os.path.join(art_dir, f"checkpoint_level{level}.pt")
+    scaler_path = os.path.join(art_dir, f"scalers_level{level}.pkl")
 
     if not os.path.exists(ckpt_path):
-        raise FileNotFoundError(
-            f"Missing checkpoint: {ckpt_path}\n"
-            f"Please run `python run_phys_levels_main.py` first."
-        )
+        raise FileNotFoundError(f"Missing checkpoint: {ckpt_path}")
     if not os.path.exists(scaler_path):
-        raise FileNotFoundError(
-            f"Missing scaler file: {scaler_path}\n"
-            f"Please run `python run_phys_levels_main.py` first."
-        )
+        raise FileNotFoundError(f"Missing scaler file: {scaler_path}")
 
     ckpt = torch.load(ckpt_path, map_location="cpu")
     with open(scaler_path, "rb") as f:
         scalers = pickle.load(f)
 
-    return ckpt, scalers["sx"], scalers["sy"]
-
+    return ckpt, scalers["sx"], scalers["sy"], ckpt_path, scaler_path
 
 def build_model_from_ckpt(ckpt, device):
-    best_params = ckpt["best_params"]
+    bp = ckpt["best_params"]
     model = HeteroMLP(
         in_dim=len(INPUT_COLS),
         out_dim=len(OUTPUT_COLS),
-        width=int(best_params["width"]),
-        depth=int(best_params["depth"]),
-        dropout=float(best_params["dropout"]),
+        width=int(bp["width"]),
+        depth=int(bp["depth"]),
+        dropout=float(bp["dropout"]),
     ).to(device)
-
     model.load_state_dict(ckpt["model_state_dict"], strict=False)
     model.eval()
     return model
 
 
-def sample_uniform_inputs_from_meta(n: int):
-    meta = load_json(os.path.join(OUT_DIR, "meta_stats.json"))
-    input_stats = meta["input_stats"]
-
-    X = np.zeros((n, len(INPUT_COLS)), dtype=float)
-    for i, c in enumerate(INPUT_COLS):
-        lo = float(input_stats[c]["min"])
-        hi = float(input_stats[c]["max"])
-        X[:, i] = np.random.uniform(lo, hi, size=n)
-    return X, input_stats
-
-
 @torch.no_grad()
-def predict_distribution(model, sx, sy, X_raw, device):
-    Xs = sx.transform(X_raw)
-    x = torch.tensor(Xs, dtype=torch.float32, device=device)
-    mu_s, logvar_s = model(x)
+def predict_mu_sigma_raw(model, sx, sy, x_raw: np.ndarray, device):
+    x_s = sx.transform(x_raw)
+    xt = torch.tensor(x_s, dtype=torch.float32, device=device)
 
-    mu_s = mu_s.detach().cpu().numpy()
-    logvar_s = logvar_s.detach().cpu().numpy()
-    sigma_s = np.sqrt(np.exp(logvar_s))
+    mu_s, logvar_s = model(xt)
 
-    # inverse transform
-    mu = sy.inverse_transform(mu_s)
-    sigma = sigma_s * sy.scale_
+    mu_s_np = mu_s.detach().cpu().numpy()
+    logvar_s_np = logvar_s.detach().cpu().numpy()
 
-    return mu, sigma
+    mu_raw = sy.inverse_transform(mu_s_np)
+    sigma_raw = np.sqrt(np.exp(logvar_s_np)) * sy.scale_
 
-
-def compute_output_distribution_summary(samples, output_names):
-    rows = []
-    for j, name in enumerate(output_names):
-        v = samples[:, j]
-        rows.append({
-            "output": name,
-            "mean": float(np.mean(v)),
-            "std": float(np.std(v)),
-            "q05": float(np.quantile(v, 0.05)),
-            "q25": float(np.quantile(v, 0.25)),
-            "q50": float(np.quantile(v, 0.50)),
-            "q75": float(np.quantile(v, 0.75)),
-            "q95": float(np.quantile(v, 0.95)),
-            "min": float(np.min(v)),
-            "max": float(np.max(v)),
-        })
-    return rows
+    return mu_raw, sigma_raw
 
 
-def compute_primary_distribution_summary(samples):
-    rows = []
-    for name in PRIMARY_OUTPUTS:
-        j = OUTPUT_COLS.index(name)
-        v = samples[:, j]
-        rows.append({
-            "output": name,
-            "mean": float(np.mean(v)),
-            "std": float(np.std(v)),
-            "q05": float(np.quantile(v, 0.05)),
-            "q25": float(np.quantile(v, 0.25)),
-            "q50": float(np.quantile(v, 0.50)),
-            "q75": float(np.quantile(v, 0.75)),
-            "q95": float(np.quantile(v, 0.95)),
-        })
-    return rows
+def maybe_draw_predictive(mu_raw: np.ndarray, sigma_raw: np.ndarray, rng: np.random.RandomState):
+    return rng.normal(loc=mu_raw, scale=np.maximum(sigma_raw, 1e-12))
 
 
-def compute_failure_probability(stress_samples, thresholds):
-    rows = []
-    for thr in thresholds:
-        rows.append({
-            "threshold_MPa": float(thr),
-            "p_fail": float(np.mean(stress_samples > thr)),
-        })
-    return rows
-
-
-def compute_joint_response_table(samples, n_keep=5000):
-    idx_stress = OUTPUT_COLS.index(PRIMARY_STRESS_OUTPUT)
-    idx_keff = OUTPUT_COLS.index(PRIMARY_AUXILIARY_OUTPUT)
-
-    n = min(n_keep, samples.shape[0])
-    sel = np.random.choice(samples.shape[0], size=n, replace=False)
-    sub = samples[sel]
-
-    return pd.DataFrame({
-        "iteration2_max_global_stress": sub[:, idx_stress],
-        "iteration2_keff": sub[:, idx_keff],
-    })
-
-
-def compute_cvr(samples, input_stats):
-    """
-    CVR = mean output CV / mean input CV
-    Using the same definition style as the CovidSim paper:
-    mean over selected outputs / mean over uncertain inputs.
-    """
-    input_cvs = []
-    for c in INPUT_COLS:
-        mu = float(input_stats[c]["mean"])
-        sd = float(input_stats[c]["std"])
-        if abs(mu) < 1e-12:
-            continue
-        input_cvs.append(sd / abs(mu))
-    mean_input_cv = float(np.mean(input_cvs))
-
-    rows = []
-    for name in PRIMARY_OUTPUTS:
-        j = OUTPUT_COLS.index(name)
-        v = samples[:, j]
-        mu = float(np.mean(v))
-        sd = float(np.std(v))
-        out_cv = sd / abs(mu) if abs(mu) > 1e-12 else np.nan
-        cvr = out_cv / mean_input_cv if mean_input_cv > 1e-12 else np.nan
-        rows.append({
-            "output": name,
-            "output_mean": mu,
-            "output_std": sd,
-            "output_cv": float(out_cv),
-            "mean_input_cv": mean_input_cv,
-            "CVR": float(cvr),
-        })
-
-    # overall over primary outputs
-    primary_cvs = [r["output_cv"] for r in rows if np.isfinite(r["output_cv"])]
-    overall_cvr = float(np.mean(primary_cvs) / mean_input_cv) if mean_input_cv > 1e-12 else np.nan
-
-    return rows, {
-        "mean_input_cv": mean_input_cv,
-        "mean_primary_output_cv": float(np.mean(primary_cvs)),
-        "overall_primary_CVR": overall_cvr,
+def summarize_series(x: np.ndarray):
+    return {
+        "mean": float(np.mean(x)),
+        "std": float(np.std(x)),
+        "q05": float(np.quantile(x, 0.05)),
+        "q25": float(np.quantile(x, 0.25)),
+        "q50": float(np.quantile(x, 0.50)),
+        "q75": float(np.quantile(x, 0.75)),
+        "q95": float(np.quantile(x, 0.95)),
+        "min": float(np.min(x)),
+        "max": float(np.max(x)),
     }
 
 
-def save_json(obj, path):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, indent=2, ensure_ascii=False)
+def coefficient_of_variation_ratio(x: np.ndarray):
+    mu = float(np.mean(x))
+    sd = float(np.std(x))
+    if abs(mu) < 1e-12:
+        return np.nan
+    return abs(sd / mu)
 
 
-# -----------------------------
-# Main
-# -----------------------------
+def export_all_outputs_table(y_draw: np.ndarray, level: int):
+    rows = []
+    for j, out in enumerate(OUTPUT_COLS):
+        st = summarize_series(y_draw[:, j])
+        rows.append({"output": out, **st})
+    df = pd.DataFrame(rows)
+    path = os.path.join(OUT_DIR, f"forward_uq_all_outputs_level{level}.csv")
+    df.to_csv(path, index=False, encoding="utf-8-sig")
+    return df, path
+
+
+def export_primary_outputs_table(y_draw: np.ndarray, level: int):
+    rows = []
+    for out in PRIMARY_OUTPUTS:
+        j = OUTPUT_COLS.index(out)
+        st = summarize_series(y_draw[:, j])
+        rows.append({"output": out, **st})
+    df = pd.DataFrame(rows)
+    path = os.path.join(OUT_DIR, f"forward_uq_primary_outputs_level{level}.csv")
+    df.to_csv(path, index=False, encoding="utf-8-sig")
+    return df, path
+
+
+def export_joint_stress_keff(y_draw: np.ndarray, level: int):
+    j_stress = OUTPUT_COLS.index(PRIMARY_STRESS_OUTPUT)
+    j_keff = OUTPUT_COLS.index(PRIMARY_AUXILIARY_OUTPUT)
+
+    df = pd.DataFrame({
+        PRIMARY_STRESS_OUTPUT: y_draw[:, j_stress],
+        PRIMARY_AUXILIARY_OUTPUT: y_draw[:, j_keff],
+    })
+    path = os.path.join(OUT_DIR, f"forward_uq_joint_stress_keff_level{level}.csv")
+    df.to_csv(path, index=False, encoding="utf-8-sig")
+    return df, path
+
+
+def export_failure_prob(y_draw: np.ndarray, level: int):
+    j_stress = OUTPUT_COLS.index(PRIMARY_STRESS_OUTPUT)
+    stress = y_draw[:, j_stress]
+
+    rows = []
+    for thr in THRESHOLD_SWEEP:
+        rows.append({
+            "level": level,
+            "threshold_MPa": float(thr),
+            "n_samples": int(len(stress)),
+            "failure_probability": float(np.mean(stress > thr)),
+        })
+
+    df = pd.DataFrame(rows)
+    path = os.path.join(OUT_DIR, f"forward_uq_failure_prob_level{level}.csv")
+    df.to_csv(path, index=False, encoding="utf-8-sig")
+    return df, path
+
+
+def export_cvr(y_draw: np.ndarray, level: int):
+    rows = []
+    for out in PRIMARY_OUTPUTS:
+        j = OUTPUT_COLS.index(out)
+        vals = y_draw[:, j]
+        rows.append({
+            "level": level,
+            "output": out,
+            "mean": float(np.mean(vals)),
+            "std": float(np.std(vals)),
+            "CVR": float(coefficient_of_variation_ratio(vals)),
+        })
+
+    df = pd.DataFrame(rows)
+    path_csv = os.path.join(OUT_DIR, f"forward_uq_cvr_level{level}.csv")
+    df.to_csv(path_csv, index=False, encoding="utf-8-sig")
+
+    summary = {
+        "level": int(level),
+        "overall_primary_CVR": float(np.nanmean(df["CVR"].values)),
+        "outputs": df.to_dict(orient="records"),
+    }
+    path_json = os.path.join(OUT_DIR, f"forward_uq_cvr_summary_level{level}.json")
+    with open(path_json, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2, ensure_ascii=False)
+
+    return df, path_csv, summary, path_json
+
+
+def build_paper_summary(level: int, y_draw: np.ndarray):
+    j_stress = OUTPUT_COLS.index(PRIMARY_STRESS_OUTPUT)
+    j_keff = OUTPUT_COLS.index(PRIMARY_AUXILIARY_OUTPUT)
+
+    stress = y_draw[:, j_stress]
+    keff = y_draw[:, j_keff]
+
+    overall_primary_cvr = []
+    for out in PRIMARY_OUTPUTS:
+        vals = y_draw[:, OUTPUT_COLS.index(out)]
+        overall_primary_cvr.append(coefficient_of_variation_ratio(vals))
+    overall_primary_cvr = float(np.nanmean(overall_primary_cvr))
+
+    row = {
+        "level": int(level),
+        "n_samples": int(len(y_draw)),
+        "draw_predictive_samples": bool(DRAW_PREDICTIVE_SAMPLES),
+        "stress_mean": float(np.mean(stress)),
+        "stress_std": float(np.std(stress)),
+        "stress_q95": float(np.quantile(stress, 0.95)),
+        "keff_mean": float(np.mean(keff)),
+        "keff_std": float(np.std(keff)),
+        "p_fail_110": float(np.mean(stress > 110.0)),
+        "p_fail_120": float(np.mean(stress > 120.0)),
+        "p_fail_131": float(np.mean(stress > 131.0)),
+        "overall_primary_CVR": overall_primary_cvr,
+    }
+    return row
+
+
 def main():
-    np.random.seed(SEED)
-    torch.manual_seed(SEED)
-
     ensure_dir(OUT_DIR)
+    seed_all(SEED)
+
     device = get_device()
+    print(f"[INFO] device = {device}")
 
-    # 1) sample uncertain inputs
-    X_mc, input_stats = sample_uniform_inputs_from_meta(N_SAMPLES)
-
-    # save sampled inputs once
-    pd.DataFrame(X_mc, columns=INPUT_COLS).to_csv(
-        os.path.join(OUT_DIR, "forward_uq_input_samples.csv"),
-        index=False,
-        encoding="utf-8-sig"
-    )
+    bounds, bounds_meta_path = load_input_bounds()
+    print(f"[INFO] input bounds loaded from: {bounds_meta_path}")
 
     summary_rows = []
 
-    for level in FORWARD_LEVELS:
-        ckpt, sx, sy = load_checkpoint_and_scalers(level)
+    for level in LEVELS_TO_RUN:
+        print(f"\n[INFO] Running forward UQ for level {level}")
+
+        ckpt, sx, sy, ckpt_path, scaler_path = load_checkpoint_and_scalers(level)
+        print(f"[INFO] checkpoint = {ckpt_path}")
+        print(f"[INFO] scaler     = {scaler_path}")
+
         model = build_model_from_ckpt(ckpt, device)
 
-        # 2) predictive distribution
-        mu, sigma = predict_distribution(model, sx, sy, X_mc, device)
+        rng_x = np.random.RandomState(SEED + 100 * level + 1)
+        rng_y = np.random.RandomState(SEED + 100 * level + 2)
 
-        # choose what to propagate downstream
+        if INPUT_SAMPLING_MODE != "uniform_meta":
+            raise ValueError(f"Unsupported INPUT_SAMPLING_MODE: {INPUT_SAMPLING_MODE}")
+
+        x_samples = sample_inputs_uniform_meta(N_SAMPLES, bounds, rng_x)
+        mu_raw, sigma_raw = predict_mu_sigma_raw(model, sx, sy, x_samples, device)
+
         if DRAW_PREDICTIVE_SAMPLES:
-            y_samples = np.random.normal(loc=mu, scale=np.maximum(sigma, 1e-12))
+            y_draw = maybe_draw_predictive(mu_raw, sigma_raw, rng_y)
         else:
-            y_samples = mu.copy()
+            y_draw = mu_raw.copy()
 
-        # 3) distribution summaries
-        all_summary = compute_output_distribution_summary(y_samples, OUTPUT_COLS)
-        primary_summary = compute_primary_distribution_summary(y_samples)
+        # save sampled inputs once for reproducibility
+        input_path = os.path.join(OUT_DIR, "forward_uq_input_samples.csv")
+        if not os.path.exists(input_path):
+            pd.DataFrame(x_samples, columns=INPUT_COLS).to_csv(
+                input_path, index=False, encoding="utf-8-sig"
+            )
 
-        pd.DataFrame(all_summary).to_csv(
-            os.path.join(OUT_DIR, f"forward_uq_all_outputs_level{level}.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        pd.DataFrame(primary_summary).to_csv(
-            os.path.join(OUT_DIR, f"forward_uq_primary_outputs_level{level}.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        # 4) failure probability under thresholds
-        stress_idx = OUTPUT_COLS.index(PRIMARY_STRESS_OUTPUT)
-        stress_samples = y_samples[:, stress_idx]
-        fail_rows = compute_failure_probability(stress_samples, THRESHOLD_SWEEP)
-
-        pd.DataFrame(fail_rows).to_csv(
-            os.path.join(OUT_DIR, f"forward_uq_failure_prob_level{level}.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        # 5) joint response: stress vs keff
-        joint_df = compute_joint_response_table(y_samples, n_keep=5000)
-        joint_df.to_csv(
-            os.path.join(OUT_DIR, f"forward_uq_joint_stress_keff_level{level}.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        # 6) CVR uncertainty amplification
-        cvr_rows, cvr_overall = compute_cvr(y_samples, input_stats)
-
-        pd.DataFrame(cvr_rows).to_csv(
-            os.path.join(OUT_DIR, f"forward_uq_cvr_level{level}.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        save_json(
-            cvr_overall,
-            os.path.join(OUT_DIR, f"forward_uq_cvr_summary_level{level}.json")
-        )
-
-        # 7) save a compact npz for reuse
+        # save compressed draws
+        npz_path = os.path.join(OUT_DIR, f"forward_uq_samples_level{level}.npz")
         np.savez_compressed(
-            os.path.join(OUT_DIR, f"forward_uq_samples_level{level}.npz"),
-            X=X_mc,
-            mu=mu,
-            sigma=sigma,
-            y=y_samples,
+            npz_path,
+            x_samples=x_samples,
+            mu_raw=mu_raw,
+            sigma_raw=sigma_raw,
+            y_draw=y_draw,
+            input_cols=np.array(INPUT_COLS, dtype=object),
+            output_cols=np.array(OUTPUT_COLS, dtype=object),
         )
 
-        # 8) global summary row for paper
-        stress_q95 = float(np.quantile(stress_samples, 0.95))
-        keff_idx = OUTPUT_COLS.index(PRIMARY_AUXILIARY_OUTPUT)
-        keff_samples = y_samples[:, keff_idx]
+        # detailed exports
+        df_all, path_all = export_all_outputs_table(y_draw, level)
+        df_primary, path_primary = export_primary_outputs_table(y_draw, level)
+        df_fail, path_fail = export_failure_prob(y_draw, level)
+        df_joint, path_joint = export_joint_stress_keff(y_draw, level)
+        df_cvr, path_cvr_csv, cvr_summary, path_cvr_json = export_cvr(y_draw, level)
 
-        fail_map = {r["threshold_MPa"]: r["p_fail"] for r in fail_rows}
+        # paper summary row
+        row = build_paper_summary(level, y_draw)
+        summary_rows.append(row)
 
-        summary_rows.append({
-            "level": level,
-            "n_samples": int(N_SAMPLES),
-            "draw_predictive_samples": bool(DRAW_PREDICTIVE_SAMPLES),
+        print(f"[OK] level {level} completed.")
+        print(json.dumps(row, indent=2, ensure_ascii=False))
 
-            "stress_mean": float(np.mean(stress_samples)),
-            "stress_std": float(np.std(stress_samples)),
-            "stress_q95": stress_q95,
+    # combined summary
+    df_summary = pd.DataFrame(summary_rows).sort_values("level").reset_index(drop=True)
+    paper_summary_path = os.path.join(OUT_DIR, "paper_forward_uq_summary.csv")
+    df_summary.to_csv(paper_summary_path, index=False, encoding="utf-8-sig")
 
-            "keff_mean": float(np.mean(keff_samples)),
-            "keff_std": float(np.std(keff_samples)),
-
-            "p_fail_110": float(fail_map.get(110.0, np.nan)),
-            "p_fail_120": float(fail_map.get(120.0, np.nan)),
-            "p_fail_131": float(fail_map.get(131.0, np.nan)),
-
-            "overall_primary_CVR": float(cvr_overall["overall_primary_CVR"]),
-        })
-
-        print(f"[OK] Forward UQ finished for level {level}")
-
-    pd.DataFrame(summary_rows).to_csv(
-        os.path.join(OUT_DIR, "paper_forward_uq_summary.csv"),
-        index=False,
-        encoding="utf-8-sig"
-    )
-
-    print("[DONE] Forward UQ analysis completed.")
+    print("\n[DONE] Forward UQ analysis completed.")
+    print(f"[DONE] Saved paper summary to: {paper_summary_path}")
 
 
 if __name__ == "__main__":
     main()
 
-####################################################################################################
-文件: run_sobol_analysis.py
-用途: Sobol 全局分析主脚本。
+########################################################################################################################
+文件: run_safety_threshold_analysis.py
+类别: B_forward_risk_sensitivity
+用途: 针对主应力阈值进行 test-set 风险分析，比较 predictive probability、mean-only 判断与真实标签。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 4.0 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_safety_threshold_analysis.py
+# ============================================================
+# Safety-threshold analysis for paper
+# ============================================================
+
+import os
+import json
+import math
+import numpy as np
+import pandas as pd
+
+from paper_experiment_config import (
+    OUT_DIR,
+    PAPER_LEVELS,
+    PRIMARY_STRESS_THRESHOLD,
+    THRESHOLD_SWEEP,
+    PRIMARY_STRESS_OUTPUT,
+)
+
+def normal_cdf(x):
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+def compute_failure_metrics(y_true, mu, sigma, output_names, threshold):
+    stress_idx = output_names.index("iteration2_max_global_stress")
+
+    y_s = y_true[:, stress_idx]
+    mu_s = mu[:, stress_idx]
+    sig_s = np.maximum(sigma[:, stress_idx], 1e-12)
+
+    p_fail_each = []
+    for m, s in zip(mu_s, sig_s):
+        z = (threshold - m) / s
+        p_fail_each.append(1.0 - normal_cdf(z))
+    p_fail_predictive = float(np.mean(p_fail_each))
+
+    p_fail_mean_only = float(np.mean(mu_s > threshold))
+    p_fail_truth = float(np.mean(y_s > threshold))
+
+    return {
+        "threshold_MPa": float(threshold),
+        "p_fail_predictive": p_fail_predictive,
+        "p_fail_mean_only": p_fail_mean_only,
+        "p_fail_truth": p_fail_truth,
+        "stress_true_mean": float(np.mean(y_s)),
+        "stress_true_std": float(np.std(y_s)),
+        "stress_pred_mean": float(np.mean(mu_s)),
+        "stress_pred_std": float(np.std(mu_s)),
+        "stress_unc_mean": float(np.mean(sig_s)),
+        "stress_output": PRIMARY_STRESS_OUTPUT,
+    }
+
+def main():
+    summary_rows = []
+    sweep_rows_all = []
+
+    for level in PAPER_LEVELS:
+        pred_path = os.path.join(OUT_DIR, f"test_predictions_level{level}.json")
+        if not os.path.exists(pred_path):
+            print(f"[WARN] Missing file: {pred_path}")
+            continue
+
+        with open(pred_path, "r", encoding="utf-8") as f:
+            obj = json.load(f)
+
+        y_true = np.asarray(obj["y_true"], dtype=float)
+        mu = np.asarray(obj["mu"], dtype=float)
+        sigma = np.asarray(obj["sigma"], dtype=float)
+        output_names = obj["output_names"]
+
+        main_res = compute_failure_metrics(
+            y_true, mu, sigma, output_names, PRIMARY_STRESS_THRESHOLD
+        )
+
+        sweep_res = []
+        for thr in THRESHOLD_SWEEP:
+            one = compute_failure_metrics(y_true, mu, sigma, output_names, thr)
+            sweep_res.append(one)
+
+            sweep_rows_all.append({
+                "level": level,
+                **one
+            })
+
+        out_json = {
+            "level": level,
+            "main_threshold_result": main_res,
+            "threshold_sweep_results": sweep_res,
+        }
+
+        with open(os.path.join(OUT_DIR, f"safety_threshold_analysis_level{level}.json"), "w", encoding="utf-8") as f:
+            json.dump(out_json, f, indent=2, ensure_ascii=False)
+
+        pd.DataFrame(sweep_res).to_csv(
+            os.path.join(OUT_DIR, f"safety_threshold_sweep_level{level}.csv"),
+            index=False,
+            encoding="utf-8-sig"
+        )
+
+        summary_rows.append({
+            "level": level,
+            "main_threshold_MPa": main_res["threshold_MPa"],
+            "p_fail_predictive_main": main_res["p_fail_predictive"],
+            "p_fail_mean_only_main": main_res["p_fail_mean_only"],
+            "p_fail_truth_main": main_res["p_fail_truth"],
+            "stress_pred_mean": main_res["stress_pred_mean"],
+            "stress_unc_mean": main_res["stress_unc_mean"],
+        })
+
+        print(f"[OK] Saved safety threshold analysis for level {level}")
+
+    if summary_rows:
+        pd.DataFrame(summary_rows).to_csv(
+            os.path.join(OUT_DIR, "paper_safety_threshold_summary.csv"),
+            index=False,
+            encoding="utf-8-sig"
+        )
+
+    if sweep_rows_all:
+        pd.DataFrame(sweep_rows_all).to_csv(
+            os.path.join(OUT_DIR, "paper_safety_threshold_sweep_all_levels.csv"),
+            index=False,
+            encoding="utf-8-sig"
+        )
+
+    print("[DONE] Safety-threshold analysis completed.")
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+文件: run_sobol_analysis.py
+类别: B_forward_risk_sensitivity
+用途: 执行 Sobol 全局敏感性分析，输出 S1/ST 指标及其不确定性统计。
+存在: 是
+大小: 8.2 KB
+------------------------------------------------------------------------------------------------------------------------
 # run_sobol_analysis.py
 # ============================================================
-# Sobol analysis with repeated estimation + CI for paper
-# Main-text focus:
-#   - Level0 vs Level2
-#   - iteration2_max_global_stress
-#   - iteration2_keff
+# Sobol analysis with repeated estimation + CI
+#
+# Main features:
+#   1) level 2 is forced to use fixed surrogate artifacts
+#   2) level 0 uses legacy baseline artifacts
+#   3) supports iter1 + iter2 outputs
+#   4) exports CI-ready table for paper
 # ============================================================
 
 import os
@@ -1373,37 +2586,101 @@ from paper_experiment_config import (
     OUT_DIR,
     INPUT_COLS,
     OUTPUT_COLS,
-    PRIMARY_STRESS_OUTPUT,
-    PRIMARY_AUXILIARY_OUTPUT,
     PAPER_LEVELS,
     SEED,
+    FIXED_CKPT_PATH,
+    FIXED_SCALER_PATH,
 )
 from run_phys_levels_main import HeteroMLP, get_device
 
-# -----------------------------
-# Sobol settings
-# -----------------------------
+
+# ============================================================
+# User settings
+# ============================================================
+
 SOBOL_OUTPUTS = [
-    PRIMARY_STRESS_OUTPUT,
-    PRIMARY_AUXILIARY_OUTPUT,   # keff
+    "iteration1_avg_fuel_temp",
+    "iteration1_max_fuel_temp",
+    "iteration1_max_monolith_temp",
+    "iteration1_max_global_stress",
+    "iteration1_wall2",
+    # iteration1_keff 可导出，但不建议主解释
+    "iteration1_keff",
+
+    "iteration2_keff",
+    "iteration2_avg_fuel_temp",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_max_global_stress",
+    "iteration2_wall2",
 ]
-N_BASE = 512
-N_REPEATS = 20
+
+LEVELS_TO_RUN = [lv for lv in PAPER_LEVELS if lv in [0, 2]]
+
+N_BASE = 512*32
+N_REPEATS = 50
 CI_Z = 1.96
 
-# Parameter sampling range:
-# use training/statistical support from dataset meta
-META_STATS_PATH = os.path.join(OUT_DIR, "meta_stats.json")
+META_STATS_CANDIDATES = [
+    os.path.join(OUT_DIR, "fixed_surrogate_fixed_level2", "meta_stats.json"),
+    os.path.join(OUT_DIR, "meta_stats.json"),
+]
+
+
+# ============================================================
+# Helpers
+# ============================================================
+
+def load_json(path: str):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def find_existing_meta_stats():
+    for p in META_STATS_CANDIDATES:
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError(
+        "Cannot find meta_stats.json in any candidate path:\n" + "\n".join(META_STATS_CANDIDATES)
+    )
+
+
+def load_input_bounds():
+    meta_path = find_existing_meta_stats()
+    meta = load_json(meta_path)
+    if "input_stats" not in meta:
+        raise ValueError(f"Missing 'input_stats' in {meta_path}")
+
+    bounds = []
+    for c in INPUT_COLS:
+        st = meta["input_stats"][c]
+        lo = float(st["min"])
+        hi = float(st["max"])
+        if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
+            raise ValueError(f"Invalid bound for {c}: ({lo}, {hi})")
+        bounds.append((lo, hi))
+    return bounds
+
+
+def get_artifact_dir(level: int) -> str:
+    mapping = {
+        0: os.path.join(OUT_DIR, "fixed_surrogate_fixed_base"),
+        2: os.path.join(OUT_DIR, "fixed_surrogate_fixed_level2"),
+    }
+    if level not in mapping:
+        raise ValueError(f"Unsupported level for fixed surrogate: {level}")
+    return mapping[level]
 
 
 def load_checkpoint_and_scalers(level: int):
-    ckpt_path = os.path.join(OUT_DIR, f"checkpoint_level{level}.pt")
-    scaler_path = os.path.join(OUT_DIR, f"scalers_level{level}.pkl")
+    art_dir = get_artifact_dir(level)
+    ckpt_path = os.path.join(art_dir, f"checkpoint_level{level}.pt")
+    scaler_path = os.path.join(art_dir, f"scalers_level{level}.pkl")
 
     if not os.path.exists(ckpt_path):
         raise FileNotFoundError(f"Missing checkpoint: {ckpt_path}")
     if not os.path.exists(scaler_path):
-        raise FileNotFoundError(f"Missing scalers: {scaler_path}")
+        raise FileNotFoundError(f"Missing scaler file: {scaler_path}")
 
     ckpt = torch.load(ckpt_path, map_location="cpu")
     with open(scaler_path, "rb") as f:
@@ -1424,23 +2701,6 @@ def build_model_from_ckpt(ckpt, device):
     model.load_state_dict(ckpt["model_state_dict"], strict=False)
     model.eval()
     return model
-
-
-def load_input_bounds():
-    if not os.path.exists(META_STATS_PATH):
-        raise FileNotFoundError(f"Missing meta stats: {META_STATS_PATH}")
-    with open(META_STATS_PATH, "r", encoding="utf-8") as f:
-        meta = json.load(f)
-    st = meta["input_stats"]
-
-    bounds = []
-    for c in INPUT_COLS:
-        lo = float(st[c]["min"])
-        hi = float(st[c]["max"])
-        if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
-            raise ValueError(f"Invalid bound for {c}: ({lo}, {hi})")
-        bounds.append((lo, hi))
-    return bounds
 
 
 def sample_sobol_matrices(n, bounds, rng):
@@ -1507,16 +2767,12 @@ def repeated_sobol_for_output(model, sx, sy, out_idx, bounds, device, base_seed)
         s1_all.append(s1_r)
         st_all.append(st_r)
 
-    s1_all = np.asarray(s1_all, dtype=float)   # [R, D]
-    st_all = np.asarray(st_all, dtype=float)   # [R, D]
+    s1_all = np.asarray(s1_all, dtype=float)
+    st_all = np.asarray(st_all, dtype=float)
     return s1_all, st_all
 
 
 def summarize_repeated_indices(arr):
-    """
-    arr: [R, D]
-    returns mean/std/ci_low/ci_high
-    """
     mean = arr.mean(axis=0)
     std = arr.std(axis=0, ddof=1) if arr.shape[0] > 1 else np.zeros(arr.shape[1])
     ci_half = CI_Z * std / np.sqrt(max(arr.shape[0], 1))
@@ -1531,15 +2787,16 @@ def main():
 
     rows = []
 
-    # freeze main-text levels to 0 vs 2 even if PAPER_LEVELS changed elsewhere
-    levels_for_sa = [lv for lv in PAPER_LEVELS if lv in [0, 2]]
-
-    for level in levels_for_sa:
+    for level in LEVELS_TO_RUN:
         print(f"\n[INFO] Sobol repeated estimation for level {level}")
         ckpt, sx, sy = load_checkpoint_and_scalers(level)
         model = build_model_from_ckpt(ckpt, device)
 
         for out_name in SOBOL_OUTPUTS:
+            if out_name not in OUTPUT_COLS:
+                print(f"[WARN] Output not found in OUTPUT_COLS: {out_name}")
+                continue
+
             out_idx = OUTPUT_COLS.index(out_name)
 
             s1_rep, st_rep = repeated_sobol_for_output(
@@ -1565,8 +2822,6 @@ def main():
                     "S1_raw_std": float(s1_std[j]),
                     "S1_ci_low": float(s1_lo[j]),
                     "S1_ci_high": float(s1_hi[j]),
-
-                    # plotting-safe value
                     "S1_plot": float(max(0.0, s1_mean[j])),
 
                     "ST_mean": float(st_mean[j]),
@@ -1576,27 +2831,31 @@ def main():
                 })
 
     df = pd.DataFrame(rows)
-    out_csv = os.path.join(OUT_DIR, "paper_sobol_results_with_ci.csv")
-    df.to_csv(out_csv, index=False, encoding="utf-8-sig")
-    print(f"[DONE] Saved repeated Sobol with CI: {out_csv}")
 
-    # keep backward-compatible simplified export if needed
+    out_csv_all = os.path.join(OUT_DIR, "paper_sobol_results_with_ci_all_iters.csv")
+    df.to_csv(out_csv_all, index=False, encoding="utf-8-sig")
+    print(f"[DONE] Saved: {out_csv_all}")
+
+    # backward-compatible simplified export
     df_simple = df.rename(columns={"S1_plot": "S1", "ST_mean": "ST"})[
         ["output", "input", "S1", "ST", "level"]
     ]
     out_csv_simple = os.path.join(OUT_DIR, "paper_sobol_results.csv")
     df_simple.to_csv(out_csv_simple, index=False, encoding="utf-8-sig")
-    print(f"[DONE] Updated simplified Sobol file: {out_csv_simple}")
+    print(f"[DONE] Saved: {out_csv_simple}")
 
 
 if __name__ == "__main__":
     main()
 
-####################################################################################################
+########################################################################################################################
 文件: run_sobol_ci_methods_summary.py
-用途: 将 Sobol+CI 结果整理成论文 Methods/Results 可直接引用的 summary。
+类别: B_forward_risk_sensitivity
+用途: 将 Sobol 原始结果进一步整理为带 CI 的 methods-ready 与 results-ready 汇总表。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 7.4 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_sobol_ci_methods_summary.py
 import os
 import json
 import numpy as np
@@ -1811,60 +3070,75 @@ def main():
 if __name__ == "__main__":
     main()
 
-####################################################################################################
-文件: run_calibration_benchmark.py
-用途: 重复 synthetic benchmark 的 inverse UQ 主脚本。
+========================================================================================================================
+[分组] C_inverse_pipeline
+[分组说明] 主文 inverse benchmark、收缩分析与 full/reduced 对照主链。
+========================================================================================================================
+
+########################################################################################################################
+文件: run_inverse_benchmark_fixed_surrogate.py
+类别: C_inverse_pipeline
+用途: 在固定 surrogate 条件下执行 inverse benchmark，是当前主文 inverse UQ 的核心脚本。
 存在: 是
-----------------------------------------------------------------------------------------------------
-# run_calibration_benchmark.py
+大小: 26.2 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_inverse_benchmark_fixed_surrogate.py
 # ============================================================
-# Repeated synthetic calibration benchmark for inverse UQ
+# Fixed-surrogate repeated synthetic inverse benchmark
+#
+# Main principles:
+#   1) split full dataset once and save the split
+#   2) calibration pool is strictly separated from emulator pool
+#   3) load fixed pretrained surrogate (checkpoint + scalers)
+#   4) run repeated synthetic inverse benchmark on calibration pool
 #
 # Supports:
-#   - full inverse (all INPUT_COLS)
-#   - reduced inverse (selected dominant parameters)
+#   - full inverse
+#   - reduced_maintext inverse
 #
 # Main outputs:
-#   - calibration_benchmark_case_summary_full.csv / _reduced.csv
-#   - calibration_benchmark_parameter_recovery_full.csv / _reduced.csv
-#   - calibration_benchmark_observation_fit_full.csv / _reduced.csv
-#   - calibration_benchmark_parameter_recovery_summary_full.csv / _reduced.csv
-#   - calibration_benchmark_observation_fit_summary_full.csv / _reduced.csv
-#   - calibration_benchmark_meta_full.json / _reduced.json
-#   - inverse_diagnostics_summary_full.json / _reduced.json
-#   - calibration_benchmark_compare_full_vs_reduced.csv
+#   - inverse_split_meta.json
+#   - inverse_emulator_pool.csv
+#   - inverse_calibration_pool.csv
+#   - inverse_case_indices_<run_tag>.csv
+#   - inverse_benchmark_case_summary_<run_tag>.csv
+#   - inverse_benchmark_parameter_recovery_<run_tag>.csv
+#   - inverse_benchmark_parameter_recovery_summary_<run_tag>.csv
+#   - inverse_benchmark_observation_fit_<run_tag>.csv
+#   - inverse_benchmark_observation_fit_summary_<run_tag>.csv
+#   - inverse_benchmark_meta_<run_tag>.json
+#   - inverse_diagnostics_summary_<run_tag>.json
 #
 # Optional per-case outputs:
-#   - benchmark_caseXXX_prior_samples_full.csv / _reduced.csv
-#   - benchmark_caseXXX_posterior_samples_full.csv / _reduced.csv
-#   - benchmark_caseXXX_posterior_predictive_full.csv / _reduced.csv
-#   - benchmark_caseXXX_full_chain_full.csv / _reduced.csv
+#   - benchmark_caseXXX_prior_samples_<run_tag>.csv
+#   - benchmark_caseXXX_posterior_samples_<run_tag>.csv
+#   - benchmark_caseXXX_posterior_predictive_<run_tag>.csv
+#   - benchmark_caseXXX_full_chain_<run_tag>.csv
 # ============================================================
 
 import os
 import json
 import math
 import random
+import pickle
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import torch
-
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 
 from paper_experiment_config import (
     OUT_DIR,
     INPUT_COLS,
     OUTPUT_COLS,
-    ITER1_IDX,
-    ITER2_IDX,
     THRESHOLD_SWEEP,
     SEED,
 )
 from run_phys_levels_main import (
     load_dataset,
     get_device,
-    train_with_params,
+    HeteroMLP,
 )
 
 # ============================================================
@@ -1872,9 +3146,18 @@ from run_phys_levels_main import (
 # ============================================================
 
 FINAL_LEVEL = 2
+RUN_TAG = "reduced_maintext"   # "full" or "reduced_maintext"
+
+# split
 CALIB_HOLDOUT_FRAC = 0.15
+SAVE_SPLIT_FILES = True
+RESAVE_SPLIT_IF_EXISTS = False
+
+# repeated benchmark
+N_CASES = 50
 CASE_SELECTION = "stress_stratified"   # "random" or "stress_stratified"
 
+# observations used in inverse likelihood
 OBS_COLS = [
     "iteration2_max_global_stress",
     "iteration2_max_fuel_temp",
@@ -1883,36 +3166,40 @@ OBS_COLS = [
     "iteration2_keff",
 ]
 
-PRIOR_TYPE = "trunc_gaussian"    # "trunc_gaussian" or "uniform"
-
-RUN_TAG = "reduced"   # "full" or "reduced"
-
-if RUN_TAG == "full":
-    CALIBRATION_INPUT_COLS = INPUT_COLS
-elif RUN_TAG == "reduced":
-    CALIBRATION_INPUT_COLS = ["E_intercept", "alpha_base", "alpha_slope", "SS316_k_ref"]
-else:
-    raise ValueError("RUN_TAG must be 'full' or 'reduced'")
-
-N_CASES = 20
+# prior / MCMC
+PRIOR_TYPE = "trunc_gaussian"   # "trunc_gaussian" or "uniform"
 N_TOTAL = 8000
 BURN_IN = 2000
 THIN = 5
-
 OBS_NOISE_FRAC = 0.02
 PROPOSAL_SCALE = 0.15
 
+# optional exports
 SAVE_PRIOR_SAMPLES = True
 N_PRIOR_EXPORT = 5000
-
 SAVE_PER_CASE_POSTERIOR = True
 SAVE_FULL_CHAIN_FOR_REP_CASES = True
-REPRESENTATIVE_CASE_FOR_TRACE_MODE = "closest_to_threshold"   # "first", "closest_to_threshold"
+REPRESENTATIVE_CASE_FOR_TRACE_MODE = "closest_to_threshold"  # "first" or "closest_to_threshold"
 PRIMARY_STRESS_THRESHOLD = 131.0
 REP_CASE_STRESS_WINDOW = 5.0
 
+# reduced set frozen for main text
+if RUN_TAG == "full":
+    CALIBRATION_INPUT_COLS = INPUT_COLS
+elif RUN_TAG == "reduced_maintext":
+    CALIBRATION_INPUT_COLS = ["E_intercept", "alpha_base", "alpha_slope", "nu"]
+else:
+    raise ValueError("RUN_TAG must be 'full' or 'reduced_maintext'")
+
+# file paths
+ROOT_OUT = Path(OUT_DIR)
+SPLIT_META_PATH = ROOT_OUT / "inverse_split_meta.json"
+EMULATOR_POOL_PATH = ROOT_OUT / "inverse_emulator_pool.csv"
+CALIB_POOL_PATH = ROOT_OUT / "inverse_calibration_pool.csv"
+
+
 # ============================================================
-# Utilities
+# basic utils
 # ============================================================
 
 def seed_all(seed: int):
@@ -1932,18 +3219,6 @@ def save_json(obj, path):
         json.dump(obj, f, indent=2, ensure_ascii=False)
 
 
-def load_best_params(level: int):
-    path = os.path.join(OUT_DIR, f"best_level{level}.json")
-    if not os.path.exists(path):
-        raise FileNotFoundError(
-            f"Missing best params file: {path}\n"
-            f"Please run `python run_phys_levels_main.py` first."
-        )
-    with open(path, "r", encoding="utf-8") as f:
-        obj = json.load(f)
-    return obj["best_params"]
-
-
 def build_run_suffix():
     return f"_{RUN_TAG}"
 
@@ -1961,80 +3236,94 @@ def expand_reduced_to_full(x_reduced: np.ndarray, reduced_cols, full_reference_r
     return out
 
 
-def sample_uniform_prior(n: int, bounds_dict: dict, cols: list, rng: np.random.RandomState):
-    arr = np.zeros((n, len(cols)), dtype=float)
-    for j, c in enumerate(cols):
-        lo, hi = bounds_dict[c]
-        arr[:, j] = rng.uniform(lo, hi, size=n)
-    return arr
+# ============================================================
+# split management
+# ============================================================
+
+def make_pool_dataframe(X: np.ndarray, Y: np.ndarray) -> pd.DataFrame:
+    df_x = pd.DataFrame(X, columns=INPUT_COLS)
+    df_y = pd.DataFrame(Y, columns=OUTPUT_COLS)
+    return pd.concat([df_x, df_y], axis=1)
 
 
-def split_for_benchmark(df):
-    """
-    Split full dataset into:
-      - emulator set: used to train surrogate
-      - calibration pool: used only for synthetic truths / inverse benchmark
-    """
-    X = df[INPUT_COLS].to_numpy(dtype=float)
-    Y = df[OUTPUT_COLS].to_numpy(dtype=float)
+def create_and_save_split(df_full: pd.DataFrame):
+    X = df_full[INPUT_COLS].to_numpy(dtype=float)
+    Y = df_full[OUTPUT_COLS].to_numpy(dtype=float)
 
     X_emul, X_calib, Y_emul, Y_calib = train_test_split(
-        X, Y, test_size=CALIB_HOLDOUT_FRAC, random_state=SEED
+        X, Y,
+        test_size=CALIB_HOLDOUT_FRAC,
+        random_state=SEED
     )
 
-    X_tr, X_va, Y_tr, Y_va = train_test_split(
-        X_emul, Y_emul, test_size=0.1765, random_state=SEED
-    )
+    df_emul = make_pool_dataframe(X_emul, Y_emul)
+    df_calib = make_pool_dataframe(X_calib, Y_calib)
 
-    sx = StandardScaler().fit(X_tr)
-    sy = StandardScaler().fit(Y_tr)
+    if SAVE_SPLIT_FILES:
+        df_emul.to_csv(EMULATOR_POOL_PATH, index=False, encoding="utf-8-sig")
+        df_calib.to_csv(CALIB_POOL_PATH, index=False, encoding="utf-8-sig")
 
-    Xtr_s = sx.transform(X_tr)
-    Xva_s = sx.transform(X_va)
-    Xcal_s = sx.transform(X_calib)
+        split_meta = {
+            "seed": SEED,
+            "calib_holdout_frac": CALIB_HOLDOUT_FRAC,
+            "n_total": int(len(df_full)),
+            "n_emulator_pool": int(len(df_emul)),
+            "n_calibration_pool": int(len(df_calib)),
+            "input_cols": INPUT_COLS,
+            "output_cols": OUTPUT_COLS,
+        }
+        save_json(split_meta, SPLIT_META_PATH)
 
-    Ytr_s = sy.transform(Y_tr)
-    Yva_s = sy.transform(Y_va)
-    Ycal_s = sy.transform(Y_calib)
-
-    return {
-        "X_tr": X_tr,
-        "X_va": X_va,
-        "X_cal": X_calib,
-        "Y_tr": Y_tr,
-        "Y_va": Y_va,
-        "Y_cal": Y_calib,
-        "Xtr_s": Xtr_s,
-        "Xva_s": Xva_s,
-        "Xcal_s": Xcal_s,
-        "Ytr_s": Ytr_s,
-        "Yva_s": Yva_s,
-        "Ycal_s": Ycal_s,
-        "sx": sx,
-        "sy": sy,
-    }
+    return df_emul, df_calib
 
 
-def build_training_args(split, device):
-    delta_tr = split["Ytr_s"][:, ITER2_IDX] - split["Ytr_s"][:, ITER1_IDX]
-    bias_delta = delta_tr.mean(axis=0)
-    bias_delta_t = torch.tensor(bias_delta, dtype=torch.float32, device=device)
+def load_or_create_split(df_full: pd.DataFrame):
+    if (
+        not RESAVE_SPLIT_IF_EXISTS
+        and EMULATOR_POOL_PATH.exists()
+        and CALIB_POOL_PATH.exists()
+        and SPLIT_META_PATH.exists()
+    ):
+        df_emul = pd.read_csv(EMULATOR_POOL_PATH)
+        df_calib = pd.read_csv(CALIB_POOL_PATH)
+        return df_emul, df_calib
 
-    x_tr = torch.tensor(split["Xtr_s"], dtype=torch.float32, device=device)
-    y_tr = torch.tensor(split["Ytr_s"], dtype=torch.float32, device=device)
-    x_va = torch.tensor(split["Xva_s"], dtype=torch.float32, device=device)
-    y_va = torch.tensor(split["Yva_s"], dtype=torch.float32, device=device)
+    return create_and_save_split(df_full)
 
-    return {
-        "x_tr": x_tr,
-        "y_tr": y_tr,
-        "x_va": x_va,
-        "y_va": y_va,
-        "Xtr_np": split["Xtr_s"],
-        "Ytr_np": split["Ytr_s"],
-        "bias_delta_t": bias_delta_t,
-        "device": device,
-    }
+
+# ============================================================
+# fixed surrogate loading
+# ============================================================
+
+def load_fixed_surrogate(level: int, device):
+    ckpt_path = ROOT_OUT / f"checkpoint_level{level}.pt"
+    scaler_path = ROOT_OUT / f"scalers_level{level}.pkl"
+
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Missing checkpoint: {ckpt_path}")
+    if not scaler_path.exists():
+        raise FileNotFoundError(f"Missing scalers: {scaler_path}")
+
+    ckpt = torch.load(str(ckpt_path), map_location="cpu")
+
+    with open(scaler_path, "rb") as f:
+        scalers = pickle.load(f)
+
+    sx = scalers["sx"]
+    sy = scalers["sy"]
+
+    bp = ckpt["best_params"]
+    model = HeteroMLP(
+        in_dim=len(INPUT_COLS),
+        out_dim=len(OUTPUT_COLS),
+        width=int(bp["width"]),
+        depth=int(bp["depth"]),
+        dropout=float(bp["dropout"]),
+    ).to(device)
+    model.load_state_dict(ckpt["model_state_dict"], strict=False)
+    model.eval()
+
+    return model, sx, sy, bp
 
 
 @torch.no_grad()
@@ -2051,8 +3340,12 @@ def predict_single_x_full(model, sx, sy, x_full_raw, device):
     return mu_raw, sigma_raw
 
 
-def get_prior_stats(split):
-    X_ref_full = split["X_tr"]
+# ============================================================
+# prior helpers
+# ============================================================
+
+def get_prior_stats_from_emulator_pool(df_emul: pd.DataFrame):
+    X_ref_full = df_emul[INPUT_COLS].to_numpy(dtype=float)
     X_ref_sub = subset_input_array(X_ref_full, INPUT_COLS, CALIBRATION_INPUT_COLS)
 
     stats = {}
@@ -2065,6 +3358,37 @@ def get_prior_stats(split):
             "max": float(np.max(col)),
         }
     return stats
+
+
+def sample_uniform_prior(n: int, bounds_dict: dict, cols: list, rng: np.random.RandomState):
+    arr = np.zeros((n, len(cols)), dtype=float)
+    for j, c in enumerate(cols):
+        lo, hi = bounds_dict[c]
+        arr[:, j] = rng.uniform(lo, hi, size=n)
+    return arr
+
+
+def sample_trunc_gaussian_prior(n: int, prior_stats: dict, cols: list, rng: np.random.RandomState):
+    arr = np.zeros((n, len(cols)), dtype=float)
+
+    for j, c in enumerate(cols):
+        mu = float(prior_stats[c]["mean"])
+        sd = float(prior_stats[c]["std"])
+        lo = float(prior_stats[c]["min"])
+        hi = float(prior_stats[c]["max"])
+
+        vals = []
+        batch = max(1000, n)
+
+        while len(vals) < n:
+            cand = rng.normal(loc=mu, scale=sd, size=batch)
+            cand = cand[(cand >= lo) & (cand <= hi)]
+            if cand.size > 0:
+                vals.extend(cand.tolist())
+
+        arr[:, j] = np.asarray(vals[:n], dtype=float)
+
+    return arr
 
 
 def log_prior_sub(theta_sub, prior_stats, prior_type="trunc_gaussian"):
@@ -2103,17 +3427,45 @@ def reflect_to_bounds_sub(theta_sub, prior_stats):
     return y
 
 
-def log_likelihood_sub(
-    theta_sub,
-    model,
-    sx,
-    sy,
-    x_ref_full,
-    y_obs,
-    obs_idx,
-    obs_noise_sigma,
-    device
-):
+# ============================================================
+# case selection
+# ============================================================
+
+def choose_case_indices(df_calib: pd.DataFrame):
+    n_pool = len(df_calib)
+    if N_CASES > n_pool:
+        raise ValueError(f"N_CASES={N_CASES} exceeds calibration pool size {n_pool}")
+
+    y_cal = df_calib[OUTPUT_COLS].to_numpy(dtype=float)
+
+    if CASE_SELECTION == "random":
+        idx = np.random.choice(n_pool, size=N_CASES, replace=False)
+        idx = np.sort(idx)
+
+    elif CASE_SELECTION == "stress_stratified":
+        stress_idx = OUTPUT_COLS.index("iteration2_max_global_stress")
+        stress = y_cal[:, stress_idx]
+        order = np.argsort(stress)
+        bins = np.array_split(order, N_CASES)
+
+        chosen = []
+        for b in bins:
+            if len(b) == 0:
+                continue
+            chosen.append(np.random.choice(b))
+        idx = np.asarray(chosen, dtype=int)
+
+    else:
+        raise ValueError(f"Unsupported CASE_SELECTION: {CASE_SELECTION}")
+
+    return idx
+
+
+# ============================================================
+# likelihood / posterior
+# ============================================================
+
+def log_likelihood_sub(theta_sub, model, sx, sy, x_ref_full, y_obs, obs_idx, obs_noise_sigma, device):
     x_full = expand_reduced_to_full(
         theta_sub.reshape(1, -1),
         reduced_cols=CALIBRATION_INPUT_COLS,
@@ -2136,18 +3488,7 @@ def log_likelihood_sub(
     return float(ll)
 
 
-def log_posterior_sub(
-    theta_sub,
-    prior_stats,
-    model,
-    sx,
-    sy,
-    x_ref_full,
-    y_obs,
-    obs_idx,
-    obs_noise_sigma,
-    device
-):
+def log_posterior_sub(theta_sub, prior_stats, model, sx, sy, x_ref_full, y_obs, obs_idx, obs_noise_sigma, device):
     lp = log_prior_sub(theta_sub, prior_stats, prior_type=PRIOR_TYPE)
     if not np.isfinite(lp):
         return -np.inf
@@ -2155,18 +3496,7 @@ def log_posterior_sub(
     return lp + ll
 
 
-def run_mh_sub(
-    x0_sub,
-    prior_stats,
-    model,
-    sx,
-    sy,
-    x_ref_full,
-    y_obs,
-    obs_idx,
-    obs_noise_sigma,
-    device
-):
+def run_mh_sub(x0_sub, prior_stats, model, sx, sy, x_ref_full, y_obs, obs_idx, obs_noise_sigma, device):
     theta_curr = x0_sub.copy()
     curr_lp = log_posterior_sub(
         theta_curr, prior_stats, model, sx, sy,
@@ -2227,38 +3557,9 @@ def posterior_predictive_from_subspace(samples_sub, model, sx, sy, x_ref_full, d
     return mus, sigmas, y_pred
 
 
-def choose_case_indices(split):
-    """
-    Select multiple synthetic truths from calibration pool.
-    """
-    n_pool = split["X_cal"].shape[0]
-    if N_CASES > n_pool:
-        raise ValueError(f"N_CASES={N_CASES} exceeds calibration pool size {n_pool}")
-
-    if CASE_SELECTION == "random":
-        idx = np.random.choice(n_pool, size=N_CASES, replace=False)
-        return np.sort(idx)
-
-    elif CASE_SELECTION == "stress_stratified":
-        stress_idx = OUTPUT_COLS.index("iteration2_max_global_stress")
-        stress = split["Y_cal"][:, stress_idx]
-
-        order = np.argsort(stress)
-        bins = np.array_split(order, N_CASES)
-
-        chosen = []
-        for b in bins:
-            if len(b) == 0:
-                continue
-            chosen.append(np.random.choice(b))
-        return np.array(chosen, dtype=int)
-
-    else:
-        raise ValueError(f"Unsupported CASE_SELECTION: {CASE_SELECTION}")
-
-
 def compute_feasible_fraction(samples_sub, model, sx, sy, x_ref_full, device):
     stress_idx = OUTPUT_COLS.index("iteration2_max_global_stress")
+
     X_full = expand_reduced_to_full(
         samples_sub,
         reduced_cols=CALIBRATION_INPUT_COLS,
@@ -2286,84 +3587,102 @@ def compute_feasible_fraction(samples_sub, model, sx, sy, x_ref_full, device):
     return rows
 
 
+# ============================================================
+# main
+# ============================================================
+
 def main():
     seed_all(SEED)
     ensure_dir(OUT_DIR)
     device = get_device()
     run_suffix = build_run_suffix()
 
-    # 1) data split
-    df = load_dataset()
-    split = split_for_benchmark(df)
+    # 1) load full dataset and create saved split
+    df_full = load_dataset()
+    df_emul, df_calib = load_or_create_split(df_full)
 
-    # 2) train clean surrogate only on emulator set
-    best_params = load_best_params(FINAL_LEVEL)
-    args = build_training_args(split, device)
+    # 2) load fixed surrogate
+    model, sx, sy, best_params = load_fixed_surrogate(FINAL_LEVEL, device)
 
-    model, mono_pairs = train_with_params(
-        best_params=best_params,
-        level=FINAL_LEVEL,
-        x_tr=args["x_tr"],
-        y_tr=args["y_tr"],
-        x_va=args["x_va"],
-        y_va=args["y_va"],
-        Xtr_np=args["Xtr_np"],
-        Ytr_np=args["Ytr_np"],
-        bias_delta_t=args["bias_delta_t"],
-        device=args["device"],
-    )
-
-    # 3) benchmark setup
-    prior_stats = get_prior_stats(split)
+    # 3) prior / likelihood setup
+    prior_stats = get_prior_stats_from_emulator_pool(df_emul)
     obs_idx = [OUTPUT_COLS.index(c) for c in OBS_COLS]
 
-    y_train_std = np.std(split["Y_tr"][:, obs_idx], axis=0) + 1e-12
+    y_emul = df_emul[OUTPUT_COLS].to_numpy(dtype=float)
+    y_train_std = np.std(y_emul[:, obs_idx], axis=0) + 1e-12
     obs_noise_sigma = OBS_NOISE_FRAC * y_train_std
 
-    case_indices = choose_case_indices(split)
+    # 4) choose benchmark cases from calibration pool
+    case_indices = choose_case_indices(df_calib)
+    df_case_idx = pd.DataFrame({
+        "benchmark_case_id": np.arange(len(case_indices)),
+        "pool_case_index": case_indices
+    })
+    df_case_idx.to_csv(
+        ROOT_OUT / f"inverse_case_indices{run_suffix}.csv",
+        index=False, encoding="utf-8-sig"
+    )
+
+    X_cal = df_calib[INPUT_COLS].to_numpy(dtype=float)
+    Y_cal = df_calib[OUTPUT_COLS].to_numpy(dtype=float)
+    X_emul = df_emul[INPUT_COLS].to_numpy(dtype=float)
 
     case_summary_rows = []
     param_recovery_rows = []
     obs_fit_rows = []
 
-    # for comparison table
-    compare_rows = []
+    # fixed reference point for non-calibrated parameters
+    x_ref_full_global = np.mean(X_emul, axis=0)
 
     for bench_id, case_idx in enumerate(case_indices):
-        x_true_full = split["X_cal"][case_idx]
-        y_true = split["Y_cal"][case_idx]
+        x_true_full = X_cal[case_idx]
+        y_true = Y_cal[case_idx]
         y_obs = y_true[obs_idx].copy()
 
         x_true_sub = subset_input_array(
             x_true_full.reshape(1, -1), INPUT_COLS, CALIBRATION_INPUT_COLS
         )[0]
 
-        # fill non-calibrated parameters with training mean
-        x_ref_full = np.mean(split["X_tr"], axis=0)
+        # main-text choice:
+        # non-calibrated parameters are fixed at emulator-pool reference point
+        x_ref_full = x_ref_full_global.copy()
 
         # initialize at prior mean
         x0_sub = np.array([prior_stats[c]["mean"] for c in CALIBRATION_INPUT_COLS], dtype=float)
 
-        # export prior samples
+        # prior export
         if SAVE_PRIOR_SAMPLES:
             rng_prior = np.random.RandomState(SEED + 10000 + bench_id)
-            prior_sub = sample_uniform_prior(
-                n=N_PRIOR_EXPORT,
-                bounds_dict={c: (prior_stats[c]["min"], prior_stats[c]["max"]) for c in CALIBRATION_INPUT_COLS},
-                cols=CALIBRATION_INPUT_COLS,
-                rng=rng_prior
-            )
+
+            if PRIOR_TYPE == "uniform":
+                prior_sub = sample_uniform_prior(
+                    n=N_PRIOR_EXPORT,
+                    bounds_dict={c: (prior_stats[c]["min"], prior_stats[c]["max"]) for c in CALIBRATION_INPUT_COLS},
+                    cols=CALIBRATION_INPUT_COLS,
+                    rng=rng_prior
+                )
+            elif PRIOR_TYPE == "trunc_gaussian":
+                prior_sub = sample_trunc_gaussian_prior(
+                    n=N_PRIOR_EXPORT,
+                    prior_stats=prior_stats,
+                    cols=CALIBRATION_INPUT_COLS,
+                    rng=rng_prior
+                )
+            else:
+                raise ValueError(f"Unsupported PRIOR_TYPE for prior export: {PRIOR_TYPE}")
+
             pd.DataFrame(prior_sub, columns=CALIBRATION_INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_prior_samples{run_suffix}.csv"),
+                ROOT_OUT / f"benchmark_case{bench_id:03d}_prior_samples{run_suffix}.csv",
                 index=False, encoding="utf-8-sig"
             )
 
+        # MCMC
         chain, logp_chain, accept_rate = run_mh_sub(
             x0_sub=x0_sub,
             prior_stats=prior_stats,
             model=model,
-            sx=split["sx"],
-            sy=split["sy"],
+            sx=sx,
+            sy=sy,
             x_ref_full=x_ref_full,
             y_obs=y_obs,
             obs_idx=obs_idx,
@@ -2372,9 +3691,8 @@ def main():
         )
 
         post = chain[BURN_IN::THIN]
-        logp_post = logp_chain[BURN_IN::THIN]
 
-        # posterior summary for parameters
+        # parameter recovery
         for i, c in enumerate(CALIBRATION_INPUT_COLS):
             v = post[:, i]
             q05 = float(np.quantile(v, 0.05))
@@ -2403,7 +3721,7 @@ def main():
 
         # posterior predictive
         mus, sigmas, y_pred = posterior_predictive_from_subspace(
-            post, model, split["sx"], split["sy"], x_ref_full, device
+            post, model, sx, sy, x_ref_full, device
         )
 
         for k, c in enumerate(OBS_COLS):
@@ -2430,13 +3748,12 @@ def main():
                 "width_95": q975 - q025,
             })
 
-        # feasible fractions under thresholds
+        # feasible fractions
         feasible_rows = compute_feasible_fraction(
-            post, model, split["sx"], split["sy"], x_ref_full, device
+            post, model, sx, sy, x_ref_full, device
         )
         feasible_map = {r["threshold_MPa"]: r["feasible_fraction"] for r in feasible_rows}
 
-        # case-level summary
         case_summary_rows.append({
             "benchmark_case_id": int(bench_id),
             "pool_case_index": int(case_idx),
@@ -2455,7 +3772,7 @@ def main():
             "feasible_fraction_131": float(feasible_map.get(131.0, np.nan)),
         })
 
-        # save representative full chain
+        # representative full chain
         save_this_chain = False
         if SAVE_FULL_CHAIN_FOR_REP_CASES:
             if REPRESENTATIVE_CASE_FOR_TRACE_MODE == "first" and bench_id == 0:
@@ -2466,41 +3783,40 @@ def main():
 
         if save_this_chain:
             pd.DataFrame(chain, columns=CALIBRATION_INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_full_chain{run_suffix}.csv"),
+                ROOT_OUT / f"benchmark_case{bench_id:03d}_full_chain{run_suffix}.csv",
                 index=False, encoding="utf-8-sig"
             )
 
         if SAVE_PER_CASE_POSTERIOR:
             pd.DataFrame(post, columns=CALIBRATION_INPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_samples{run_suffix}.csv"),
+                ROOT_OUT / f"benchmark_case{bench_id:03d}_posterior_samples{run_suffix}.csv",
                 index=False, encoding="utf-8-sig"
             )
             pd.DataFrame(y_pred, columns=OUTPUT_COLS).to_csv(
-                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_predictive{run_suffix}.csv"),
+                ROOT_OUT / f"benchmark_case{bench_id:03d}_posterior_predictive{run_suffix}.csv",
                 index=False, encoding="utf-8-sig"
             )
 
-        print(f"[OK] Finished benchmark case {bench_id+1}/{len(case_indices)}")
+        print(f"[OK] Finished benchmark case {bench_id + 1}/{len(case_indices)}")
 
-    # 4) save raw outputs
+    # 5) save outputs
     df_case = pd.DataFrame(case_summary_rows)
     df_param = pd.DataFrame(param_recovery_rows)
     df_obs = pd.DataFrame(obs_fit_rows)
 
     df_case.to_csv(
-        os.path.join(OUT_DIR, f"calibration_benchmark_case_summary{run_suffix}.csv"),
+        ROOT_OUT / f"inverse_benchmark_case_summary{run_suffix}.csv",
         index=False, encoding="utf-8-sig"
     )
     df_param.to_csv(
-        os.path.join(OUT_DIR, f"calibration_benchmark_parameter_recovery{run_suffix}.csv"),
+        ROOT_OUT / f"inverse_benchmark_parameter_recovery{run_suffix}.csv",
         index=False, encoding="utf-8-sig"
     )
     df_obs.to_csv(
-        os.path.join(OUT_DIR, f"calibration_benchmark_observation_fit{run_suffix}.csv"),
+        ROOT_OUT / f"inverse_benchmark_observation_fit{run_suffix}.csv",
         index=False, encoding="utf-8-sig"
     )
 
-    # 5) aggregate summaries for paper
     df_param_agg = df_param.groupby("parameter").agg(
         mean_abs_error=("abs_error_mean", "mean"),
         mean_width90=("width_90", "mean"),
@@ -2508,7 +3824,7 @@ def main():
         coverage50=("covered_50", "mean"),
     ).reset_index()
     df_param_agg.to_csv(
-        os.path.join(OUT_DIR, f"calibration_benchmark_parameter_recovery_summary{run_suffix}.csv"),
+        ROOT_OUT / f"inverse_benchmark_parameter_recovery_summary{run_suffix}.csv",
         index=False, encoding="utf-8-sig"
     )
 
@@ -2519,12 +3835,14 @@ def main():
         coverage95=("covered_95", "mean"),
     ).reset_index()
     df_obs_agg.to_csv(
-        os.path.join(OUT_DIR, f"calibration_benchmark_observation_fit_summary{run_suffix}.csv"),
+        ROOT_OUT / f"inverse_benchmark_observation_fit_summary{run_suffix}.csv",
         index=False, encoding="utf-8-sig"
     )
 
     diag = {
         "run_tag": RUN_TAG,
+        "final_level": FINAL_LEVEL,
+        "fixed_surrogate": True,
         "n_benchmark_cases": int(len(df_case)),
         "mean_accept_rate": float(df_case["accept_rate"].mean()),
         "mean_obs_fit_error": float(df_case["mean_abs_obs_fit_error"].mean()),
@@ -2533,61 +3851,42 @@ def main():
         "mean_feasible_fraction_120": float(df_case["feasible_fraction_120"].mean()),
         "mean_feasible_fraction_131": float(df_case["feasible_fraction_131"].mean()),
     }
-    save_json(diag, os.path.join(OUT_DIR, f"inverse_diagnostics_summary{run_suffix}.json"))
+    save_json(diag, ROOT_OUT / f"inverse_diagnostics_summary{run_suffix}.json")
 
     meta = {
-        "run_tag": RUN_TAG,
         "final_level": FINAL_LEVEL,
+        "fixed_surrogate": True,
+        "run_tag": RUN_TAG,
         "calibration_input_cols": CALIBRATION_INPUT_COLS,
-        "calibration_holdout_frac": CALIB_HOLDOUT_FRAC,
+        "calib_holdout_frac": CALIB_HOLDOUT_FRAC,
         "n_cases": N_CASES,
         "case_selection": CASE_SELECTION,
         "obs_cols": OBS_COLS,
         "prior_type": PRIOR_TYPE,
-        "n_total": N_TOTAL,
+        "n_mcmc": N_TOTAL,
         "burn_in": BURN_IN,
         "thin": THIN,
         "obs_noise_frac": OBS_NOISE_FRAC,
         "proposal_scale": PROPOSAL_SCALE,
-        "save_prior_samples": SAVE_PRIOR_SAMPLES,
+        "reference_strategy_for_noncalibrated_params": "emulator_pool_mean",
+        "checkpoint_level": FINAL_LEVEL,
         "save_per_case_posterior": SAVE_PER_CASE_POSTERIOR,
     }
-    save_json(meta, os.path.join(OUT_DIR, f"calibration_benchmark_meta{run_suffix}.json"))
+    save_json(meta, ROOT_OUT / f"inverse_benchmark_meta{run_suffix}.json")
 
-    # 6) comparison table
-    compare_row = {
-        "run_tag": RUN_TAG,
-        "n_cases": int(len(df_case)),
-        "n_calibration_parameters": int(len(CALIBRATION_INPUT_COLS)),
-        "mean_accept_rate": float(df_case["accept_rate"].mean()),
-        "mean_obs_fit_error": float(df_case["mean_abs_obs_fit_error"].mean()),
-        "mean_obs_coverage90": float(df_case["obs_coverage90_mean"].mean()),
-        "mean_feasible_fraction_110": float(df_case["feasible_fraction_110"].mean()),
-        "mean_feasible_fraction_120": float(df_case["feasible_fraction_120"].mean()),
-        "mean_feasible_fraction_131": float(df_case["feasible_fraction_131"].mean()),
-    }
-
-    compare_path = os.path.join(OUT_DIR, "calibration_benchmark_compare_full_vs_reduced.csv")
-    df_row = pd.DataFrame([compare_row])
-    if os.path.exists(compare_path):
-        df_old = pd.read_csv(compare_path)
-        df_new = pd.concat([df_old, df_row], ignore_index=True)
-        df_new = df_new.drop_duplicates(subset=["run_tag"], keep="last")
-    else:
-        df_new = df_row
-    df_new.to_csv(compare_path, index=False, encoding="utf-8-sig")
-
-    print(f"[DONE] Repeated synthetic calibration benchmark completed ({RUN_TAG}).")
+    print(f"[DONE] Fixed-surrogate inverse benchmark completed ({RUN_TAG}).")
 
 
 if __name__ == "__main__":
     main()
 
-####################################################################################################
+########################################################################################################################
 文件: run_inverse_diagnostics.py
-用途: inverse benchmark 结果汇总、诊断与图输入整理。
+类别: C_inverse_pipeline
+用途: 汇总 inverse benchmark 结果，生成参数恢复、观测拟合、接受率和可行域等诊断结果。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 10.7 KB
+------------------------------------------------------------------------------------------------------------------------
 # run_inverse_diagnostics.py
 # ============================================================
 # Inverse UQ diagnostics and figure export for paper / meeting
@@ -2915,232 +4214,247 @@ def main():
 if __name__ == "__main__":
     main()
 
-####################################################################################################
+########################################################################################################################
 文件: run_inverse_full_vs_reduced_compare.py
-用途: full inverse 与 reduced inverse 的结果对照整理脚本。
+类别: C_inverse_pipeline
+用途: 比较 full inverse 与 reduced inverse 的观测层面和参数层面差异。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 9.1 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_inverse_full_vs_reduced_compare.py
+# ============================================================
+# Compare full inverse vs reduced_maintext inverse
+#
+# Inputs:
+#   - calibration_benchmark_case_summary_full.csv
+#   - calibration_benchmark_case_summary_reduced_maintext.csv
+#   - calibration_benchmark_parameter_recovery_summary_full.csv
+#   - calibration_benchmark_parameter_recovery_summary_reduced_maintext.csv
+#   - calibration_benchmark_observation_fit_summary_full.csv
+#   - calibration_benchmark_observation_fit_summary_reduced_maintext.csv
+#
+# Outputs:
+#   - paper_inverse_full_vs_reduced_summary.csv
+#   - paper_inverse_full_vs_reduced_parameter_table.csv
+#   - paper_inverse_full_vs_reduced_observable_table.csv
+#   - paper_inverse_full_vs_reduced_summary.json
+# ============================================================
+
 import os
 import json
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
-OUT_DIR = "./experiments_phys_levels"
+ROOT = Path("/home/tjzs/Documents/0310")
+OUT_DIR = ROOT / "experiments_phys_levels"
 
-FULL_CASE = os.path.join(OUT_DIR, "calibration_benchmark_case_summary.csv")
-RED_CASE = os.path.join(OUT_DIR, "calibration_benchmark_case_summary_reduced.csv")
+FULL_CASE = OUT_DIR / "calibration_benchmark_case_summary_full.csv"
+RED_CASE = OUT_DIR / "calibration_benchmark_case_summary_reduced_maintext.csv"
 
-FULL_PARAM = os.path.join(OUT_DIR, "calibration_benchmark_parameter_recovery_summary.csv")
-RED_PARAM = os.path.join(OUT_DIR, "calibration_benchmark_parameter_recovery_summary_reduced.csv")
+FULL_PARAM = OUT_DIR / "calibration_benchmark_parameter_recovery_summary_full.csv"
+RED_PARAM = OUT_DIR / "calibration_benchmark_parameter_recovery_summary_reduced_maintext.csv"
 
-FULL_OBS = os.path.join(OUT_DIR, "calibration_benchmark_observation_fit_summary.csv")
-RED_OBS = os.path.join(OUT_DIR, "calibration_benchmark_observation_fit_summary_reduced.csv")
+FULL_OBS = OUT_DIR / "calibration_benchmark_observation_fit_summary_full.csv"
+RED_OBS = OUT_DIR / "calibration_benchmark_observation_fit_summary_reduced_maintext.csv"
 
-OUT_SUMMARY_CSV = os.path.join(OUT_DIR, "paper_inverse_full_vs_reduced_summary.csv")
-OUT_PARAM_CSV = os.path.join(OUT_DIR, "paper_inverse_full_vs_reduced_parameter_table.csv")
-OUT_OBS_CSV = os.path.join(OUT_DIR, "paper_inverse_full_vs_reduced_observable_table.csv")
-OUT_JSON = os.path.join(OUT_DIR, "paper_inverse_full_vs_reduced_summary.json")
-
-KEY_PARAMS = ["E_intercept", "alpha_base", "alpha_slope", "SS316_k_ref"]
-KEY_OBS = [
-    "iteration2_max_global_stress",
-    "iteration2_max_fuel_temp",
-    "iteration2_max_monolith_temp",
-    "iteration2_wall2",
-    "iteration2_keff",
-]
+OUT_SUMMARY = OUT_DIR / "paper_inverse_full_vs_reduced_summary.csv"
+OUT_PARAM_TABLE = OUT_DIR / "paper_inverse_full_vs_reduced_parameter_table.csv"
+OUT_OBS_TABLE = OUT_DIR / "paper_inverse_full_vs_reduced_observable_table.csv"
+OUT_JSON = OUT_DIR / "paper_inverse_full_vs_reduced_summary.json"
 
 
-def require_file(path: str):
-    if not os.path.exists(path):
+def require(path: Path):
+    if not path.exists():
         raise FileNotFoundError(f"Missing required file: {path}")
 
 
-def read_case_summary(path: str, tag: str):
-    df = pd.read_csv(path)
-    row = {
-        "run_tag": tag,
-        "n_cases": int(len(df)),
-        "mean_accept_rate": float(df["accept_rate"].mean()),
-        "std_accept_rate": float(df["accept_rate"].std(ddof=1)) if len(df) > 1 else 0.0,
-        "mean_obs_fit_error": float(df["mean_abs_obs_fit_error"].mean()),
-        "std_obs_fit_error": float(df["mean_abs_obs_fit_error"].std(ddof=1)) if len(df) > 1 else 0.0,
-        "mean_obs_coverage90": float(df["obs_coverage90_mean"].mean()),
-        "mean_feasible_fraction_110": float(df["feasible_fraction_110"].mean()),
-        "mean_feasible_fraction_120": float(df["feasible_fraction_120"].mean()),
-        "mean_feasible_fraction_131": float(df["feasible_fraction_131"].mean()),
-        "mean_obs_stress": float(df["obs_stress"].mean()),
-        "stress_min": float(df["obs_stress"].min()),
-        "stress_max": float(df["obs_stress"].max()),
+def load_all():
+    for p in [FULL_CASE, RED_CASE, FULL_PARAM, RED_PARAM, FULL_OBS, RED_OBS]:
+        require(p)
+
+    df_case_full = pd.read_csv(FULL_CASE)
+    df_case_red = pd.read_csv(RED_CASE)
+
+    df_param_full = pd.read_csv(FULL_PARAM)
+    df_param_red = pd.read_csv(RED_PARAM)
+
+    df_obs_full = pd.read_csv(FULL_OBS)
+    df_obs_red = pd.read_csv(RED_OBS)
+
+    return df_case_full, df_case_red, df_param_full, df_param_red, df_obs_full, df_obs_red
+
+
+def build_summary(df_case_full, df_case_red):
+    rows = []
+
+    def row_from_case(df, tag):
+        return {
+            "run_tag": tag,
+            "n_cases": int(len(df)),
+            "mean_accept_rate": float(df["accept_rate"].mean()),
+            "mean_obs_fit_error": float(df["mean_abs_obs_fit_error"].mean()),
+            "mean_obs_coverage90": float(df["obs_coverage90_mean"].mean()),
+            "mean_feasible_fraction_110": float(df["feasible_fraction_110"].mean()),
+            "mean_feasible_fraction_120": float(df["feasible_fraction_120"].mean()),
+            "mean_feasible_fraction_131": float(df["feasible_fraction_131"].mean()),
+        }
+
+    rows.append(row_from_case(df_case_full, "full"))
+    rows.append(row_from_case(df_case_red, "reduced_maintext"))
+
+    df_summary = pd.DataFrame(rows)
+
+    # add delta row: reduced - full
+    full_row = df_summary[df_summary["run_tag"] == "full"].iloc[0]
+    red_row = df_summary[df_summary["run_tag"] == "reduced_maintext"].iloc[0]
+
+    delta = {
+        "run_tag": "delta_reduced_minus_full",
+        "n_cases": int(red_row["n_cases"] - full_row["n_cases"]),
+        "mean_accept_rate": float(red_row["mean_accept_rate"] - full_row["mean_accept_rate"]),
+        "mean_obs_fit_error": float(red_row["mean_obs_fit_error"] - full_row["mean_obs_fit_error"]),
+        "mean_obs_coverage90": float(red_row["mean_obs_coverage90"] - full_row["mean_obs_coverage90"]),
+        "mean_feasible_fraction_110": float(red_row["mean_feasible_fraction_110"] - full_row["mean_feasible_fraction_110"]),
+        "mean_feasible_fraction_120": float(red_row["mean_feasible_fraction_120"] - full_row["mean_feasible_fraction_120"]),
+        "mean_feasible_fraction_131": float(red_row["mean_feasible_fraction_131"] - full_row["mean_feasible_fraction_131"]),
     }
-    return df, row
+
+    df_summary = pd.concat([df_summary, pd.DataFrame([delta])], ignore_index=True)
+    return df_summary
 
 
-def read_param_summary(path: str, tag: str):
-    df = pd.read_csv(path)
-    if "parameter" not in df.columns:
-        raise ValueError(f"`parameter` column not found in {path}")
-    df = df[df["parameter"].isin(KEY_PARAMS)].copy()
-    df["run_tag"] = tag
-    return df
+def build_parameter_table(df_param_full, df_param_red):
+    df_full = df_param_full.copy()
+    df_red = df_param_red.copy()
+
+    df_full = df_full.rename(columns={
+        "mean_abs_error": "full_mean_abs_error",
+        "mean_width90": "full_mean_width90",
+        "coverage90": "full_coverage90",
+        "coverage50": "full_coverage50",
+    })
+
+    df_red = df_red.rename(columns={
+        "mean_abs_error": "reduced_mean_abs_error",
+        "mean_width90": "reduced_mean_width90",
+        "coverage90": "reduced_coverage90",
+        "coverage50": "reduced_coverage50",
+    })
+
+    df = pd.merge(df_full, df_red, on="parameter", how="outer")
+
+    df["delta_mean_abs_error"] = df["reduced_mean_abs_error"] - df["full_mean_abs_error"]
+    df["delta_mean_width90"] = df["reduced_mean_width90"] - df["full_mean_width90"]
+    df["delta_coverage90"] = df["reduced_coverage90"] - df["full_coverage90"]
+    df["delta_coverage50"] = df["reduced_coverage50"] - df["full_coverage50"]
+
+    return df.sort_values("parameter").reset_index(drop=True)
 
 
-def read_obs_summary(path: str, tag: str):
-    df = pd.read_csv(path)
-    if "observable" not in df.columns:
-        raise ValueError(f"`observable` column not found in {path}")
-    df = df[df["observable"].isin(KEY_OBS)].copy()
-    df["run_tag"] = tag
-    return df
+def build_observable_table(df_obs_full, df_obs_red):
+    df_full = df_obs_full.copy()
+    df_red = df_obs_red.copy()
+
+    df_full = df_full.rename(columns={
+        "mean_abs_error": "full_mean_abs_error",
+        "mean_width90": "full_mean_width90",
+        "coverage90": "full_coverage90",
+        "coverage95": "full_coverage95",
+    })
+
+    df_red = df_red.rename(columns={
+        "mean_abs_error": "reduced_mean_abs_error",
+        "mean_width90": "reduced_mean_width90",
+        "coverage90": "reduced_coverage90",
+        "coverage95": "reduced_coverage95",
+    })
+
+    df = pd.merge(df_full, df_red, on="observable", how="outer")
+
+    df["delta_mean_abs_error"] = df["reduced_mean_abs_error"] - df["full_mean_abs_error"]
+    df["delta_mean_width90"] = df["reduced_mean_width90"] - df["full_mean_width90"]
+    df["delta_coverage90"] = df["reduced_coverage90"] - df["full_coverage90"]
+    df["delta_coverage95"] = df["reduced_coverage95"] - df["full_coverage95"]
+
+    return df.sort_values("observable").reset_index(drop=True)
 
 
-def build_param_compare(df_full: pd.DataFrame, df_red: pd.DataFrame):
-    rows = []
-    for p in KEY_PARAMS:
-        a = df_full[df_full["parameter"] == p]
-        b = df_red[df_red["parameter"] == p]
+def build_json(df_summary, df_param, df_obs):
+    js = {
+        "comparison": "full vs reduced_maintext",
+        "headline": {
+            "full_mean_obs_fit_error": float(
+                df_summary[df_summary["run_tag"] == "full"]["mean_obs_fit_error"].iloc[0]
+            ),
+            "reduced_mean_obs_fit_error": float(
+                df_summary[df_summary["run_tag"] == "reduced_maintext"]["mean_obs_fit_error"].iloc[0]
+            ),
+            "full_mean_feasible_fraction_131": float(
+                df_summary[df_summary["run_tag"] == "full"]["mean_feasible_fraction_131"].iloc[0]
+            ),
+            "reduced_mean_feasible_fraction_131": float(
+                df_summary[df_summary["run_tag"] == "reduced_maintext"]["mean_feasible_fraction_131"].iloc[0]
+            ),
+        },
+        "largest_parameter_degradation_by_coverage90": [],
+        "largest_observable_error_increase": [],
+    }
 
-        if a.empty and b.empty:
-            continue
+    param_rank = df_param.sort_values("delta_coverage90").head(5)
+    for _, r in param_rank.iterrows():
+        js["largest_parameter_degradation_by_coverage90"].append({
+            "parameter": r["parameter"],
+            "full_coverage90": float(r["full_coverage90"]) if pd.notna(r["full_coverage90"]) else None,
+            "reduced_coverage90": float(r["reduced_coverage90"]) if pd.notna(r["reduced_coverage90"]) else None,
+            "delta_coverage90": float(r["delta_coverage90"]) if pd.notna(r["delta_coverage90"]) else None,
+        })
 
-        row = {"parameter": p}
+    obs_rank = df_obs.sort_values("delta_mean_abs_error", ascending=False).head(5)
+    for _, r in obs_rank.iterrows():
+        js["largest_observable_error_increase"].append({
+            "observable": r["observable"],
+            "full_mean_abs_error": float(r["full_mean_abs_error"]) if pd.notna(r["full_mean_abs_error"]) else None,
+            "reduced_mean_abs_error": float(r["reduced_mean_abs_error"]) if pd.notna(r["reduced_mean_abs_error"]) else None,
+            "delta_mean_abs_error": float(r["delta_mean_abs_error"]) if pd.notna(r["delta_mean_abs_error"]) else None,
+        })
 
-        if not a.empty:
-            row.update({
-                "full_mean_abs_error": float(a["mean_abs_error"].iloc[0]),
-                "full_mean_width90": float(a["mean_width90"].iloc[0]),
-                "full_coverage90": float(a["coverage90"].iloc[0]),
-                "full_coverage50": float(a["coverage50"].iloc[0]),
-            })
-        else:
-            row.update({
-                "full_mean_abs_error": np.nan,
-                "full_mean_width90": np.nan,
-                "full_coverage90": np.nan,
-                "full_coverage50": np.nan,
-            })
-
-        if not b.empty:
-            row.update({
-                "reduced_mean_abs_error": float(b["mean_abs_error"].iloc[0]),
-                "reduced_mean_width90": float(b["mean_width90"].iloc[0]),
-                "reduced_coverage90": float(b["coverage90"].iloc[0]),
-                "reduced_coverage50": float(b["coverage50"].iloc[0]),
-            })
-        else:
-            row.update({
-                "reduced_mean_abs_error": np.nan,
-                "reduced_mean_width90": np.nan,
-                "reduced_coverage90": np.nan,
-                "reduced_coverage50": np.nan,
-            })
-
-        if np.isfinite(row["full_mean_width90"]) and np.isfinite(row["reduced_mean_width90"]):
-            row["width90_ratio_reduced_over_full"] = row["reduced_mean_width90"] / row["full_mean_width90"]
-        else:
-            row["width90_ratio_reduced_over_full"] = np.nan
-
-        rows.append(row)
-
-    return pd.DataFrame(rows)
-
-
-def build_obs_compare(df_full: pd.DataFrame, df_red: pd.DataFrame):
-    rows = []
-    for obs in KEY_OBS:
-        a = df_full[df_full["observable"] == obs]
-        b = df_red[df_red["observable"] == obs]
-
-        if a.empty and b.empty:
-            continue
-
-        row = {"observable": obs}
-
-        if not a.empty:
-            row.update({
-                "full_mean_abs_error": float(a["mean_abs_error"].iloc[0]),
-                "full_mean_width90": float(a["mean_width90"].iloc[0]),
-                "full_coverage90": float(a["coverage90"].iloc[0]),
-                "full_coverage95": float(a["coverage95"].iloc[0]),
-            })
-        else:
-            row.update({
-                "full_mean_abs_error": np.nan,
-                "full_mean_width90": np.nan,
-                "full_coverage90": np.nan,
-                "full_coverage95": np.nan,
-            })
-
-        if not b.empty:
-            row.update({
-                "reduced_mean_abs_error": float(b["mean_abs_error"].iloc[0]),
-                "reduced_mean_width90": float(b["mean_width90"].iloc[0]),
-                "reduced_coverage90": float(b["coverage90"].iloc[0]),
-                "reduced_coverage95": float(b["coverage95"].iloc[0]),
-            })
-        else:
-            row.update({
-                "reduced_mean_abs_error": np.nan,
-                "reduced_mean_width90": np.nan,
-                "reduced_coverage90": np.nan,
-                "reduced_coverage95": np.nan,
-            })
-
-        rows.append(row)
-
-    return pd.DataFrame(rows)
+    return js
 
 
 def main():
-    for p in [FULL_CASE, RED_CASE, FULL_PARAM, RED_PARAM, FULL_OBS, RED_OBS]:
-        require_file(p)
+    df_case_full, df_case_red, df_param_full, df_param_red, df_obs_full, df_obs_red = load_all()
 
-    _, full_case_row = read_case_summary(FULL_CASE, "full")
-    _, red_case_row = read_case_summary(RED_CASE, "reduced")
+    df_summary = build_summary(df_case_full, df_case_red)
+    df_param = build_parameter_table(df_param_full, df_param_red)
+    df_obs = build_observable_table(df_obs_full, df_obs_red)
+    js = build_json(df_summary, df_param, df_obs)
 
-    df_summary = pd.DataFrame([full_case_row, red_case_row])
-    df_summary.to_csv(OUT_SUMMARY_CSV, index=False, encoding="utf-8-sig")
-
-    df_full_param = read_param_summary(FULL_PARAM, "full")
-    df_red_param = read_param_summary(RED_PARAM, "reduced")
-    df_param_compare = build_param_compare(df_full_param, df_red_param)
-    df_param_compare.to_csv(OUT_PARAM_CSV, index=False, encoding="utf-8-sig")
-
-    df_full_obs = read_obs_summary(FULL_OBS, "full")
-    df_red_obs = read_obs_summary(RED_OBS, "reduced")
-    df_obs_compare = build_obs_compare(df_full_obs, df_red_obs)
-    df_obs_compare.to_csv(OUT_OBS_CSV, index=False, encoding="utf-8-sig")
-
-    summary_json = {
-        "full": full_case_row,
-        "reduced": red_case_row,
-        "main_takeaway": (
-            "Use reduced inverse as an interpretability-enhanced formulation "
-            "only if feasible-fraction conclusions remain close to the full inverse "
-            "while dominant-parameter posterior widths become narrower."
-        ),
-        "recommended_key_parameters": KEY_PARAMS,
-        "recommended_key_observables": KEY_OBS,
-    }
+    df_summary.to_csv(OUT_SUMMARY, index=False, encoding="utf-8-sig")
+    df_param.to_csv(OUT_PARAM_TABLE, index=False, encoding="utf-8-sig")
+    df_obs.to_csv(OUT_OBS_TABLE, index=False, encoding="utf-8-sig")
 
     with open(OUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(summary_json, f, indent=2, ensure_ascii=False)
+        json.dump(js, f, indent=2, ensure_ascii=False)
 
     print("[DONE] Saved:")
-    print(" -", OUT_SUMMARY_CSV)
-    print(" -", OUT_PARAM_CSV)
-    print(" -", OUT_OBS_CSV)
+    print(" -", OUT_SUMMARY)
+    print(" -", OUT_PARAM_TABLE)
+    print(" -", OUT_OBS_TABLE)
     print(" -", OUT_JSON)
+    print(df_summary)
 
 
 if __name__ == "__main__":
     main()
 
-####################################################################################################
+########################################################################################################################
 文件: run_prior_posterior_contraction_summary.py
-用途: prior–posterior contraction 定量汇总脚本。
+类别: C_inverse_pipeline
+用途: 量化 prior 到 posterior 的宽度收缩、方差收缩和均值偏移。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 5.5 KB
+------------------------------------------------------------------------------------------------------------------------
 import os
 import json
 import numpy as np
@@ -3310,11 +4624,18 @@ def main():
 if __name__ == "__main__":
     main()
 
-####################################################################################################
+========================================================================================================================
+[分组] D_feasible_region_and_plotting
+[分组说明] 二维可行域导出与主文图绘制脚本。
+========================================================================================================================
+
+########################################################################################################################
 文件: run_export_2d_feasible_region.py
-用途: 导出二维 dominant-parameter plane 的 prior/posterior/feasible 数据。
+类别: D_feasible_region_and_plotting
+用途: 导出二维主导参数平面上的 prior / posterior / feasible region 数据。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 8.7 KB
+------------------------------------------------------------------------------------------------------------------------
 import os
 import json
 import pickle
@@ -3326,6 +4647,12 @@ from paper_experiment_config import (
     OUT_DIR,
     INPUT_COLS,
     OUTPUT_COLS,
+    PRIMARY_STRESS_OUTPUT,
+    PRIMARY_AUXILIARY_OUTPUT,
+    PAPER_LEVELS,
+    SEED,
+    FIXED_CKPT_PATH,
+    FIXED_SCALER_PATH,
 )
 from run_phys_levels_main import HeteroMLP, get_device
 
@@ -3364,17 +4691,31 @@ def require_file(path):
         raise FileNotFoundError(f"Missing required file: {path}")
 
 
-def load_checkpoint_and_scalers(level: int):
-    ckpt_path = os.path.join(OUT_DIR, f"checkpoint_level{level}.pt")
-    scaler_path = os.path.join(OUT_DIR, f"scalers_level{level}.pkl")
+def get_artifact_dir(level: int) -> str:
+    mapping = {
+        0: os.path.join(OUT_DIR, "fixed_surrogate_fixed_base"),
+        2: os.path.join(OUT_DIR, "fixed_surrogate_fixed_level2"),
+    }
+    if level not in mapping:
+        raise ValueError(f"Unsupported level for fixed surrogate: {level}")
+    return mapping[level]
 
-    require_file(ckpt_path)
-    require_file(scaler_path)
+
+def load_checkpoint_and_scalers(level: int):
+    art_dir = get_artifact_dir(level)
+    ckpt_path = os.path.join(art_dir, f"checkpoint_level{level}.pt")
+    scaler_path = os.path.join(art_dir, f"scalers_level{level}.pkl")
+
+    if not os.path.exists(ckpt_path):
+        raise FileNotFoundError(f"Missing checkpoint: {ckpt_path}")
+    if not os.path.exists(scaler_path):
+        raise FileNotFoundError(f"Missing scaler file: {scaler_path}")
 
     ckpt = torch.load(ckpt_path, map_location="cpu")
     with open(scaler_path, "rb") as f:
         scalers = pickle.load(f)
-    return ckpt, scalers["sx"], scalers["sy"]
+
+    return ckpt, scalers["sx"], scalers["sy"], ckpt_path, scaler_path
 
 
 def build_model_from_ckpt(ckpt, device):
@@ -3579,11 +4920,13 @@ def main():
 if __name__ == "__main__":
     main()
 
-####################################################################################################
+########################################################################################################################
 文件: plot_2d_inverse_feasible_region_final.py
-用途: 二维 feasible-region 与 posterior contraction 的最终版画图脚本。
+类别: D_feasible_region_and_plotting
+用途: 绘制最终版二维 feasible-region 与 posterior contraction 图。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 7.6 KB
+------------------------------------------------------------------------------------------------------------------------
 import os
 import json
 import numpy as np
@@ -3867,636 +5210,13 @@ def main():
 if __name__ == "__main__":
     main()
 
-####################################################################################################
-文件: run_safety_threshold_analysis.py
-用途: 131 MPa 及扩展阈值风险统计分析。
-存在: 是
-----------------------------------------------------------------------------------------------------
-# run_safety_threshold_analysis.py
-# ============================================================
-# Safety-threshold analysis for paper
-# ============================================================
-
-import os
-import json
-import math
-import numpy as np
-import pandas as pd
-
-from paper_experiment_config import (
-    OUT_DIR,
-    PAPER_LEVELS,
-    PRIMARY_STRESS_THRESHOLD,
-    THRESHOLD_SWEEP,
-    PRIMARY_STRESS_OUTPUT,
-)
-
-def normal_cdf(x):
-    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
-
-def compute_failure_metrics(y_true, mu, sigma, output_names, threshold):
-    stress_idx = output_names.index("iteration2_max_global_stress")
-
-    y_s = y_true[:, stress_idx]
-    mu_s = mu[:, stress_idx]
-    sig_s = np.maximum(sigma[:, stress_idx], 1e-12)
-
-    p_fail_each = []
-    for m, s in zip(mu_s, sig_s):
-        z = (threshold - m) / s
-        p_fail_each.append(1.0 - normal_cdf(z))
-    p_fail_predictive = float(np.mean(p_fail_each))
-
-    p_fail_mean_only = float(np.mean(mu_s > threshold))
-    p_fail_truth = float(np.mean(y_s > threshold))
-
-    return {
-        "threshold_MPa": float(threshold),
-        "p_fail_predictive": p_fail_predictive,
-        "p_fail_mean_only": p_fail_mean_only,
-        "p_fail_truth": p_fail_truth,
-        "stress_true_mean": float(np.mean(y_s)),
-        "stress_true_std": float(np.std(y_s)),
-        "stress_pred_mean": float(np.mean(mu_s)),
-        "stress_pred_std": float(np.std(mu_s)),
-        "stress_unc_mean": float(np.mean(sig_s)),
-        "stress_output": PRIMARY_STRESS_OUTPUT,
-    }
-
-def main():
-    summary_rows = []
-    sweep_rows_all = []
-
-    for level in PAPER_LEVELS:
-        pred_path = os.path.join(OUT_DIR, f"test_predictions_level{level}.json")
-        if not os.path.exists(pred_path):
-            print(f"[WARN] Missing file: {pred_path}")
-            continue
-
-        with open(pred_path, "r", encoding="utf-8") as f:
-            obj = json.load(f)
-
-        y_true = np.asarray(obj["y_true"], dtype=float)
-        mu = np.asarray(obj["mu"], dtype=float)
-        sigma = np.asarray(obj["sigma"], dtype=float)
-        output_names = obj["output_names"]
-
-        main_res = compute_failure_metrics(
-            y_true, mu, sigma, output_names, PRIMARY_STRESS_THRESHOLD
-        )
-
-        sweep_res = []
-        for thr in THRESHOLD_SWEEP:
-            one = compute_failure_metrics(y_true, mu, sigma, output_names, thr)
-            sweep_res.append(one)
-
-            sweep_rows_all.append({
-                "level": level,
-                **one
-            })
-
-        out_json = {
-            "level": level,
-            "main_threshold_result": main_res,
-            "threshold_sweep_results": sweep_res,
-        }
-
-        with open(os.path.join(OUT_DIR, f"safety_threshold_analysis_level{level}.json"), "w", encoding="utf-8") as f:
-            json.dump(out_json, f, indent=2, ensure_ascii=False)
-
-        pd.DataFrame(sweep_res).to_csv(
-            os.path.join(OUT_DIR, f"safety_threshold_sweep_level{level}.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        summary_rows.append({
-            "level": level,
-            "main_threshold_MPa": main_res["threshold_MPa"],
-            "p_fail_predictive_main": main_res["p_fail_predictive"],
-            "p_fail_mean_only_main": main_res["p_fail_mean_only"],
-            "p_fail_truth_main": main_res["p_fail_truth"],
-            "stress_pred_mean": main_res["stress_pred_mean"],
-            "stress_unc_mean": main_res["stress_unc_mean"],
-        })
-
-        print(f"[OK] Saved safety threshold analysis for level {level}")
-
-    if summary_rows:
-        pd.DataFrame(summary_rows).to_csv(
-            os.path.join(OUT_DIR, "paper_safety_threshold_summary.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-    if sweep_rows_all:
-        pd.DataFrame(sweep_rows_all).to_csv(
-            os.path.join(OUT_DIR, "paper_safety_threshold_sweep_all_levels.csv"),
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-    print("[DONE] Safety-threshold analysis completed.")
-
-if __name__ == "__main__":
-    main()
-
-####################################################################################################
-文件: run_speedup_benchmark.py
-用途: 代理模型速度测试主脚本。
-存在: 是
-----------------------------------------------------------------------------------------------------
-# run_speedup_benchmark.py
-# ============================================================
-# Speed benchmark for paper:
-#   - neural inference latency
-#   - batch throughput
-#   - estimated speedup against one high-fidelity simulation
-# ============================================================
-
-import os
-import json
-import time
-import pickle
-import numpy as np
-import torch
-
-from paper_experiment_config import (
-    OUT_DIR, INPUT_COLS, OUTPUT_COLS, SEED
-)
-from run_phys_levels_main import HeteroMLP, get_device
-
-# ------------------------------------------------------------
-# User setting: fill this with your average high-fidelity time
-# per sample (seconds). Replace X later with measured value.
-# Example:
-# HIGH_FIDELITY_SECONDS_PER_CASE = 900.0
-# ------------------------------------------------------------
-HIGH_FIDELITY_SECONDS_PER_CASE = 3600
-FORWARD_UQ_MONTE_CARLO_SAMPLES = 20000
-INVERSE_BENCHMARK_CASES = 20
-INVERSE_POSTERIOR_SAMPLES_PER_CASE = 1200
-
-LEVEL = 2
-N_WARMUP = 50
-N_REPEAT_SINGLE = 500
-N_REPEAT_BATCH = 200
-BATCH_SIZE = 1024
-
-
-def load_checkpoint_and_scalers(level: int):
-    ckpt_path = os.path.join(OUT_DIR, f"checkpoint_level{level}.pt")
-    scaler_path = os.path.join(OUT_DIR, f"scalers_level{level}.pkl")
-
-    if not os.path.exists(ckpt_path):
-        raise FileNotFoundError(
-            f"Missing checkpoint: {ckpt_path}\n"
-            f"Please run `python run_phys_levels_main.py` first."
-        )
-    if not os.path.exists(scaler_path):
-        raise FileNotFoundError(
-            f"Missing scaler file: {scaler_path}\n"
-            f"Please run `python run_phys_levels_main.py` first."
-        )
-
-    ckpt = torch.load(ckpt_path, map_location="cpu")
-    with open(scaler_path, "rb") as f:
-        scalers = pickle.load(f)
-
-    return ckpt, scalers["sx"], scalers["sy"]
-
-
-def build_model_from_ckpt(ckpt, device):
-    best_params = ckpt["best_params"]
-    model = HeteroMLP(
-        in_dim=len(INPUT_COLS),
-        out_dim=len(OUTPUT_COLS),
-        width=int(best_params["width"]),
-        depth=int(best_params["depth"]),
-        dropout=float(best_params["dropout"]),
-    ).to(device)
-    model.load_state_dict(ckpt["model_state_dict"], strict=False)
-    model.eval()
-    return model
-
-
-def sync_if_needed(device):
-    if device.type == "cuda":
-        torch.cuda.synchronize()
-
-
-def main():
-    np.random.seed(SEED)
-    torch.manual_seed(SEED)
-
-    device = get_device()
-    ckpt, sx, sy = load_checkpoint_and_scalers(LEVEL)
-    model = build_model_from_ckpt(ckpt, device)
-
-    # random normalized inputs
-    x_single = torch.randn(1, len(INPUT_COLS), dtype=torch.float32, device=device)
-    x_batch = torch.randn(BATCH_SIZE, len(INPUT_COLS), dtype=torch.float32, device=device)
-
-    # warmup
-    with torch.no_grad():
-        for _ in range(N_WARMUP):
-            _ = model(x_single)
-            _ = model(x_batch)
-    sync_if_needed(device)
-
-    # single-sample latency
-    t0 = time.perf_counter()
-    with torch.no_grad():
-        for _ in range(N_REPEAT_SINGLE):
-            _ = model(x_single)
-    sync_if_needed(device)
-    t1 = time.perf_counter()
-    single_latency = (t1 - t0) / N_REPEAT_SINGLE
-
-    # batch throughput
-    t0 = time.perf_counter()
-    with torch.no_grad():
-        for _ in range(N_REPEAT_BATCH):
-            _ = model(x_batch)
-    sync_if_needed(device)
-    t1 = time.perf_counter()
-    batch_time = (t1 - t0) / N_REPEAT_BATCH
-    per_sample_batch_latency = batch_time / BATCH_SIZE
-    throughput = BATCH_SIZE / batch_time
-
-    result = {
-        "level": LEVEL,
-        "device": str(device),
-        "single_sample_latency_sec": float(single_latency),
-        "batch_size": int(BATCH_SIZE),
-        "batch_time_sec": float(batch_time),
-        "per_sample_batch_latency_sec": float(per_sample_batch_latency),
-        "batch_throughput_samples_per_sec": float(throughput),
-        "high_fidelity_seconds_per_case": HIGH_FIDELITY_SECONDS_PER_CASE,
-    }
-
-    if HIGH_FIDELITY_SECONDS_PER_CASE is not None:
-        result["speedup_single_vs_hf"] = float(HIGH_FIDELITY_SECONDS_PER_CASE / single_latency)
-        result["speedup_batch_per_sample_vs_hf"] = float(HIGH_FIDELITY_SECONDS_PER_CASE / per_sample_batch_latency)
-
-    out_json = os.path.join(OUT_DIR, "paper_speedup_benchmark.json")
-    with open(out_json, "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=2, ensure_ascii=False)
-
-    print("[DONE] Speed benchmark saved to:", out_json)
-    print(json.dumps(result, indent=2, ensure_ascii=False))
-
-
-if __name__ == "__main__":
-    main()
-
-####################################################################################################
-文件: run_practical_speed_benchmark.py
-用途: 记录高保真 CPU 与代理 GPU 工作流实际 wall-clock 对比。
-存在: 是
-----------------------------------------------------------------------------------------------------
-# run_practical_speed_benchmark.py
-# ============================================================
-# Practical wall-clock speed benchmark for:
-#   1) high-fidelity workflow (typically CPU)
-#   2) neural-network / surrogate workflow (typically GPU)
-#
-# Output:
-#   - paper_speed_benchmark_detailed.json
-# ============================================================
-
-import os
-import json
-import time
-import shutil
-import socket
-import platform
-import subprocess
-from datetime import datetime
-
-import numpy as np
-
-try:
-    import psutil
-except ImportError:
-    raise ImportError("Please install psutil: pip install psutil")
-
-# ============================================================
-# User settings
-# ============================================================
-
-OUT_DIR = "./experiments_phys_levels"
-OUTPUT_JSON = os.path.join(OUT_DIR, "paper_speed_benchmark_detailed.json")
-
-# Replace these
-HF_COMMAND = ["/home/tjzs/.conda/envs/HP-env/bin/python", "/home/tjzs/Documents/fenics_data/fenics_data/0318-UQ-test-fenics.py"]
-NN_COMMAND = ["/home/tjzs/.conda/envs/pytorch-env/bin/python", "/home/tjzs/Documents/0310/run_speedup_benchmark.py"]
-
-HF_REPEATS = 3
-NN_REPEATS = 5
-
-HF_TIMEOUT = None
-NN_TIMEOUT = None
-
-SAVE_STDOUT_STDERR = True
-TOP_N_PROCESSES = 12
-
-
-# ============================================================
-# Utilities
-# ============================================================
-
-def ensure_dir(path: str):
-    os.makedirs(path, exist_ok=True)
-
-
-def now_str():
-    return datetime.now().isoformat()
-
-
-def command_to_str(cmd):
-    return " ".join(cmd)
-
-
-def safe_check_output(cmd):
-    try:
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
-        return out.strip()
-    except Exception:
-        return None
-
-
-def run_subprocess(cmd, timeout=None):
-    t0 = time.perf_counter()
-    proc = subprocess.run(
-        cmd,
-        capture_output=True,
-        text=True,
-        timeout=timeout
-    )
-    t1 = time.perf_counter()
-
-    return {
-        "returncode": proc.returncode,
-        "wall_clock_sec": float(t1 - t0),
-        "stdout": proc.stdout if SAVE_STDOUT_STDERR else "",
-        "stderr": proc.stderr if SAVE_STDOUT_STDERR else "",
-    }
-
-
-def get_cpu_info():
-    info = {
-        "hostname": socket.gethostname(),
-        "platform": platform.platform(),
-        "processor": platform.processor(),
-        "python_version": platform.python_version(),
-        "physical_cores": psutil.cpu_count(logical=False),
-        "logical_cores": psutil.cpu_count(logical=True),
-        "cpu_freq_current_mhz": None,
-        "cpu_freq_min_mhz": None,
-        "cpu_freq_max_mhz": None,
-        "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 3),
-    }
-
-    try:
-        f = psutil.cpu_freq()
-        if f is not None:
-            info["cpu_freq_current_mhz"] = f.current
-            info["cpu_freq_min_mhz"] = f.min
-            info["cpu_freq_max_mhz"] = f.max
-    except Exception:
-        pass
-
-    cpu_model = None
-    if os.path.exists("/proc/cpuinfo"):
-        try:
-            with open("/proc/cpuinfo", "r", encoding="utf-8", errors="ignore") as f:
-                for line in f:
-                    if "model name" in line:
-                        cpu_model = line.split(":", 1)[1].strip()
-                        break
-        except Exception:
-            pass
-
-    info["cpu_model_name"] = cpu_model
-    return info
-
-
-def get_top_process_snapshot(top_n=12):
-    rows = []
-    for p in psutil.process_iter(["pid", "name", "username", "cpu_percent", "memory_percent", "cmdline"]):
-        try:
-            rows.append({
-                "pid": p.info["pid"],
-                "name": p.info["name"],
-                "username": p.info["username"],
-                "cpu_percent": p.info["cpu_percent"],
-                "memory_percent": p.info["memory_percent"],
-                "cmdline": " ".join(p.info["cmdline"]) if p.info["cmdline"] else "",
-            })
-        except Exception:
-            continue
-
-    rows = sorted(rows, key=lambda x: (x["cpu_percent"], x["memory_percent"]), reverse=True)
-    return rows[:top_n]
-
-
-def get_system_load_snapshot():
-    vm = psutil.virtual_memory()
-    sm = psutil.swap_memory()
-
-    snapshot = {
-        "timestamp": now_str(),
-        "loadavg": None,
-        "cpu_percent_total": psutil.cpu_percent(interval=0.5),
-        "memory_percent": vm.percent,
-        "memory_used_gb": round(vm.used / (1024**3), 3),
-        "memory_available_gb": round(vm.available / (1024**3), 3),
-        "swap_percent": sm.percent,
-        "top_processes": get_top_process_snapshot(TOP_N_PROCESSES),
-    }
-
-    try:
-        snapshot["loadavg"] = os.getloadavg()
-    except Exception:
-        snapshot["loadavg"] = None
-
-    return snapshot
-
-
-def has_nvidia_smi():
-    return shutil.which("nvidia-smi") is not None
-
-
-def get_gpu_info():
-    if not has_nvidia_smi():
-        return {
-            "gpu_available": False,
-            "reason": "nvidia-smi not found"
-        }
-
-    query = safe_check_output([
-        "nvidia-smi",
-        "--query-gpu=name,memory.total,memory.used,utilization.gpu,utilization.memory,temperature.gpu",
-        "--format=csv,noheader,nounits"
-    ])
-
-    gpus = []
-    if query:
-        lines = [x.strip() for x in query.splitlines() if x.strip()]
-        for line in lines:
-            parts = [p.strip() for p in line.split(",")]
-            if len(parts) >= 6:
-                gpus.append({
-                    "name": parts[0],
-                    "memory_total_mb": parts[1],
-                    "memory_used_mb": parts[2],
-                    "gpu_util_percent": parts[3],
-                    "mem_util_percent": parts[4],
-                    "temperature_c": parts[5],
-                })
-
-    proc_query = safe_check_output([
-        "nvidia-smi",
-        "--query-compute-apps=pid,process_name,used_memory,gpu_uuid",
-        "--format=csv,noheader,nounits"
-    ])
-
-    gpu_processes = []
-    if proc_query:
-        lines = [x.strip() for x in proc_query.splitlines() if x.strip()]
-        for line in lines:
-            parts = [p.strip() for p in line.split(",")]
-            if len(parts) >= 4:
-                gpu_processes.append({
-                    "pid": parts[0],
-                    "process_name": parts[1],
-                    "used_memory_mb": parts[2],
-                    "gpu_uuid": parts[3],
-                })
-
-    return {
-        "gpu_available": True,
-        "gpu_count": len(gpus),
-        "gpus": gpus,
-        "gpu_processes": gpu_processes,
-    }
-
-
-def summarize_runs(run_list):
-    times = [r["wall_clock_sec"] for r in run_list if r["returncode"] == 0]
-    if len(times) == 0:
-        return {
-            "n_success": 0,
-            "n_total": len(run_list),
-            "mean_sec": None,
-            "std_sec": None,
-            "min_sec": None,
-            "max_sec": None,
-        }
-
-    arr = np.asarray(times, dtype=float)
-    return {
-        "n_success": int(len(times)),
-        "n_total": int(len(run_list)),
-        "mean_sec": float(np.mean(arr)),
-        "std_sec": float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0,
-        "min_sec": float(np.min(arr)),
-        "max_sec": float(np.max(arr)),
-    }
-
-
-def benchmark_command(label, cmd, repeats, timeout):
-    print(f"[INFO] Benchmarking {label}: {command_to_str(cmd)}")
-
-    result = {
-        "label": label,
-        "command": cmd,
-        "command_str": command_to_str(cmd),
-        "repeats": repeats,
-        "timeout": timeout,
-        "pre_snapshot": get_system_load_snapshot(),
-        "pre_gpu_info": get_gpu_info(),
-        "runs": [],
-    }
-
-    for i in range(repeats):
-        print(f"[INFO] {label} run {i+1}/{repeats}")
-        run_res = run_subprocess(cmd, timeout=timeout)
-        run_res["run_id"] = i + 1
-        result["runs"].append(run_res)
-
-    result["post_snapshot"] = get_system_load_snapshot()
-    result["post_gpu_info"] = get_gpu_info()
-    result["summary"] = summarize_runs(result["runs"])
-    return result
-
-
-def main():
-    ensure_dir(OUT_DIR)
-
-    meta = {
-        "timestamp": now_str(),
-        "benchmark_type": "practical_wall_clock_comparison",
-        "note": (
-            "This benchmark compares practical wall-clock cost under the "
-            "standard execution environments of the two workflows, rather than "
-            "a hardware-normalized algorithmic benchmark on identical devices."
-        ),
-        "system": {
-            "cpu_info": get_cpu_info(),
-            "gpu_info_initial": get_gpu_info(),
-        },
-    }
-
-    hf_result = benchmark_command(
-        label="high_fidelity",
-        cmd=HF_COMMAND,
-        repeats=HF_REPEATS,
-        timeout=HF_TIMEOUT,
-    )
-
-    nn_result = benchmark_command(
-        label="neural_surrogate",
-        cmd=NN_COMMAND,
-        repeats=NN_REPEATS,
-        timeout=NN_TIMEOUT,
-    )
-
-    comparison = {
-        "hf_mean_sec": hf_result["summary"]["mean_sec"],
-        "nn_mean_sec": nn_result["summary"]["mean_sec"],
-        "speedup_hf_over_nn": None,
-    }
-
-    if hf_result["summary"]["mean_sec"] is not None and nn_result["summary"]["mean_sec"] is not None:
-        if nn_result["summary"]["mean_sec"] > 0:
-            comparison["speedup_hf_over_nn"] = float(
-                hf_result["summary"]["mean_sec"] / nn_result["summary"]["mean_sec"]
-            )
-
-    output = {
-        "meta": meta,
-        "high_fidelity": hf_result,
-        "neural_surrogate": nn_result,
-        "comparison": comparison,
-    }
-
-    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(output, f, indent=2, ensure_ascii=False)
-
-    print("[DONE] Saved benchmark to:", OUTPUT_JSON)
-    print(json.dumps(comparison, indent=2, ensure_ascii=False))
-
-
-if __name__ == "__main__":
-    main()
-
-####################################################################################################
+########################################################################################################################
 文件: plot_forward_uq_and_sobol_figures.py
-用途: forward UQ、threshold risk、Sobol、CVR 等主文图脚本。
+类别: D_feasible_region_and_plotting
+用途: 绘制正向 UQ、risk curve、Sobol、CVR 等主文图。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 12.2 KB
+------------------------------------------------------------------------------------------------------------------------
 # plot_forward_uq_and_sobol_figures.py
 # ============================================================
 # Purpose:
@@ -4883,11 +5603,13 @@ def main():
 if __name__ == "__main__":
     main()
 
-####################################################################################################
+########################################################################################################################
 文件: plot_inverse_figures.py
-用途: inverse benchmark 主图脚本。
+类别: D_feasible_region_and_plotting
+用途: 绘制 inverse benchmark 主图，包括参数恢复、观测拟合和代表性 case 图。
 存在: 是
-----------------------------------------------------------------------------------------------------
+大小: 15.6 KB
+------------------------------------------------------------------------------------------------------------------------
 # plot_inverse_figures.py
 # ============================================================
 # Purpose:
@@ -5359,6 +6081,1137 @@ def main():
 
     print("[DONE] Inverse plotting script finished.")
     print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
+
+========================================================================================================================
+[分组] E_speed_ood_and_supporting_analysis
+[分组说明] 速度、OOD 与 iter1/iter2 对比等补充分析。
+========================================================================================================================
+
+########################################################################################################################
+文件: run_speedup_benchmark.py
+类别: E_speed_ood_and_supporting_analysis
+用途: 执行代理模型与高保真流程的速度对比基准测试。
+存在: 是
+大小: 4.8 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_speedup_benchmark.py
+# ============================================================
+# Speed benchmark for paper:
+#   - neural inference latency
+#   - batch throughput
+#   - estimated speedup against one high-fidelity simulation
+# ============================================================
+
+import os
+import json
+import time
+import pickle
+import numpy as np
+import torch
+
+from paper_experiment_config import (
+    OUT_DIR,
+    INPUT_COLS,
+    OUTPUT_COLS,
+    PRIMARY_OUTPUTS,
+    PRIMARY_STRESS_OUTPUT,
+    PRIMARY_AUXILIARY_OUTPUT,
+    THRESHOLD_SWEEP,
+    SEED,
+    FIXED_CKPT_PATH,
+    FIXED_SCALER_PATH,
+)
+from run_phys_levels_main import HeteroMLP, get_device
+
+# ------------------------------------------------------------
+# User setting: fill this with your average high-fidelity time
+# per sample (seconds). Replace X later with measured value.
+# Example:
+# HIGH_FIDELITY_SECONDS_PER_CASE = 900.0
+# ------------------------------------------------------------
+HIGH_FIDELITY_SECONDS_PER_CASE = 3600
+FORWARD_UQ_MONTE_CARLO_SAMPLES = 20000
+INVERSE_BENCHMARK_CASES = 20
+INVERSE_POSTERIOR_SAMPLES_PER_CASE = 1200
+
+LEVEL = 2
+N_WARMUP = 50
+N_REPEAT_SINGLE = 500
+N_REPEAT_BATCH = 200
+BATCH_SIZE = 1024
+
+
+def get_artifact_dir(level: int) -> str:
+    mapping = {
+        0: os.path.join(OUT_DIR, "fixed_surrogate_fixed_base"),
+        2: os.path.join(OUT_DIR, "fixed_surrogate_fixed_level2"),
+    }
+    if level not in mapping:
+        raise ValueError(f"Unsupported level for fixed surrogate: {level}")
+    return mapping[level]
+
+
+def load_checkpoint_and_scalers(level: int):
+    art_dir = get_artifact_dir(level)
+    ckpt_path = os.path.join(art_dir, f"checkpoint_level{level}.pt")
+    scaler_path = os.path.join(art_dir, f"scalers_level{level}.pkl")
+
+    if not os.path.exists(ckpt_path):
+        raise FileNotFoundError(f"Missing checkpoint: {ckpt_path}")
+    if not os.path.exists(scaler_path):
+        raise FileNotFoundError(f"Missing scaler file: {scaler_path}")
+
+    ckpt = torch.load(ckpt_path, map_location="cpu")
+    with open(scaler_path, "rb") as f:
+        scalers = pickle.load(f)
+
+    return ckpt, scalers["sx"], scalers["sy"], ckpt_path, scaler_path
+
+
+def build_model_from_ckpt(ckpt, device):
+    best_params = ckpt["best_params"]
+    model = HeteroMLP(
+        in_dim=len(INPUT_COLS),
+        out_dim=len(OUTPUT_COLS),
+        width=int(best_params["width"]),
+        depth=int(best_params["depth"]),
+        dropout=float(best_params["dropout"]),
+    ).to(device)
+    model.load_state_dict(ckpt["model_state_dict"], strict=False)
+    model.eval()
+    return model
+
+
+def sync_if_needed(device):
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+
+
+def main():
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+
+    device = get_device()
+    ckpt, sx, sy = load_checkpoint_and_scalers(LEVEL)
+    model = build_model_from_ckpt(ckpt, device)
+
+    # random normalized inputs
+    x_single = torch.randn(1, len(INPUT_COLS), dtype=torch.float32, device=device)
+    x_batch = torch.randn(BATCH_SIZE, len(INPUT_COLS), dtype=torch.float32, device=device)
+
+    # warmup
+    with torch.no_grad():
+        for _ in range(N_WARMUP):
+            _ = model(x_single)
+            _ = model(x_batch)
+    sync_if_needed(device)
+
+    # single-sample latency
+    t0 = time.perf_counter()
+    with torch.no_grad():
+        for _ in range(N_REPEAT_SINGLE):
+            _ = model(x_single)
+    sync_if_needed(device)
+    t1 = time.perf_counter()
+    single_latency = (t1 - t0) / N_REPEAT_SINGLE
+
+    # batch throughput
+    t0 = time.perf_counter()
+    with torch.no_grad():
+        for _ in range(N_REPEAT_BATCH):
+            _ = model(x_batch)
+    sync_if_needed(device)
+    t1 = time.perf_counter()
+    batch_time = (t1 - t0) / N_REPEAT_BATCH
+    per_sample_batch_latency = batch_time / BATCH_SIZE
+    throughput = BATCH_SIZE / batch_time
+
+    result = {
+        "level": LEVEL,
+        "device": str(device),
+        "single_sample_latency_sec": float(single_latency),
+        "batch_size": int(BATCH_SIZE),
+        "batch_time_sec": float(batch_time),
+        "per_sample_batch_latency_sec": float(per_sample_batch_latency),
+        "batch_throughput_samples_per_sec": float(throughput),
+        "high_fidelity_seconds_per_case": HIGH_FIDELITY_SECONDS_PER_CASE,
+    }
+
+    if HIGH_FIDELITY_SECONDS_PER_CASE is not None:
+        result["speedup_single_vs_hf"] = float(HIGH_FIDELITY_SECONDS_PER_CASE / single_latency)
+        result["speedup_batch_per_sample_vs_hf"] = float(HIGH_FIDELITY_SECONDS_PER_CASE / per_sample_batch_latency)
+
+    out_json = os.path.join(OUT_DIR, "paper_speedup_benchmark.json")
+    with open(out_json, "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2, ensure_ascii=False)
+
+    print("[DONE] Speed benchmark saved to:", out_json)
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+文件: run_practical_speed_benchmark.py
+类别: E_speed_ood_and_supporting_analysis
+用途: 记录实际运行环境下的 HF CPU 与 surrogate GPU 的 wall-clock 对比。
+存在: 是
+大小: 9.5 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_practical_speed_benchmark.py
+# ============================================================
+# Practical wall-clock speed benchmark for:
+#   1) high-fidelity workflow (typically CPU)
+#   2) neural-network / surrogate workflow (typically GPU)
+#
+# Output:
+#   - paper_speed_benchmark_detailed.json
+# ============================================================
+
+import os
+import json
+import time
+import shutil
+import socket
+import platform
+import subprocess
+from datetime import datetime
+
+import numpy as np
+
+try:
+    import psutil
+except ImportError:
+    raise ImportError("Please install psutil: pip install psutil")
+
+# ============================================================
+# User settings
+# ============================================================
+
+OUT_DIR = "./experiments_phys_levels"
+OUTPUT_JSON = os.path.join(OUT_DIR, "paper_speed_benchmark_detailed.json")
+
+# Replace these
+HF_COMMAND = ["/home/tjzs/.conda/envs/HP-env/bin/python", "/home/tjzs/Documents/fenics_data/fenics_data/0318-UQ-test-fenics.py"]
+NN_COMMAND = ["/home/tjzs/.conda/envs/pytorch-env/bin/python", "/home/tjzs/Documents/0310/run_speedup_benchmark.py"]
+
+HF_REPEATS = 3
+NN_REPEATS = 5
+
+HF_TIMEOUT = None
+NN_TIMEOUT = None
+
+SAVE_STDOUT_STDERR = True
+TOP_N_PROCESSES = 12
+
+
+# ============================================================
+# Utilities
+# ============================================================
+
+def ensure_dir(path: str):
+    os.makedirs(path, exist_ok=True)
+
+
+def now_str():
+    return datetime.now().isoformat()
+
+
+def command_to_str(cmd):
+    return " ".join(cmd)
+
+
+def safe_check_output(cmd):
+    try:
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
+        return out.strip()
+    except Exception:
+        return None
+
+
+def run_subprocess(cmd, timeout=None):
+    t0 = time.perf_counter()
+    proc = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=timeout
+    )
+    t1 = time.perf_counter()
+
+    return {
+        "returncode": proc.returncode,
+        "wall_clock_sec": float(t1 - t0),
+        "stdout": proc.stdout if SAVE_STDOUT_STDERR else "",
+        "stderr": proc.stderr if SAVE_STDOUT_STDERR else "",
+    }
+
+
+def get_cpu_info():
+    info = {
+        "hostname": socket.gethostname(),
+        "platform": platform.platform(),
+        "processor": platform.processor(),
+        "python_version": platform.python_version(),
+        "physical_cores": psutil.cpu_count(logical=False),
+        "logical_cores": psutil.cpu_count(logical=True),
+        "cpu_freq_current_mhz": None,
+        "cpu_freq_min_mhz": None,
+        "cpu_freq_max_mhz": None,
+        "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 3),
+    }
+
+    try:
+        f = psutil.cpu_freq()
+        if f is not None:
+            info["cpu_freq_current_mhz"] = f.current
+            info["cpu_freq_min_mhz"] = f.min
+            info["cpu_freq_max_mhz"] = f.max
+    except Exception:
+        pass
+
+    cpu_model = None
+    if os.path.exists("/proc/cpuinfo"):
+        try:
+            with open("/proc/cpuinfo", "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    if "model name" in line:
+                        cpu_model = line.split(":", 1)[1].strip()
+                        break
+        except Exception:
+            pass
+
+    info["cpu_model_name"] = cpu_model
+    return info
+
+
+def get_top_process_snapshot(top_n=12):
+    rows = []
+    for p in psutil.process_iter(["pid", "name", "username", "cpu_percent", "memory_percent", "cmdline"]):
+        try:
+            rows.append({
+                "pid": p.info["pid"],
+                "name": p.info["name"],
+                "username": p.info["username"],
+                "cpu_percent": p.info["cpu_percent"],
+                "memory_percent": p.info["memory_percent"],
+                "cmdline": " ".join(p.info["cmdline"]) if p.info["cmdline"] else "",
+            })
+        except Exception:
+            continue
+
+    rows = sorted(rows, key=lambda x: (x["cpu_percent"], x["memory_percent"]), reverse=True)
+    return rows[:top_n]
+
+
+def get_system_load_snapshot():
+    vm = psutil.virtual_memory()
+    sm = psutil.swap_memory()
+
+    snapshot = {
+        "timestamp": now_str(),
+        "loadavg": None,
+        "cpu_percent_total": psutil.cpu_percent(interval=0.5),
+        "memory_percent": vm.percent,
+        "memory_used_gb": round(vm.used / (1024**3), 3),
+        "memory_available_gb": round(vm.available / (1024**3), 3),
+        "swap_percent": sm.percent,
+        "top_processes": get_top_process_snapshot(TOP_N_PROCESSES),
+    }
+
+    try:
+        snapshot["loadavg"] = os.getloadavg()
+    except Exception:
+        snapshot["loadavg"] = None
+
+    return snapshot
+
+
+def has_nvidia_smi():
+    return shutil.which("nvidia-smi") is not None
+
+
+def get_gpu_info():
+    if not has_nvidia_smi():
+        return {
+            "gpu_available": False,
+            "reason": "nvidia-smi not found"
+        }
+
+    query = safe_check_output([
+        "nvidia-smi",
+        "--query-gpu=name,memory.total,memory.used,utilization.gpu,utilization.memory,temperature.gpu",
+        "--format=csv,noheader,nounits"
+    ])
+
+    gpus = []
+    if query:
+        lines = [x.strip() for x in query.splitlines() if x.strip()]
+        for line in lines:
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) >= 6:
+                gpus.append({
+                    "name": parts[0],
+                    "memory_total_mb": parts[1],
+                    "memory_used_mb": parts[2],
+                    "gpu_util_percent": parts[3],
+                    "mem_util_percent": parts[4],
+                    "temperature_c": parts[5],
+                })
+
+    proc_query = safe_check_output([
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory,gpu_uuid",
+        "--format=csv,noheader,nounits"
+    ])
+
+    gpu_processes = []
+    if proc_query:
+        lines = [x.strip() for x in proc_query.splitlines() if x.strip()]
+        for line in lines:
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) >= 4:
+                gpu_processes.append({
+                    "pid": parts[0],
+                    "process_name": parts[1],
+                    "used_memory_mb": parts[2],
+                    "gpu_uuid": parts[3],
+                })
+
+    return {
+        "gpu_available": True,
+        "gpu_count": len(gpus),
+        "gpus": gpus,
+        "gpu_processes": gpu_processes,
+    }
+
+
+def summarize_runs(run_list):
+    times = [r["wall_clock_sec"] for r in run_list if r["returncode"] == 0]
+    if len(times) == 0:
+        return {
+            "n_success": 0,
+            "n_total": len(run_list),
+            "mean_sec": None,
+            "std_sec": None,
+            "min_sec": None,
+            "max_sec": None,
+        }
+
+    arr = np.asarray(times, dtype=float)
+    return {
+        "n_success": int(len(times)),
+        "n_total": int(len(run_list)),
+        "mean_sec": float(np.mean(arr)),
+        "std_sec": float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0,
+        "min_sec": float(np.min(arr)),
+        "max_sec": float(np.max(arr)),
+    }
+
+
+def benchmark_command(label, cmd, repeats, timeout):
+    print(f"[INFO] Benchmarking {label}: {command_to_str(cmd)}")
+
+    result = {
+        "label": label,
+        "command": cmd,
+        "command_str": command_to_str(cmd),
+        "repeats": repeats,
+        "timeout": timeout,
+        "pre_snapshot": get_system_load_snapshot(),
+        "pre_gpu_info": get_gpu_info(),
+        "runs": [],
+    }
+
+    for i in range(repeats):
+        print(f"[INFO] {label} run {i+1}/{repeats}")
+        run_res = run_subprocess(cmd, timeout=timeout)
+        run_res["run_id"] = i + 1
+        result["runs"].append(run_res)
+
+    result["post_snapshot"] = get_system_load_snapshot()
+    result["post_gpu_info"] = get_gpu_info()
+    result["summary"] = summarize_runs(result["runs"])
+    return result
+
+
+def main():
+    ensure_dir(OUT_DIR)
+
+    meta = {
+        "timestamp": now_str(),
+        "benchmark_type": "practical_wall_clock_comparison",
+        "note": (
+            "This benchmark compares practical wall-clock cost under the "
+            "standard execution environments of the two workflows, rather than "
+            "a hardware-normalized algorithmic benchmark on identical devices."
+        ),
+        "system": {
+            "cpu_info": get_cpu_info(),
+            "gpu_info_initial": get_gpu_info(),
+        },
+    }
+
+    hf_result = benchmark_command(
+        label="high_fidelity",
+        cmd=HF_COMMAND,
+        repeats=HF_REPEATS,
+        timeout=HF_TIMEOUT,
+    )
+
+    nn_result = benchmark_command(
+        label="neural_surrogate",
+        cmd=NN_COMMAND,
+        repeats=NN_REPEATS,
+        timeout=NN_TIMEOUT,
+    )
+
+    comparison = {
+        "hf_mean_sec": hf_result["summary"]["mean_sec"],
+        "nn_mean_sec": nn_result["summary"]["mean_sec"],
+        "speedup_hf_over_nn": None,
+    }
+
+    if hf_result["summary"]["mean_sec"] is not None and nn_result["summary"]["mean_sec"] is not None:
+        if nn_result["summary"]["mean_sec"] > 0:
+            comparison["speedup_hf_over_nn"] = float(
+                hf_result["summary"]["mean_sec"] / nn_result["summary"]["mean_sec"]
+            )
+
+    output = {
+        "meta": meta,
+        "high_fidelity": hf_result,
+        "neural_surrogate": nn_result,
+        "comparison": comparison,
+    }
+
+    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+
+    print("[DONE] Saved benchmark to:", OUTPUT_JSON)
+    print(json.dumps(comparison, indent=2, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+文件: run_ood_evaluation.py
+类别: E_speed_ood_and_supporting_analysis
+用途: 对选定参数进行 OOD 外推测试，作为附录/讨论支撑。
+存在: 是
+大小: 10.0 KB
+------------------------------------------------------------------------------------------------------------------------
+# run_ood_evaluation.py
+# ============================================================
+# Tail OOD evaluation:
+# train on middle 80% of one key feature
+# test on two tails 20%
+# compare Level0 vs Level4
+# ============================================================
+
+import os
+import json
+import numpy as np
+import pandas as pd
+import torch
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from paper_experiment_config import (
+    CSV_PATH, OUT_DIR, INPUT_COLS, OUTPUT_COLS,
+    OOD_FEATURE, OOD_KEEP_MIDDLE_RATIO, SEED,
+    PRIMARY_STRESS_OUTPUT, PRIMARY_AUXILIARY_OUTPUT
+)
+from run_phys_levels_main import (
+    load_dataset, HeteroMLP, gaussian_nll, _to_numpy,
+    compute_basic_metrics, compute_prob_metrics_gaussian,
+    build_mono_pairs_spearman, build_mono_pairs_bootstrap,
+    loss_level1_shifted, loss_level1_band_shift,
+    loss_level2_monotone_from_mu, loss_level3_ineq,
+    logvar_floor_regularizer, get_device
+)
+
+
+def make_ood_split_by_feature(X, Y, feature_name, keep_middle_ratio=0.8):
+    feat_idx = INPUT_COLS.index(feature_name)
+    x_feat = X[:, feat_idx]
+
+    q_low = (1.0 - keep_middle_ratio) / 2.0
+    q_high = 1.0 - q_low
+
+    lo = np.quantile(x_feat, q_low)
+    hi = np.quantile(x_feat, q_high)
+
+    in_mask = (x_feat >= lo) & (x_feat <= hi)
+    ood_mask = ~in_mask
+
+    X_in = X[in_mask]
+    Y_in = Y[in_mask]
+    X_ood = X[ood_mask]
+    Y_ood = Y[ood_mask]
+
+    meta = {
+        "feature": feature_name,
+        "low_quantile_value": float(lo),
+        "high_quantile_value": float(hi),
+        "n_in": int(X_in.shape[0]),
+        "n_ood": int(X_ood.shape[0]),
+    }
+    return X_in, X_ood, Y_in, Y_ood, meta
+
+
+def train_with_fixed_params(level, best_params, Xtr_s, Ytr_s, Xva_s, Yva_s, device):
+    x_tr = torch.tensor(Xtr_s, dtype=torch.float32, device=device)
+    y_tr = torch.tensor(Ytr_s, dtype=torch.float32, device=device)
+    x_va = torch.tensor(Xva_s, dtype=torch.float32, device=device)
+    y_va = torch.tensor(Yva_s, dtype=torch.float32, device=device)
+
+    delta_tr = Ytr_s[:, 8:16] - Ytr_s[:, 0:8]
+    bias_delta_t = torch.tensor(delta_tr.mean(axis=0), dtype=torch.float32, device=device)
+
+    model = HeteroMLP(
+        in_dim=len(INPUT_COLS),
+        out_dim=len(OUTPUT_COLS),
+        width=int(best_params["width"]),
+        depth=int(best_params["depth"]),
+        dropout=float(best_params["dropout"]),
+    ).to(device)
+
+    opt = torch.optim.AdamW(
+        model.parameters(),
+        lr=float(best_params["lr"]),
+        weight_decay=float(best_params["wd"]),
+    )
+
+    if level >= 4 and model._delta_head is None:
+        model._delta_head = torch.nn.Sequential(
+            torch.nn.Linear(len(INPUT_COLS), 64),
+            torch.nn.SiLU(),
+            torch.nn.Linear(64, 8)
+        ).to(device)
+        opt.add_param_group({"params": model._delta_head.parameters()})
+
+    rho_min = float(best_params.get("rho_abs_min", 0.25))
+    topk = int(best_params.get("mono_topk", 40))
+
+    if level >= 4 and bool(best_params.get("use_boot", False)):
+        mono_pairs = build_mono_pairs_bootstrap(
+            Xtr_s, Ytr_s,
+            rho_abs_min=rho_min,
+            topk=topk,
+            B=int(best_params.get("boot_B", 16)),
+            sample_frac=float(best_params.get("boot_frac", 0.7)),
+            stable_min=float(best_params.get("boot_stable_min", 0.8)),
+        )
+    elif level >= 2:
+        mono_pairs = build_mono_pairs_spearman(
+            Xtr_s, Ytr_s,
+            rho_abs_min=rho_min,
+            topk=topk,
+        )
+    else:
+        mono_pairs = []
+
+    w_data = float(best_params.get("w_data", 1.0))
+    w_fp = float(best_params.get("w_fp", 0.0))
+    w_mono = float(best_params.get("w_mono", 0.0))
+    w_ineq = float(best_params.get("w_ineq", 0.0))
+    w_shift = float(best_params.get("w_shift", 0.0))
+    w_logvar = float(best_params.get("w_logvar", 0.0))
+    eps_band = float(best_params.get("eps_band", 0.0))
+    logvar_floor = float(best_params.get("logvar_floor", -10.0))
+    batch = int(best_params["batch"])
+    epochs = int(best_params["epochs"])
+    clip = float(best_params.get("clip", 2.0))
+
+    best_val = 1e18
+    best_state = None
+    bad = 0
+    patience = 25
+
+    n = x_tr.shape[0]
+    for _ in range(epochs):
+        model.train()
+        perm = torch.randperm(n, device=device)
+
+        for s in range(0, n, batch):
+            b = perm[s:s+batch]
+            xb = x_tr[b]
+            yb = y_tr[b]
+
+            xb_req = xb.detach().clone().requires_grad_(True) if (level >= 2 and mono_pairs) else xb
+            mu, logvar = model(xb_req)
+
+            loss = w_data * gaussian_nll(yb, mu, logvar)
+
+            if level >= 1:
+                loss = loss + w_fp * loss_level1_shifted(mu, bias_delta_t)
+            if level >= 2:
+                loss = loss + w_mono * loss_level2_monotone_from_mu(mu, xb_req, mono_pairs)
+            if level >= 3:
+                loss = loss + w_ineq * loss_level3_ineq(mu, OUTPUT_COLS)
+            if level >= 4:
+                loss = loss + w_shift * loss_level1_band_shift(mu, xb_req, model, eps_band)
+                loss = loss + w_logvar * logvar_floor_regularizer(logvar, floor=logvar_floor)
+
+            opt.zero_grad(set_to_none=True)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
+            opt.step()
+
+        model.eval()
+        with torch.no_grad():
+            mu_va, logvar_va = model(x_va)
+            val = gaussian_nll(y_va, mu_va, logvar_va).item()
+
+        if val < best_val - 1e-6:
+            best_val = val
+            best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+            bad = 0
+        else:
+            bad += 1
+            if bad >= patience:
+                break
+
+    if best_state is not None:
+        model.load_state_dict(best_state)
+
+    model.eval()
+    return model
+
+
+def main():
+    df = load_dataset()
+    X = df[INPUT_COLS].to_numpy(dtype=float)
+    Y = df[OUTPUT_COLS].to_numpy(dtype=float)
+
+    X_in, X_ood, Y_in, Y_ood, meta = make_ood_split_by_feature(
+        X, Y, OOD_FEATURE, OOD_KEEP_MIDDLE_RATIO
+    )
+
+    X_tr, X_va, Y_tr, Y_va = train_test_split(X_in, Y_in, test_size=0.1765, random_state=SEED)
+
+    sx = StandardScaler().fit(X_tr)
+    sy = StandardScaler().fit(Y_tr)
+
+    Xtr_s = sx.transform(X_tr)
+    Xva_s = sx.transform(X_va)
+    Xood_s = sx.transform(X_ood)
+
+    Ytr_s = sy.transform(Y_tr)
+    Yva_s = sy.transform(Y_va)
+    Yood_s = sy.transform(Y_ood)
+
+    device = get_device()
+    rows = []
+
+    for level in [0, 2]:
+        best_json = os.path.join(OUT_DIR, f"best_level{level}.json")
+        if not os.path.exists(best_json):
+            raise FileNotFoundError(
+                f"Missing best json: {best_json}\n"
+                f"Please run `python run_phys_levels_main.py` first."
+            )
+
+        with open(best_json, "r", encoding="utf-8") as f:
+            best_obj = json.load(f)
+        best_params = best_obj["best_params"]
+
+        model = train_with_fixed_params(level, best_params, Xtr_s, Ytr_s, Xva_s, Yva_s, device)
+
+        x_ood = torch.tensor(Xood_s, dtype=torch.float32, device=device)
+        y_ood = torch.tensor(Yood_s, dtype=torch.float32, device=device)
+
+        with torch.no_grad():
+            mu_ood_s, logvar_ood = model(x_ood)
+            var_ood_s = torch.exp(logvar_ood)
+
+        mu_ood = sy.inverse_transform(_to_numpy(mu_ood_s))
+        y_ood_true = sy.inverse_transform(_to_numpy(y_ood))
+        sigma_ood = np.sqrt(_to_numpy(var_ood_s)) * sy.scale_
+
+        basic = compute_basic_metrics(y_ood_true, mu_ood)
+        prob90 = compute_prob_metrics_gaussian(y_ood_true, mu_ood, sigma_ood, alpha=0.10)
+
+        idx_stress = OUTPUT_COLS.index(PRIMARY_STRESS_OUTPUT)
+        idx_keff = OUTPUT_COLS.index(PRIMARY_AUXILIARY_OUTPUT)
+
+        row = {
+            "level": level,
+            "ood_feature": meta["feature"],
+            "n_ood": meta["n_ood"],
+
+            # appendix-style overall mean
+            "MAE_mean_all": float(np.mean(basic["MAE"])),
+            "RMSE_mean_all": float(np.mean(basic["RMSE"])),
+            "R2_mean_all": float(np.mean(basic["R2"])),
+            "PICP90_mean_all": float(np.mean(prob90["PICP"])),
+            "MPIW90_mean_all": float(np.mean(prob90["MPIW"])),
+            "CRPS_mean_all": float(np.mean(prob90["CRPS"])),
+
+            # paper-focus outputs
+            "stress_MAE": float(basic["MAE"][idx_stress]),
+            "stress_RMSE": float(basic["RMSE"][idx_stress]),
+            "stress_R2": float(basic["R2"][idx_stress]),
+            "stress_PICP90": float(prob90["PICP"][idx_stress]),
+            "stress_MPIW90": float(prob90["MPIW"][idx_stress]),
+            "stress_CRPS": float(prob90["CRPS"][idx_stress]),
+
+            "keff_MAE": float(basic["MAE"][idx_keff]),
+            "keff_RMSE": float(basic["RMSE"][idx_keff]),
+            "keff_R2": float(basic["R2"][idx_keff]),
+            "keff_PICP90": float(prob90["PICP"][idx_keff]),
+            "keff_MPIW90": float(prob90["MPIW"][idx_keff]),
+            "keff_CRPS": float(prob90["CRPS"][idx_keff]),
+        }
+
+        rows.append(row)
+        per_dim_rows = []
+        for j, name in enumerate(OUTPUT_COLS):
+            per_dim_rows.append({
+                "level": level,
+                "ood_feature": meta["feature"],
+                "output": name,
+                "MAE": float(basic["MAE"][j]),
+                "RMSE": float(basic["RMSE"][j]),
+                "R2": float(basic["R2"][j]),
+                "PICP90": float(prob90["PICP"][j]),
+                "MPIW90": float(prob90["MPIW"][j]),
+                "CRPS": float(prob90["CRPS"][j]),
+            })
+
+        pd.DataFrame(per_dim_rows).to_csv(
+            os.path.join(OUT_DIR, f"paper_ood_per_dim_level{level}.csv"),
+            index=False,
+            encoding="utf-8-sig"
+        )
+        print(f"[OK] OOD done for level {level}")
+
+    if rows:
+        pd.DataFrame(rows).to_csv(
+            os.path.join(OUT_DIR, "paper_ood_results.csv"),
+            index=False,
+            encoding="utf-8-sig"
+        )
+
+        with open(os.path.join(OUT_DIR, "paper_ood_meta.json"), "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2, ensure_ascii=False)
+
+    print("[DONE] OOD evaluation completed.")
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+文件: run_iter1_iter2_forward_compare.py
+类别: E_speed_ood_and_supporting_analysis
+用途: 比较 iter1 与 iter2 输出在 forward UQ 下的统计差异。
+存在: 是
+大小: 2.2 KB
+------------------------------------------------------------------------------------------------------------------------
+import pandas as pd
+from pathlib import Path
+
+ROOT = Path("/home/tjzs/Documents/0310")
+DATA_DIR = ROOT / "experiments_phys_levels"
+OUT_FILE = DATA_DIR / "paper_iter1_iter2_forward_compare.csv"
+
+LEVELS = [0, 2]
+
+OUTPUTS = [
+    "keff",
+    "avg_fuel_temp",
+    "max_fuel_temp",
+    "max_monolith_temp",
+    "max_global_stress",
+    "wall2",
+]
+
+def process_level(level):
+    file_path = DATA_DIR / f"forward_uq_all_outputs_level{level}.csv"
+    df = pd.read_csv(file_path)
+
+    rows = []
+
+    for out in OUTPUTS:
+        name_iter1 = f"iteration1_{out}"
+        name_iter2 = f"iteration2_{out}"
+
+        row1 = df[df["output"] == name_iter1]
+        row2 = df[df["output"] == name_iter2]
+
+        if row1.empty or row2.empty:
+            print(f"[WARN] Missing rows for {out} in level {level}")
+            continue
+
+        row1 = row1.iloc[0]
+        row2 = row2.iloc[0]
+
+        iter1_mean = float(row1["mean"])
+        iter1_std = float(row1["std"])
+        iter1_q95 = float(row1["q95"])
+
+        iter2_mean = float(row2["mean"])
+        iter2_std = float(row2["std"])
+        iter2_q95 = float(row2["q95"])
+
+        rows.append({
+            "level": level,
+            "output": out,
+
+            "iter1_mean": iter1_mean,
+            "iter1_std": iter1_std,
+            "iter1_q95": iter1_q95,
+
+            "iter2_mean": iter2_mean,
+            "iter2_std": iter2_std,
+            "iter2_q95": iter2_q95,
+
+            "mean_shift": iter2_mean - iter1_mean,
+            "std_ratio": iter2_std / (iter1_std + 1e-12),
+            "q95_shift": iter2_q95 - iter1_q95,
+
+            "mean_shift_direction": (
+                "increase" if iter2_mean > iter1_mean else "decrease"
+            ),
+            "uncertainty_change": (
+                "amplified" if iter2_std > iter1_std else "reduced"
+            ),
+            "tail_change": (
+                "higher" if iter2_q95 > iter1_q95 else "lower"
+            ),
+        })
+
+    return rows
+
+def main():
+    all_rows = []
+
+    for lvl in LEVELS:
+        rows = process_level(lvl)
+        all_rows.extend(rows)
+
+    df_out = pd.DataFrame(all_rows)
+    df_out.to_csv(OUT_FILE, index=False, encoding="utf-8-sig")
+
+    print(f"[DONE] Saved: {OUT_FILE}")
+    print(df_out)
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+文件: run_iter1_iter2_sobol_compare.py
+类别: E_speed_ood_and_supporting_analysis
+用途: 比较 iter1 与 iter2 输出的 Sobol 主导因子变化。
+存在: 是
+大小: 6.7 KB
+------------------------------------------------------------------------------------------------------------------------
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+ROOT = Path("/home/tjzs/Documents/0310")
+DATA_DIR = ROOT / "experiments_phys_levels"
+
+INPUT_FILE = DATA_DIR / "paper_sobol_results_with_ci_all_iters.csv"
+
+OUT_COMPARE = DATA_DIR / "paper_iter1_iter2_sobol_compare.csv"
+OUT_SHIFT = DATA_DIR / "paper_iter1_iter2_sobol_shift_summary.csv"
+OUT_KEFF = DATA_DIR / "paper_iter2_keff_sobol_summary.csv"
+
+LEVELS = [0, 2]
+
+# 这里只比较真正适合做 iter1 vs iter2 的输出
+COMPARE_BASE_OUTPUTS = [
+    "avg_fuel_temp",
+    "max_fuel_temp",
+    "max_monolith_temp",
+    "max_global_stress",
+    "wall2",
+]
+
+# keff 单独处理，只保留 iter2
+KEFF_OUTPUT = "iteration2_keff"
+
+TOPK = 3
+
+
+def classify_stability(row):
+    return float(row["ST_ci_low"]) > 0
+
+
+def load_data():
+    return pd.read_csv(INPUT_FILE)
+
+
+def build_compare_table(df):
+    rows = []
+
+    for level in LEVELS:
+        for base_out in COMPARE_BASE_OUTPUTS:
+            out1 = f"iteration1_{base_out}"
+            out2 = f"iteration2_{base_out}"
+
+            sub1 = df[(df["level"] == level) & (df["output"] == out1)].copy()
+            sub2 = df[(df["level"] == level) & (df["output"] == out2)].copy()
+
+            if sub1.empty or sub2.empty:
+                print(f"[WARN] Missing Sobol rows for level={level}, output={base_out}")
+                continue
+
+            sub1["stable"] = sub1.apply(classify_stability, axis=1)
+            sub2["stable"] = sub2.apply(classify_stability, axis=1)
+
+            sub1 = sub1.sort_values("ST_mean", ascending=False).reset_index(drop=True)
+            sub2 = sub2.sort_values("ST_mean", ascending=False).reset_index(drop=True)
+
+            rank1 = {r["input"]: i + 1 for i, (_, r) in enumerate(sub1.iterrows())}
+            rank2 = {r["input"]: i + 1 for i, (_, r) in enumerate(sub2.iterrows())}
+
+            all_inputs = sorted(set(sub1["input"]).union(set(sub2["input"])))
+
+            for inp in all_inputs:
+                r1 = sub1[sub1["input"] == inp]
+                r2 = sub2[sub2["input"] == inp]
+
+                iter1_st = float(r1["ST_mean"].iloc[0]) if not r1.empty else np.nan
+                iter2_st = float(r2["ST_mean"].iloc[0]) if not r2.empty else np.nan
+
+                rows.append({
+                    "level": level,
+                    "base_output": base_out,
+                    "input": inp,
+
+                    "iter1_rank": rank1.get(inp, np.nan),
+                    "iter2_rank": rank2.get(inp, np.nan),
+
+                    "iter1_ST_mean": iter1_st,
+                    "iter2_ST_mean": iter2_st,
+
+                    "iter1_ST_ci_low": float(r1["ST_ci_low"].iloc[0]) if not r1.empty else np.nan,
+                    "iter1_ST_ci_high": float(r1["ST_ci_high"].iloc[0]) if not r1.empty else np.nan,
+
+                    "iter2_ST_ci_low": float(r2["ST_ci_low"].iloc[0]) if not r2.empty else np.nan,
+                    "iter2_ST_ci_high": float(r2["ST_ci_high"].iloc[0]) if not r2.empty else np.nan,
+
+                    "iter1_stable": bool(r1["stable"].iloc[0]) if not r1.empty else False,
+                    "iter2_stable": bool(r2["stable"].iloc[0]) if not r2.empty else False,
+
+                    "ST_shift": iter2_st - iter1_st if pd.notna(iter1_st) and pd.notna(iter2_st) else np.nan,
+                    "rank_shift": (
+                        rank2.get(inp, np.nan) - rank1.get(inp, np.nan)
+                        if pd.notna(rank1.get(inp, np.nan)) and pd.notna(rank2.get(inp, np.nan))
+                        else np.nan
+                    ),
+                })
+
+    return pd.DataFrame(rows)
+
+
+def build_shift_summary(df_compare):
+    rows = []
+
+    if df_compare.empty:
+        return pd.DataFrame(columns=[
+            "level", "base_output",
+            "iter1_top3", "iter2_top3",
+            "top3_overlap_count",
+            "stable_iter1_top", "stable_iter2_top",
+            "same_top1", "same_top3_set"
+        ])
+
+    for level in LEVELS:
+        for base_out in COMPARE_BASE_OUTPUTS:
+            sub = df_compare[
+                (df_compare["level"] == level) &
+                (df_compare["base_output"] == base_out)
+            ].copy()
+
+            if sub.empty:
+                continue
+
+            sub1_top = sub.sort_values("iter1_rank").head(TOPK)
+            sub2_top = sub.sort_values("iter2_rank").head(TOPK)
+
+            top1 = list(sub1_top["input"])
+            top2 = list(sub2_top["input"])
+            overlap = len(set(top1).intersection(set(top2)))
+
+            stable_iter1 = list(
+                sub[sub["iter1_stable"]].sort_values("iter1_rank")["input"].head(TOPK)
+            )
+            stable_iter2 = list(
+                sub[sub["iter2_stable"]].sort_values("iter2_rank")["input"].head(TOPK)
+            )
+
+            rows.append({
+                "level": level,
+                "base_output": base_out,
+                "iter1_top3": ", ".join(top1),
+                "iter2_top3": ", ".join(top2),
+                "top3_overlap_count": overlap,
+                "stable_iter1_top": ", ".join(stable_iter1),
+                "stable_iter2_top": ", ".join(stable_iter2),
+                "same_top1": (top1[0] == top2[0]) if len(top1) > 0 and len(top2) > 0 else False,
+                "same_top3_set": (set(top1) == set(top2)) if len(top1) == 3 and len(top2) == 3 else False,
+            })
+
+    return pd.DataFrame(rows)
+
+
+def build_iter2_keff_summary(df):
+    rows = []
+
+    for level in LEVELS:
+        sub = df[(df["level"] == level) & (df["output"] == KEFF_OUTPUT)].copy()
+        if sub.empty:
+            print(f"[WARN] Missing {KEFF_OUTPUT} for level={level}")
+            continue
+
+        sub["stable"] = sub.apply(classify_stability, axis=1)
+        sub = sub.sort_values("ST_mean", ascending=False).reset_index(drop=True)
+
+        for rank, (_, r) in enumerate(sub.iterrows(), start=1):
+            rows.append({
+                "level": level,
+                "output": KEFF_OUTPUT,
+                "input": r["input"],
+                "rank_by_ST": rank,
+                "ST_mean": float(r["ST_mean"]),
+                "ST_ci_low": float(r["ST_ci_low"]),
+                "ST_ci_high": float(r["ST_ci_high"]),
+                "stable": bool(r["stable"]),
+                "recommend_interpretation": "yes" if (bool(r["stable"]) and rank <= TOPK) else "no",
+            })
+
+    return pd.DataFrame(rows)
+
+
+def main():
+    df = load_data()
+
+    df_compare = build_compare_table(df)
+    df_shift = build_shift_summary(df_compare)
+    df_keff = build_iter2_keff_summary(df)
+
+    df_compare.to_csv(OUT_COMPARE, index=False, encoding="utf-8-sig")
+    df_shift.to_csv(OUT_SHIFT, index=False, encoding="utf-8-sig")
+    df_keff.to_csv(OUT_KEFF, index=False, encoding="utf-8-sig")
+
+    print(f"[DONE] Saved: {OUT_COMPARE}")
+    print(f"[DONE] Saved: {OUT_SHIFT}")
+    print(f"[DONE] Saved: {OUT_KEFF}")
+    print(df_shift)
+    print(df_keff)
 
 
 if __name__ == "__main__":

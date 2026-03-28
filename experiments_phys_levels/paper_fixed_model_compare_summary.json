@@ -1,0 +1,198 @@
+{
+  "device": "cuda",
+  "test_csv": "experiments_phys_levels/fixed_split/test.csv",
+  "artifacts": {
+    "base": {
+      "artifact_dir": "experiments_phys_levels/fixed_surrogate_fixed_base",
+      "ckpt_path": "experiments_phys_levels/fixed_surrogate_fixed_base/checkpoint_level0.pt",
+      "scaler_path": "experiments_phys_levels/fixed_surrogate_fixed_base/scalers_level0.pkl",
+      "best_json_path": "experiments_phys_levels/fixed_surrogate_fixed_base/best_level0.json",
+      "best_value": 2.932427406311035,
+      "best_params": {
+        "width": 72,
+        "depth": 7,
+        "dropout": 0.17326925248364017,
+        "lr": 0.00017068402650481662,
+        "wd": 1.215383931115372e-08,
+        "batch": 32,
+        "epochs": 203,
+        "clip": 1.257909898782668,
+        "w_data": 0.8091026450055024,
+        "w_fp": 0.0,
+        "w_mono": 0.0,
+        "w_ineq": 0.0,
+        "rho_abs_min": 0.25,
+        "mono_topk": 40
+      }
+    },
+    "level2": {
+      "artifact_dir": "experiments_phys_levels/fixed_surrogate_fixed_level2",
+      "ckpt_path": "experiments_phys_levels/fixed_surrogate_fixed_level2/checkpoint_level2.pt",
+      "scaler_path": "experiments_phys_levels/fixed_surrogate_fixed_level2/scalers_level2.pkl",
+      "best_json_path": "experiments_phys_levels/fixed_surrogate_fixed_level2/best_level2.json",
+      "best_value": 3.015324592590332,
+      "best_params": {
+        "width": 86,
+        "depth": 5,
+        "dropout": 0.19532709563206024,
+        "lr": 0.00013530524574672606,
+        "wd": 2.4914334925040354e-06,
+        "batch": 32,
+        "epochs": 221,
+        "clip": 3.035284979952464,
+        "w_data": 1.0033364593085181,
+        "w_fp": 0.029485225773742338,
+        "w_mono": 0.015271062646466906,
+        "rho_abs_min": 0.5023398074565251,
+        "mono_topk": 15
+      }
+    }
+  },
+  "model_rank_hint": {
+    "iteration2_keff": {
+      "recommended_by_error": "base",
+      "rows": [
+        {
+          "model_tag": "base",
+          "output": "iteration2_keff",
+          "MAE": 0.0004713266484562443,
+          "RMSE": 0.0005819190276230815,
+          "R2": 0.3718891847590772,
+          "PICP90": 1.0,
+          "MPIW90": 0.004156150665992362,
+          "CRPS": 0.00039843950125130603,
+          "y_true_std": 0.0007342507897035551,
+          "y_pred_std": 0.00038828281685709953
+        },
+        {
+          "model_tag": "level2",
+          "output": "iteration2_keff",
+          "MAE": 0.0004893225199621677,
+          "RMSE": 0.0006137011819148398,
+          "R2": 0.30140564050242424,
+          "PICP90": 1.0,
+          "MPIW90": 0.004071567583065396,
+          "CRPS": 0.00040600661374919615,
+          "y_true_std": 0.0007342507897035551,
+          "y_pred_std": 0.0001760126615408808
+        }
+      ]
+    },
+    "iteration2_max_fuel_temp": {
+      "recommended_by_error": "level2",
+      "rows": [
+        {
+          "model_tag": "level2",
+          "output": "iteration2_max_fuel_temp",
+          "MAE": 3.7162487391218333,
+          "RMSE": 4.756851345808557,
+          "R2": 0.5409963698423363,
+          "PICP90": 0.9772151898734177,
+          "MPIW90": 23.258010540258784,
+          "CRPS": 2.783936871687328,
+          "y_true_std": 7.021202835518344,
+          "y_pred_std": 4.259461879730225
+        },
+        {
+          "model_tag": "base",
+          "output": "iteration2_max_fuel_temp",
+          "MAE": 4.117443235759493,
+          "RMSE": 5.2397959039547946,
+          "R2": 0.4430634720766208,
+          "PICP90": 0.9822784810126582,
+          "MPIW90": 23.48490010797314,
+          "CRPS": 3.0045993433801845,
+          "y_true_std": 7.021202835518344,
+          "y_pred_std": 3.92704176902771
+        }
+      ]
+    },
+    "iteration2_max_monolith_temp": {
+      "recommended_by_error": "level2",
+      "rows": [
+        {
+          "model_tag": "level2",
+          "output": "iteration2_max_monolith_temp",
+          "MAE": 4.297820040545888,
+          "RMSE": 5.601900579512531,
+          "R2": 0.49947581882046044,
+          "PICP90": 0.9645569620253165,
+          "MPIW90": 24.566042087584336,
+          "CRPS": 3.1834442863918735,
+          "y_true_std": 7.918134324869007,
+          "y_pred_std": 4.31040620803833
+        },
+        {
+          "model_tag": "base",
+          "output": "iteration2_max_monolith_temp",
+          "MAE": 4.608759332970728,
+          "RMSE": 5.932221590929485,
+          "R2": 0.4387078084812551,
+          "PICP90": 0.979746835443038,
+          "MPIW90": 26.151936989377425,
+          "CRPS": 3.3788141427813665,
+          "y_true_std": 7.918134324869007,
+          "y_pred_std": 4.557652473449707
+        }
+      ]
+    },
+    "iteration2_max_global_stress": {
+      "recommended_by_error": "level2",
+      "rows": [
+        {
+          "model_tag": "level2",
+          "output": "iteration2_max_global_stress",
+          "MAE": 19.546086261990688,
+          "RMSE": 23.81540673925176,
+          "R2": 0.32449801524338895,
+          "PICP90": 0.9746835443037974,
+          "MPIW90": 97.42065415111996,
+          "CRPS": 13.70503521681885,
+          "y_true_std": 28.976417366863746,
+          "y_pred_std": 10.577047348022461
+        },
+        {
+          "model_tag": "base",
+          "output": "iteration2_max_global_stress",
+          "MAE": 22.621024758640715,
+          "RMSE": 27.66261337330398,
+          "R2": 0.08862515616327993,
+          "PICP90": 0.9468354430379747,
+          "MPIW90": 100.47706430281177,
+          "CRPS": 15.77055543196099,
+          "y_true_std": 28.976417366863746,
+          "y_pred_std": 2.897993326187134
+        }
+      ]
+    },
+    "iteration2_wall2": {
+      "recommended_by_error": "base",
+      "rows": [
+        {
+          "model_tag": "base",
+          "output": "iteration2_wall2",
+          "MAE": 0.013767344922084774,
+          "RMSE": 0.01720713125378569,
+          "R2": 0.5026649820353869,
+          "PICP90": 0.9746835443037974,
+          "MPIW90": 0.07290638672380241,
+          "CRPS": 0.00992984287175246,
+          "y_true_std": 0.024399669947200074,
+          "y_pred_std": 0.014286440797150135
+        },
+        {
+          "model_tag": "level2",
+          "output": "iteration2_wall2",
+          "MAE": 0.016153449987667788,
+          "RMSE": 0.02026944699241599,
+          "R2": 0.309893851533942,
+          "PICP90": 0.9468354430379747,
+          "MPIW90": 0.0752511155765448,
+          "CRPS": 0.011471748070143582,
+          "y_true_std": 0.024399669947200074,
+          "y_pred_std": 0.004567564930766821
+        }
+      ]
+    }
+  }
+}

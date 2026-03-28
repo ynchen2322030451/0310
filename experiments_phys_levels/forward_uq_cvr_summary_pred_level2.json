@@ -1,0 +1,47 @@
+{
+  "level": 2,
+  "tag": "pred",
+  "overall_primary_CVR": 0.05278124179707194,
+  "outputs": [
+    {
+      "level": 2,
+      "tag": "pred",
+      "output": "iteration2_keff",
+      "mean": 1.1034822437953367,
+      "std": 0.0012559964212628387,
+      "CVR": 0.0011382117186978398
+    },
+    {
+      "level": 2,
+      "tag": "pred",
+      "output": "iteration2_max_fuel_temp",
+      "mean": 1073.784822866969,
+      "std": 10.357879751353757,
+      "CVR": 0.009646140950007627
+    },
+    {
+      "level": 2,
+      "tag": "pred",
+      "output": "iteration2_max_monolith_temp",
+      "mean": 1035.2739493070778,
+      "std": 10.747427841919132,
+      "CVR": 0.010381240491091777
+    },
+    {
+      "level": 2,
+      "tag": "pred",
+      "output": "iteration2_max_global_stress",
+      "mean": 153.39417502526143,
+      "std": 37.11198970626174,
+      "CVR": 0.24193871573122003
+    },
+    {
+      "level": 2,
+      "tag": "pred",
+      "output": "iteration2_wall2",
+      "mean": 29.919794474565624,
+      "std": 0.023992686011860574,
+      "CVR": 0.0008019000943424395
+    }
+  ]
+}

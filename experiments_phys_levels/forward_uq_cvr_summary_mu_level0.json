@@ -1,0 +1,47 @@
+{
+  "level": 0,
+  "tag": "mu",
+  "overall_primary_CVR": 0.008960949776497185,
+  "outputs": [
+    {
+      "level": 0,
+      "tag": "mu",
+      "output": "iteration2_keff",
+      "mean": 1.1034396886825562,
+      "std": 0.0006966235814616084,
+      "CVR": 0.0006313200337150616
+    },
+    {
+      "level": 0,
+      "tag": "mu",
+      "output": "iteration2_max_fuel_temp",
+      "mean": 1074.191650390625,
+      "std": 6.8100786209106445,
+      "CVR": 0.006339724031958534
+    },
+    {
+      "level": 0,
+      "tag": "mu",
+      "output": "iteration2_max_monolith_temp",
+      "mean": 1036.0093994140625,
+      "std": 7.534751892089844,
+      "CVR": 0.007272860551604344
+    },
+    {
+      "level": 0,
+      "tag": "mu",
+      "output": "iteration2_max_global_stress",
+      "mean": 159.33155822753906,
+      "std": 4.746913433074951,
+      "CVR": 0.029792675637402313
+    },
+    {
+      "level": 0,
+      "tag": "mu",
+      "output": "iteration2_wall2",
+      "mean": 29.917749404907227,
+      "std": 0.022981876507401466,
+      "CVR": 0.0007681686278056694
+    }
+  ]
+}

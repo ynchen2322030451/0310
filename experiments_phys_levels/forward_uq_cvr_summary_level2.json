@@ -1,5 +1,41 @@
 {
-  "mean_input_cv": 0.10011111889434837,
-  "mean_primary_output_cv": 0.06678870015838007,
-  "overall_primary_CVR": 0.6671456766841762
+  "level": 2,
+  "overall_primary_CVR": 0.05275633181120528,
+  "outputs": [
+    {
+      "level": 2,
+      "output": "iteration2_keff",
+      "mean": 1.1034789610202023,
+      "std": 0.0012585307579196488,
+      "CVR": 0.0011405117835287916
+    },
+    {
+      "level": 2,
+      "output": "iteration2_max_fuel_temp",
+      "mean": 1073.8201392232022,
+      "std": 10.307649891466014,
+      "CVR": 0.009599046912011291
+    },
+    {
+      "level": 2,
+      "output": "iteration2_max_monolith_temp",
+      "mean": 1035.3000403182284,
+      "std": 10.813130186248676,
+      "CVR": 0.010444440997920718
+    },
+    {
+      "level": 2,
+      "output": "iteration2_max_global_stress",
+      "mean": 153.43615421472168,
+      "std": 37.10046626200487,
+      "CVR": 0.24179742024872264
+    },
+    {
+      "level": 2,
+      "output": "iteration2_wall2",
+      "mean": 29.919779632446776,
+      "std": 0.02394297793944645,
+      "CVR": 0.00080023911384298
+    }
+  ]
 }

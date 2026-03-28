@@ -9,6 +9,12 @@ from paper_experiment_config import (
     OUT_DIR,
     INPUT_COLS,
     OUTPUT_COLS,
+    PRIMARY_STRESS_OUTPUT,
+    PRIMARY_AUXILIARY_OUTPUT,
+    PAPER_LEVELS,
+    SEED,
+    FIXED_CKPT_PATH,
+    FIXED_SCALER_PATH,
 )
 from run_phys_levels_main import HeteroMLP, get_device
 
@@ -47,17 +53,31 @@ def require_file(path):
         raise FileNotFoundError(f"Missing required file: {path}")
 
 
-def load_checkpoint_and_scalers(level: int):
-    ckpt_path = os.path.join(OUT_DIR, f"checkpoint_level{level}.pt")
-    scaler_path = os.path.join(OUT_DIR, f"scalers_level{level}.pkl")
+def get_artifact_dir(level: int) -> str:
+    mapping = {
+        0: os.path.join(OUT_DIR, "fixed_surrogate_fixed_base"),
+        2: os.path.join(OUT_DIR, "fixed_surrogate_fixed_level2"),
+    }
+    if level not in mapping:
+        raise ValueError(f"Unsupported level for fixed surrogate: {level}")
+    return mapping[level]
 
-    require_file(ckpt_path)
-    require_file(scaler_path)
+
+def load_checkpoint_and_scalers(level: int):
+    art_dir = get_artifact_dir(level)
+    ckpt_path = os.path.join(art_dir, f"checkpoint_level{level}.pt")
+    scaler_path = os.path.join(art_dir, f"scalers_level{level}.pkl")
+
+    if not os.path.exists(ckpt_path):
+        raise FileNotFoundError(f"Missing checkpoint: {ckpt_path}")
+    if not os.path.exists(scaler_path):
+        raise FileNotFoundError(f"Missing scaler file: {scaler_path}")
 
     ckpt = torch.load(ckpt_path, map_location="cpu")
     with open(scaler_path, "rb") as f:
         scalers = pickle.load(f)
-    return ckpt, scalers["sx"], scalers["sy"]
+
+    return ckpt, scalers["sx"], scalers["sy"], ckpt_path, scaler_path
 
 
 def build_model_from_ckpt(ckpt, device):

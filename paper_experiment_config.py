@@ -2,13 +2,26 @@
 # ============================================================
 # Frozen paper experiment specification
 # ============================================================
-
+import os
 # -----------------------------
 # Paths
 # -----------------------------
 DATA_ROOT = "/home/tjzs/Documents/fenics_data/fenics_data/txt_extract"
 CSV_PATH = f"{DATA_ROOT}/dataset_v3.csv"
 OUT_DIR = "./experiments_phys_levels"
+
+# -----------------------------
+# Fixed surrogate paths
+# -----------------------------
+FIXED_SURROGATE_TAG = "fixed_level2"
+FIXED_SURROGATE_DIR = os.path.join(OUT_DIR, f"fixed_surrogate_{FIXED_SURROGATE_TAG}")
+FIXED_SPLIT_DIR = os.path.join(OUT_DIR, "fixed_split")
+
+FIXED_CKPT_PATH = os.path.join(FIXED_SURROGATE_DIR, "checkpoint_level2.pt")
+FIXED_SCALER_PATH = os.path.join(FIXED_SURROGATE_DIR, "scalers_level2.pkl")
+FIXED_META_PATH = os.path.join(FIXED_SURROGATE_DIR, "metrics_level2.json")
+FIXED_TEST_PRED_PATH = os.path.join(FIXED_SURROGATE_DIR, "test_predictions_level2.json")
+FIXED_BEST_PARAM_PATH = os.path.join(FIXED_SURROGATE_DIR, "best_level2.json")
 
 # -----------------------------
 # Randomness / device / search
