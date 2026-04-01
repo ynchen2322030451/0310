@@ -1,47 +1,105 @@
-0310 项目结果汇总（精选版）
+0310 项目结果汇总（精选版，自动候选路径解析）
 ========================================================================================================================
-生成时间: 2026-03-27 12:53:37
+生成时间: 2026-03-29 13:05:09
 项目根目录: /home/tjzs/Documents/0310
 
 【目录索引】
 
 - A_model_performance
   说明: 模型训练后在测试集上的核心性能结果，用于模型选择。
-    * experiments_phys_levels/paper_metrics_table.csv -- 主模型性能总表，是正文模型对比与最终模型选择的核心表。
-    * experiments_phys_levels/paper_focus_metrics_level0.csv -- baseline 模型在主输出上的聚焦性能表。
-    * experiments_phys_levels/paper_focus_metrics_level2.csv -- regularized 主模型在主输出上的聚焦性能表。
+    * paper_metrics_table
+      当前文件: experiments_phys_levels/paper_metrics_table.csv
+      用途: 主模型性能总表，是正文模型对比与最终模型选择的核心表。
+    * focus_metrics_level0
+      当前文件: experiments_phys_levels/fixed_surrogate_fixed_base/paper_focus_metrics_level0.csv
+      用途: baseline 模型在主输出上的聚焦性能表。
+    * focus_metrics_level2
+      当前文件: experiments_phys_levels/paper_fixed_model_compare_primary.csv
+      用途: regularized 主模型在主输出上的聚焦性能表；若单独 focus 文件不存在，则回退到模型主输出对比表。
+    * fixed_model_compare_summary
+      当前文件: experiments_phys_levels/paper_fixed_model_compare_summary.csv
+      用途: fixed baseline 与 fixed level2 的总体对比表。
+    * fixed_model_compare_per_output
+      当前文件: experiments_phys_levels/paper_fixed_model_compare_per_output.csv
+      用途: fixed baseline 与 fixed level2 的逐输出对比表。
 
 - B_forward_uq_and_risk
   说明: 主文 forward uncertainty-to-risk 分析链。
-    * experiments_phys_levels/paper_forward_uq_summary.csv -- 正向不确定性传播总表，包含 stress / keff 统计、阈值失效概率和 overall CVR。
-    * experiments_phys_levels/paper_safety_threshold_summary.csv -- test-set 主阈值风险分析表，用于比较 predictive risk、mean-only risk 与真值风险。
+    * paper_forward_uq_summary
+      当前文件: experiments_phys_levels/paper_forward_uq_summary.csv
+      用途: 正向不确定性传播总表，包含 stress / keff 统计、阈值失效概率和 overall CVR。
+    * paper_safety_threshold_summary
+      当前文件: experiments_phys_levels/paper_safety_threshold_summary.csv
+      用途: test-set 主阈值风险分析表，用于比较 predictive risk、mean-only risk 与真值风险。
+    * forward_failure_prob_level0
+      当前文件: experiments_phys_levels/forward_uq_failure_prob_level0.csv
+      用途: baseline 的 forward UQ 阈值失效概率结果。
+    * forward_failure_prob_level2
+      当前文件: experiments_phys_levels/forward_uq_failure_prob_level2.csv
+      用途: level2 的 forward UQ 阈值失效概率结果。
 
 - C_sobol_and_ci
   说明: 主文/方法中关于敏感性与置信区间解释的核心结果。
-    * experiments_phys_levels/paper_sobol_results_with_ci.csv -- Sobol 原始主结果，包含 S1 / ST 及其 CI，是结果解释的底层表。
-    * experiments_phys_levels/paper_sobol_methods_ready_summary.csv -- Sobol+CI 的方法学整理表，标记稳定主导项和跨零项。
-    * experiments_phys_levels/paper_sobol_results_ready_top_factors.csv -- 可直接写入结果部分的 Sobol 主导因子摘要表。
+    * paper_sobol_results_with_ci
+      当前文件: experiments_phys_levels/paper_sobol_results_with_ci.csv
+      用途: Sobol 原始主结果，包含 S1 / ST 及其 CI，是结果解释的底层表。
+    * paper_sobol_methods_ready_summary
+      当前文件: experiments_phys_levels/paper_sobol_methods_ready_summary.csv
+      用途: Sobol+CI 的方法学整理表，标记稳定主导项和跨零项。
+    * paper_sobol_results_ready_top_factors
+      当前文件: experiments_phys_levels/paper_sobol_results_ready_top_factors.csv
+      用途: 可直接写入结果部分的 Sobol 主导因子摘要表。
+    * dataset_sensitivity_top3
+      当前文件: experiments_phys_levels/dataset_sensitivity_top3.csv
+      用途: 基于固定数据集的 Spearman top3 因子汇总，用于与 surrogate Sobol 结果对照。
+    * dataset_sensitivity_spearman
+      当前文件: experiments_phys_levels/dataset_sensitivity_spearman.csv
+      用途: 固定数据集上的 Spearman 敏感性全表。
 
 - D_inverse_benchmark_maintext
   说明: 当前主文采用的 reduced maintext inverse benchmark 结果。
-    * experiments_phys_levels/inverse_benchmark_meta_reduced_maintext.json -- maintext 版本 reduced inverse benchmark 的配置与运行元数据。
-    * experiments_phys_levels/inverse_benchmark_case_summary_reduced_maintext.csv -- maintext 版本 reduced inverse 的 case 级 benchmark 汇总表。
-    * experiments_phys_levels/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv -- maintext 版本 reduced inverse 的参数恢复性总结。
-    * experiments_phys_levels/inverse_benchmark_observation_fit_summary_reduced_maintext.csv -- maintext 版本 reduced inverse 的观测拟合总结。
+    * inverse_benchmark_meta_reduced_maintext
+      当前文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_meta_reduced_maintext.json
+      用途: maintext 版本 reduced inverse benchmark 的配置与运行元数据。
+    * inverse_benchmark_case_summary_reduced_maintext
+      当前文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_case_summary_reduced_maintext.csv
+      用途: maintext 版本 reduced inverse 的 case 级 benchmark 汇总表。
+    * inverse_benchmark_parameter_recovery_summary_reduced_maintext
+      当前文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv
+      用途: maintext 版本 reduced inverse 的参数恢复性总结。
+    * inverse_benchmark_observation_fit_summary_reduced_maintext
+      当前文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_observation_fit_summary_reduced_maintext.csv
+      用途: maintext 版本 reduced inverse 的观测拟合总结。
 
 - E_inverse_comparison_and_contraction
   说明: full/reduced 对照与 posterior contraction 结果。
-    * experiments_phys_levels/paper_inverse_full_vs_reduced_summary.csv -- full inverse 与 reduced inverse 的总体对比表。
-    * experiments_phys_levels/paper_inverse_full_vs_reduced_parameter_table.csv -- full vs reduced 在参数恢复上的对比表。
-    * experiments_phys_levels/paper_inverse_full_vs_reduced_observable_table.csv -- full vs reduced 在观测拟合上的对比表。
-    * experiments_phys_levels/paper_prior_posterior_contraction_summary_reduced.csv -- reduced inverse 的 prior-posterior 收缩量化结果。
+    * paper_inverse_full_vs_reduced_summary
+      当前文件: experiments_phys_levels/paper_inverse_full_vs_reduced_summary.csv
+      用途: full inverse 与 reduced inverse 的总体对比表。
+    * paper_inverse_full_vs_reduced_parameter_table
+      当前文件: experiments_phys_levels/paper_inverse_full_vs_reduced_parameter_table.csv
+      用途: full vs reduced 在参数恢复上的对比表。
+    * paper_inverse_full_vs_reduced_observable_table
+      当前文件: experiments_phys_levels/paper_inverse_full_vs_reduced_observable_table.csv
+      用途: full vs reduced 在观测拟合上的对比表。
+    * paper_prior_posterior_contraction_summary_reduced
+      当前文件: experiments_phys_levels/_legacy_unused_20260325_161538/paper_prior_posterior_contraction_summary_reduced.csv
+      用途: reduced inverse 的 prior-posterior 收缩量化结果。
 
 - F_speed_ood_and_supporting_results
   说明: 速度、OOD 与 iter1/iter2 差异等补充性结果。
-    * experiments_phys_levels/paper_speed_benchmark_detailed.json -- 高保真 CPU 与代理 GPU 工作流实际 wall-clock 对比记录。
-    * experiments_phys_levels/paper_ood_results.csv -- OOD 汇总结果，适合附录和局限性讨论。
-    * experiments_phys_levels/paper_iter1_iter2_forward_compare.csv -- iter1 与 iter2 的 forward UQ 对比结果。
-    * experiments_phys_levels/paper_iter1_iter2_sobol_compare.csv -- iter1 与 iter2 的 Sobol 主导因子变化结果。
+    * paper_speed_benchmark_detailed
+      当前文件: experiments_phys_levels/paper_speed_benchmark_detailed.json
+      用途: 高保真 CPU 与代理 GPU 工作流实际 wall-clock 对比记录。
+    * paper_ood_results
+      当前文件: experiments_phys_levels/paper_ood_results.csv
+      用途: OOD 汇总结果，适合附录和局限性讨论。
+    * paper_iter1_iter2_forward_compare
+      当前文件: experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_forward_compare.csv
+      用途: iter1 与 iter2 的 forward UQ 对比结果。
+    * paper_iter1_iter2_sobol_compare
+      当前文件: experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_sobol_compare.csv
+      用途: iter1 与 iter2 的 Sobol 主导因子变化结果。
 
 
 ========================================================================================================================
@@ -50,11 +108,15 @@
 ========================================================================================================================
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_metrics_table.csv
+逻辑名称: paper_metrics_table
 类别: A_model_performance
 用途: 主模型性能总表，是正文模型对比与最终模型选择的核心表。
+实际文件: experiments_phys_levels/paper_metrics_table.csv
 存在: 是
 大小: 1.1 KB
+修改时间: 2026-03-11 23:13:12
+候选路径:
+  - experiments_phys_levels/paper_metrics_table.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿level,test_nll_std,RMSE_mean_primary,R2_mean_primary,PICP90_mean_primary,MPIW90_mean_primary,CRPS_mean_primary,stress_RMSE,stress_R2,stress_PICP90,keff_RMSE,keff_R2,keff_PICP90
 0,0.4066951870918274,3.9074065685272217,0.759011161327362,0.9573170731707317,15.917525674458494,2.155925762796881,9.363546371459961,0.9133355617523193,0.975609756097561,0.00029364018701016903,0.82880699634552,0.9969512195121951
@@ -64,23 +126,113 @@
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_focus_metrics_level0.csv
+逻辑名称: focus_metrics_level0
 类别: A_model_performance
 用途: baseline 模型在主输出上的聚焦性能表。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/fixed_surrogate_fixed_base/paper_focus_metrics_level0.csv
+存在: 是
+大小: 0.8 KB
+修改时间: 2026-03-25 16:00:38
+候选路径:
+  - experiments_phys_levels/fixed_surrogate_fixed_base/paper_focus_metrics_level0.csv
+  - experiments_phys_levels/paper_focus_metrics_level0.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿level,run_tag,output,MAE,RMSE,R2,PICP90,MPIW90,CRPS
+0,fixed_base,iteration2_keff,0.00047133059706538916,0.0005819224170409143,0.37188899517059326,1.0,0.004156150686548783,0.00039844056901209847
+0,fixed_base,iteration2_max_fuel_temp,4.11744499206543,5.239797592163086,0.44306379556655884,0.9822784810126582,23.48490020469551,3.004599648973697
+0,fixed_base,iteration2_max_monolith_temp,4.608759880065918,5.932220458984375,0.4387078285217285,0.979746835443038,26.15193718736326,3.3788140851947435
+0,fixed_base,iteration2_max_global_stress,22.62102699279785,27.662614822387695,0.08862513303756714,0.9468354430379747,100.47706462149735,15.770555565707449
+0,fixed_base,iteration2_wall2,0.013767353259027004,0.01720714569091797,0.5026653409004211,0.9746835443037974,0.07290638713449453,0.009929848072911744
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_focus_metrics_level2.csv
+逻辑名称: focus_metrics_level2
 类别: A_model_performance
-用途: regularized 主模型在主输出上的聚焦性能表。
-存在: 否
-大小: N/A
+用途: regularized 主模型在主输出上的聚焦性能表；若单独 focus 文件不存在，则回退到模型主输出对比表。
+实际文件: experiments_phys_levels/paper_fixed_model_compare_primary.csv
+存在: 是
+大小: 1.8 KB
+修改时间: 2026-03-28 13:03:13
+候选路径:
+  - experiments_phys_levels/fixed_surrogate_fixed_level2/paper_focus_metrics_level2.csv
+  - experiments_phys_levels/paper_focus_metrics_level2.csv
+  - experiments_phys_levels/paper_fixed_model_compare_primary.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿model_tag,output,MAE,RMSE,R2,PICP90,MPIW90,CRPS,y_true_std,y_pred_std
+base,iteration2_keff,0.0004713266484562443,0.0005819190276230815,0.3718891847590772,1.0,0.004156150665992362,0.00039843950125130603,0.0007342507897035551,0.00038828281685709953
+level2,iteration2_keff,0.0004893225199621677,0.0006137011819148398,0.30140564050242424,1.0,0.004071567583065396,0.00040600661374919615,0.0007342507897035551,0.0001760126615408808
+base,iteration2_max_fuel_temp,4.117443235759493,5.2397959039547946,0.4430634720766208,0.9822784810126582,23.48490010797314,3.0045993433801845,7.021202835518344,3.92704176902771
+level2,iteration2_max_fuel_temp,3.7162487391218333,4.756851345808557,0.5409963698423363,0.9772151898734177,23.258010540258784,2.783936871687328,7.021202835518344,4.259461879730225
+base,iteration2_max_global_stress,22.621024758640715,27.66261337330398,0.08862515616327993,0.9468354430379747,100.47706430281177,15.77055543196099,28.976417366863746,2.897993326187134
+level2,iteration2_max_global_stress,19.546086261990688,23.81540673925176,0.32449801524338895,0.9746835443037974,97.42065415111996,13.70503521681885,28.976417366863746,10.577047348022461
+base,iteration2_max_monolith_temp,4.608759332970728,5.932221590929485,0.4387078084812551,0.979746835443038,26.151936989377425,3.3788141427813665,7.918134324869007,4.557652473449707
+level2,iteration2_max_monolith_temp,4.297820040545888,5.601900579512531,0.49947581882046044,0.9645569620253165,24.566042087584336,3.1834442863918735,7.918134324869007,4.31040620803833
+base,iteration2_wall2,0.013767344922084774,0.01720713125378569,0.5026649820353869,0.9746835443037974,0.07290638672380241,0.00992984287175246,0.024399669947200074,0.014286440797150135
+level2,iteration2_wall2,0.016153449987667788,0.02026944699241599,0.309893851533942,0.9468354430379747,0.0752511155765448,0.011471748070143582,0.024399669947200074,0.004567564930766821
+
+
+########################################################################################################################
+逻辑名称: fixed_model_compare_summary
+类别: A_model_performance
+用途: fixed baseline 与 fixed level2 的总体对比表。
+实际文件: experiments_phys_levels/paper_fixed_model_compare_summary.csv
+存在: 是
+大小: 0.7 KB
+修改时间: 2026-03-28 13:03:13
+候选路径:
+  - experiments_phys_levels/paper_fixed_model_compare_summary.csv
+------------------------------------------------------------------------------------------------------------------------
+﻿model_tag,scope,test_nll_standardized,n_outputs,MAE_mean,RMSE_mean,R2_mean,PICP90_mean,MPIW90_mean,CRPS_mean
+base,all_comparable_outputs,1.1118468046188354,15,5.988818108180061,7.881311917607797,0.3942702172524778,0.9797468354430379,32.13548387911758,4.340410320648798
+base,primary_outputs_only,1.1118468046188354,5,6.272293199788296,7.770483983693933,0.368990120703124,0.9767088607594937,30.03819278751043,4.432859440099109
+level2,all_comparable_outputs,1.06260347366333,15,4.895779289648407,6.606215581947145,0.43666225091728267,0.9782278481012657,30.637268477759914,3.6947933387611984
+level2,primary_outputs_only,1.06260347366333,5,5.515359562833209,6.839008362549436,0.39525393918851043,0.9726582278481011,29.064805892424538,3.9368588259163886
+
+
+########################################################################################################################
+逻辑名称: fixed_model_compare_per_output
+类别: A_model_performance
+用途: fixed baseline 与 fixed level2 的逐输出对比表。
+实际文件: experiments_phys_levels/paper_fixed_model_compare_per_output.csv
+存在: 是
+大小: 6.5 KB
+修改时间: 2026-03-28 13:03:13
+候选路径:
+  - experiments_phys_levels/paper_fixed_model_compare_per_output.csv
+------------------------------------------------------------------------------------------------------------------------
+﻿model_tag,output,iter,group,ignored_in_main_compare,MAE,RMSE,R2,PICP90,MPIW90,CRPS,y_true_std,y_pred_std
+base,iteration1_Hcore_after,iter1,secondary,False,0.11963794578496141,0.147570853484987,0.31880022466054214,1.0,1.8141804972760533,0.1440654301349817,0.17879828179581983,0.13180311024188995
+level2,iteration1_Hcore_after,iter1,secondary,False,0.13889694486257634,0.17357065934008628,0.057620252116267645,1.0,1.7684328159906013,0.14819197433783307,0.17879828179581983,0.03605300933122635
+base,iteration1_avg_fuel_temp,iter1,secondary,False,5.206723484473887,7.799160335419168,0.4652729878090166,0.9848101265822785,32.95706251198209,3.960761951071093,10.665513922703346,4.471616268157959
+level2,iteration1_avg_fuel_temp,iter1,secondary,False,3.910601581042321,6.416235845620173,0.6380929323638562,0.9873417721518988,30.25052095735881,3.3099115695858283,10.665513922703346,6.009458065032959
+base,iteration1_keff,iter1,secondary,True,0.030230319479922184,0.0382550629745488,-3.522861019372907e+25,1.0,3.104115693414548,0.22112045898985733,6.445270756512039e-15,0.03818099573254585
+level2,iteration1_keff,iter1,secondary,True,0.024412025782617412,0.030354980633916773,-2.218081951316463e+25,1.0,2.840712900988191,0.20222160841941766,6.445270756512039e-15,0.0299008060246706
+base,iteration1_max_fuel_temp,iter1,secondary,False,8.726456227749221,13.063677356435946,0.4936528663005181,0.9848101265822785,56.3070810578546,6.72196630310916,18.35867221583852,8.650877952575684
+level2,iteration1_max_fuel_temp,iter1,secondary,False,7.026745117187503,11.510617252566616,0.6068894577828232,0.9898734177215189,55.15632924480567,5.916831358074615,18.35867221583852,10.13438606262207
+base,iteration1_max_global_stress,iter1,secondary,False,29.740290167313567,37.226845640804655,0.1460037808815583,0.9670886075949368,146.29807375156633,21.06991957785072,40.28359903388993,6.886501312255859
+level2,iteration1_max_global_stress,iter1,secondary,False,22.839262366186208,28.213290481904323,0.5094865146554284,0.9898734177215189,138.21063540819864,16.54563527941331,40.28359903388993,20.828624725341797
+base,iteration1_max_monolith_temp,iter1,secondary,False,9.912640760977068,14.50478181652962,0.5329436453888577,0.9924050632911392,66.3115397338176,7.498358598971959,21.223966808446622,11.939885139465332
+level2,iteration1_max_monolith_temp,iter1,secondary,False,7.881354257318051,12.619042048286925,0.6464916639025287,0.9873417721518988,61.932447289952115,6.646701086176446,21.223966808446622,12.248190879821777
+base,iteration1_monolith_new_temperature,iter1,secondary,False,1.7135145043414304,2.641662734541734,0.48816822376163416,0.9898734177215189,11.333358250241687,1.316195598755065,3.6924425530926883,2.083334445953369
+level2,iteration1_monolith_new_temperature,iter1,secondary,False,1.449132439240272,2.5861335716654983,0.5094600194111987,0.9873417721518988,10.820662663356975,1.2089368181917786,3.6924425530926883,1.702689290046692
+base,iteration1_wall2,iter1,secondary,False,0.014195927436403483,0.017762173101024337,0.47886060035519495,0.9696202531645569,0.07438156023165476,0.010210138231828243,0.024604760612035113,0.013440289534628391
+level2,iteration1_wall2,iter1,secondary,False,0.016932533809254944,0.021109717084172606,0.2639174236963234,0.9341772151898734,0.07674148544813875,0.01197392473190107,0.024604760612035113,0.004857314750552177
+base,iteration2_Hcore_after,iter2,secondary,False,0.11218499779878055,0.13660646982334798,0.4128632728693077,0.9949367088607595,0.7485128002136208,0.08351807895022664,0.17827959739384114,0.12742505967617035
+level2,iteration2_Hcore_after,iter2,secondary,False,0.12236995611188685,0.1511765544335933,0.2809392285775504,0.9974683544303797,0.7437462729410109,0.0897001424503381,0.17827959739384114,0.033910032361745834
+base,iteration2_avg_fuel_temp,iter2,secondary,False,2.299569070164164,2.9748138632806262,0.3792407756075331,0.9645569620253165,12.433319532651872,1.6727512512380671,3.7757063107674376,1.522662878036499
+level2,iteration2_avg_fuel_temp,iter2,secondary,False,1.9049939181170905,2.4396070024588985,0.5825126402701069,0.9696202531645569,11.862562840669208,1.4322388363449303,3.7757063107674376,2.484550952911377
+base,iteration2_keff,iter2,primary,False,0.0004713266484562443,0.0005819190276230815,0.3718891847590772,1.0,0.004156150665992362,0.00039843950125130603,0.0007342507897035551,0.00038828281685709953
+level2,iteration2_keff,iter2,primary,False,0.0004893225199621677,0.0006137011819148398,0.30140564050242424,1.0,0.004071567583065396,0.00040600661374919615,0.0007342507897035551,0.0001760126615408808
+base,iteration2_max_fuel_temp,iter2,primary,False,4.117443235759493,5.2397959039547946,0.4430634720766208,0.9822784810126582,23.48490010797314,3.0045993433801845,7.021202835518344,3.92704176902771
+level2,iteration2_max_fuel_temp,iter2,primary,False,3.7162487391218333,4.756851345808557,0.5409963698423363,0.9772151898734177,23.258010540258784,2.783936871687328,7.021202835518344,4.259461879730225
+base,iteration2_max_global_stress,iter2,primary,False,22.621024758640715,27.66261337330398,0.08862515616327993,0.9468354430379747,100.47706430281177,15.77055543196099,28.976417366863746,2.897993326187134
+level2,iteration2_max_global_stress,iter2,primary,False,19.546086261990688,23.81540673925176,0.32449801524338895,0.9746835443037974,97.42065415111996,13.70503521681885,28.976417366863746,10.577047348022461
+base,iteration2_max_monolith_temp,iter2,primary,False,4.608759332970728,5.932221590929485,0.4387078084812551,0.979746835443038,26.151936989377425,3.3788141427813665,7.918134324869007,4.557652473449707
+level2,iteration2_max_monolith_temp,iter2,primary,False,4.297820040545888,5.601900579512531,0.49947581882046044,0.9645569620253165,24.566042087584336,3.1834442863918735,7.918134324869007,4.31040620803833
+base,iteration2_monolith_new_temperature,iter2,secondary,False,0.6255925377199567,0.8543776022261617,0.35329627763738447,0.9645569620253165,3.563784553376153,0.46411068092332586,1.0624222913228396,0.4470355808734894
+level2,iteration2_monolith_new_temperature,iter2,secondary,False,0.5696024166849041,0.7674087830997213,0.4782539350406044,0.9670886075949368,3.412918725554902,0.42748496252904566,1.0624222913228396,0.554945170879364
+base,iteration2_wall2,iter2,primary,False,0.013767344922084774,0.01720713125378569,0.5026649820353869,0.9746835443037974,0.07290638672380241,0.00992984287175246,0.024399669947200074,0.014286440797150135
+level2,iteration2_wall2,iter2,primary,False,0.016153449987667788,0.02026944699241599,0.309893851533942,0.9468354430379747,0.0752511155765448,0.011471748070143582,0.024399669947200074,0.004567564930766821
 
 
 ========================================================================================================================
@@ -89,23 +241,31 @@
 ========================================================================================================================
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_forward_uq_summary.csv
+逻辑名称: paper_forward_uq_summary
 类别: B_forward_uq_and_risk
 用途: 正向不确定性传播总表，包含 stress / keff 统计、阈值失效概率和 overall CVR。
+实际文件: experiments_phys_levels/paper_forward_uq_summary.csv
 存在: 是
-大小: 0.4 KB
+大小: 1.5 KB
+修改时间: 2026-03-27 13:34:42
+候选路径:
+  - experiments_phys_levels/paper_forward_uq_summary.csv
 ------------------------------------------------------------------------------------------------------------------------
-﻿level,n_samples,draw_predictive_samples,stress_mean,stress_std,stress_q95,keff_mean,keff_std,p_fail_110,p_fail_120,p_fail_131,overall_primary_CVR
-0,20000,True,159.66946209718412,31.379426397793534,211.13162177937843,1.1034232791110323,0.0014449142703480305,0.9449,0.89805,0.82275,0.043803678027858645
-2,20000,True,153.43615421472168,37.10046626200487,217.937313445961,1.1034789610202023,0.0012585307579196488,0.8888,0.81695,0.72095,0.05275633181120528
+﻿level,n_samples,draw_predictive_samples,stress_mean_mu,stress_std_mu,stress_q95_mu,keff_mean_mu,keff_std_mu,p_fail_110_mu,p_fail_120_mu,p_fail_131_mu,overall_primary_CVR_mu,stress_mean_pred,stress_std_pred,stress_q95_pred,keff_mean_pred,keff_std_pred,p_fail_110_pred,p_fail_120_pred,p_fail_131_pred,overall_primary_CVR_pred,delta_stress_mean_pred_minus_mu,delta_stress_std_pred_minus_mu,delta_stress_q95_pred_minus_mu,delta_keff_mean_pred_minus_mu,delta_keff_std_pred_minus_mu,delta_p_fail_110_pred_minus_mu,delta_p_fail_120_pred_minus_mu,delta_p_fail_131_pred_minus_mu,delta_overall_primary_CVR_pred_minus_mu
+0,20000,True,159.33155822753906,4.746913433074951,165.39283752441406,1.1034396886825562,0.0006966235814616084,1.0,1.0,1.0,0.008960949776497185,159.66946209718412,31.379426397793534,211.13162177937843,1.1034232791110323,0.0014449142703480305,0.9449,0.89805,0.82275,0.043803678027858645,0.3379038696450607,26.632512964718583,45.73878425496437,-1.6409571523823274e-05,0.0007482906888864221,-0.05510000000000004,-0.10194999999999999,-0.17725000000000002,0.03484272825136146
+2,20000,True,153.4301300048828,21.69447898864746,189.28065490722656,1.1034693717956543,0.0003421180881559849,0.9788,0.9382,0.84725,0.031243785942579882,153.39417502526143,37.11198970626174,218.00431791091557,1.1034822437953367,0.0012559964212628387,0.8898,0.8165,0.7145,0.05278124179707194,-0.035954979621379834,15.417510717614277,28.723663003689012,1.28719996823623e-05,0.0009138783331068539,-0.08899999999999997,-0.12170000000000003,-0.13274999999999992,0.02153745585449206
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_safety_threshold_summary.csv
+逻辑名称: paper_safety_threshold_summary
 类别: B_forward_uq_and_risk
 用途: test-set 主阈值风险分析表，用于比较 predictive risk、mean-only risk 与真值风险。
+实际文件: experiments_phys_levels/paper_safety_threshold_summary.csv
 存在: 是
 大小: 0.5 KB
+修改时间: 2026-03-12 10:46:00
+候选路径:
+  - experiments_phys_levels/paper_safety_threshold_summary.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿level,main_threshold_MPa,p_fail_predictive_main,p_fail_mean_only_main,p_fail_truth_main,stress_pred_mean,stress_unc_mean
 0,131.0,0.8390178495885579,0.8658536585365854,0.8292682926829268,162.0812320941832,13.381607200267027
@@ -114,17 +274,57 @@
 4,131.0,0.8835111392000864,0.9024390243902439,0.8292682926829268,166.52488022315794,13.413867884301204
 
 
+########################################################################################################################
+逻辑名称: forward_failure_prob_level0
+类别: B_forward_uq_and_risk
+用途: baseline 的 forward UQ 阈值失效概率结果。
+实际文件: experiments_phys_levels/forward_uq_failure_prob_level0.csv
+存在: 是
+大小: 0.1 KB
+修改时间: 2026-03-26 20:05:07
+候选路径:
+  - experiments_phys_levels/forward_uq_failure_prob_level0.csv
+  - experiments_phys_levels/forward_uq_failure_prob_pred_level0.csv
+------------------------------------------------------------------------------------------------------------------------
+﻿level,threshold_MPa,n_samples,failure_probability
+0,110.0,20000,0.9449
+0,120.0,20000,0.89805
+0,131.0,20000,0.82275
+
+
+########################################################################################################################
+逻辑名称: forward_failure_prob_level2
+类别: B_forward_uq_and_risk
+用途: level2 的 forward UQ 阈值失效概率结果。
+实际文件: experiments_phys_levels/forward_uq_failure_prob_level2.csv
+存在: 是
+大小: 0.1 KB
+修改时间: 2026-03-26 20:05:08
+候选路径:
+  - experiments_phys_levels/forward_uq_failure_prob_level2.csv
+  - experiments_phys_levels/forward_uq_failure_prob_pred_level2.csv
+------------------------------------------------------------------------------------------------------------------------
+﻿level,threshold_MPa,n_samples,failure_probability
+2,110.0,20000,0.8888
+2,120.0,20000,0.81695
+2,131.0,20000,0.72095
+
+
 ========================================================================================================================
 [分组] C_sobol_and_ci
 [分组说明] 主文/方法中关于敏感性与置信区间解释的核心结果。
 ========================================================================================================================
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_sobol_results_with_ci.csv
+逻辑名称: paper_sobol_results_with_ci
 类别: C_sobol_and_ci
 用途: Sobol 原始主结果，包含 S1 / ST 及其 CI，是结果解释的底层表。
+实际文件: experiments_phys_levels/paper_sobol_results_with_ci.csv
 存在: 是
 大小: 6.8 KB
+修改时间: 2026-03-24 22:51:23
+候选路径:
+  - experiments_phys_levels/paper_sobol_results_with_ci.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿output,input,level,S1_raw_mean,S1_raw_std,S1_ci_low,S1_ci_high,S1_plot,ST_mean,ST_std,ST_ci_low,ST_ci_high
 iteration2_max_global_stress,E_slope,0,0.03546714782714844,0.03472500032292322,0.02024824542395978,0.05068605023033709,0.03546714782714844,0.049115554057061674,0.002645886086885543,0.04795594335146627,0.05027516476265708
@@ -162,11 +362,15 @@ iteration2_keff,SS316_alpha,2,-0.00743061900138855,0.05575972109989267,-0.031868
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_sobol_methods_ready_summary.csv
+逻辑名称: paper_sobol_methods_ready_summary
 类别: C_sobol_and_ci
 用途: Sobol+CI 的方法学整理表，标记稳定主导项和跨零项。
+实际文件: experiments_phys_levels/paper_sobol_methods_ready_summary.csv
 存在: 是
 大小: 8.1 KB
+修改时间: 2026-03-24 22:51:32
+候选路径:
+  - experiments_phys_levels/paper_sobol_methods_ready_summary.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿level,output,input,rank_by_ST,S1_raw_mean,S1_raw_std,S1_ci_low,S1_ci_high,S1_flag,ST_mean,ST_std,ST_ci_low,ST_ci_high,ST_flag,interpretable_ST,recommend_interpretation,note
 0,iteration2_max_global_stress,E_intercept,1,0.710869413614273,0.018423167915923,0.7027951042733772,0.7189437229551688,stable_positive,0.7460913896560669,0.0534967394277158,0.7226454098528137,0.7695373694593202,stable_positive,True,yes,top stable contributor
@@ -204,11 +408,15 @@ iteration2_keff,SS316_alpha,2,-0.00743061900138855,0.05575972109989267,-0.031868
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_sobol_results_ready_top_factors.csv
+逻辑名称: paper_sobol_results_ready_top_factors
 类别: C_sobol_and_ci
 用途: 可直接写入结果部分的 Sobol 主导因子摘要表。
+实际文件: experiments_phys_levels/paper_sobol_results_ready_top_factors.csv
 存在: 是
 大小: 2.2 KB
+修改时间: 2026-03-24 22:51:32
+候选路径:
+  - experiments_phys_levels/paper_sobol_results_ready_top_factors.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿level,output,input,rank_by_ST,ST_mean,ST_ci_low,ST_ci_high,S1_raw_mean,S1_ci_low,S1_ci_high,interpretation_label
 0,iteration2_max_global_stress,E_intercept,1,0.7460913896560669,0.7226454098528137,0.7695373694593202,0.710869413614273,0.7027951042733772,0.7189437229551688,stable dominant contributor
@@ -225,49 +433,229 @@ iteration2_keff,SS316_alpha,2,-0.00743061900138855,0.05575972109989267,-0.031868
 2,iteration2_keff,SS316_T_ref,3,0.1574042461812496,0.1519436720499558,0.1628648203125433,-0.0009870171546936,-0.0243005547804657,0.0223265204710785,stable dominant contributor
 
 
+########################################################################################################################
+逻辑名称: dataset_sensitivity_top3
+类别: C_sobol_and_ci
+用途: 基于固定数据集的 Spearman top3 因子汇总，用于与 surrogate Sobol 结果对照。
+实际文件: experiments_phys_levels/dataset_sensitivity_top3.csv
+存在: 是
+大小: 0.4 KB
+修改时间: 2026-03-28 13:22:02
+候选路径:
+  - experiments_phys_levels/dataset_sensitivity_top3.csv
+------------------------------------------------------------------------------------------------------------------------
+﻿output,top_inputs,top_rhos
+iteration2_keff,"alpha_base,alpha_slope,SS316_alpha","-0.801,-0.431,-0.057"
+iteration2_max_fuel_temp,"SS316_k_ref,SS316_T_ref,E_slope","-0.637,0.373,-0.070"
+iteration2_max_monolith_temp,"SS316_k_ref,SS316_T_ref,E_slope","-0.637,0.374,-0.072"
+iteration2_max_global_stress,"E_intercept,alpha_base,nu","0.770,0.264,0.214"
+iteration2_wall2,"alpha_base,alpha_slope,nu","0.876,0.378,0.201"
+
+
+########################################################################################################################
+逻辑名称: dataset_sensitivity_spearman
+类别: C_sobol_and_ci
+用途: 固定数据集上的 Spearman 敏感性全表。
+实际文件: experiments_phys_levels/dataset_sensitivity_spearman.csv
+存在: 是
+大小: 3.9 KB
+修改时间: 2026-03-28 13:22:02
+候选路径:
+  - experiments_phys_levels/dataset_sensitivity_spearman.csv
+------------------------------------------------------------------------------------------------------------------------
+﻿output,input,spearman_rho,abs_rho,p_value,rank
+iteration2_keff,E_slope,0.04583006522646747,0.04583006522646747,0.01875097778317558,4.0
+iteration2_keff,E_intercept,0.03190518674085295,0.03190518674085295,0.10187118110616189,8.0
+iteration2_keff,nu,-0.034794094764499454,0.034794094764499454,0.07441460686956736,6.0
+iteration2_keff,alpha_base,-0.8006261239968483,0.8006261239968483,0.0,1.0
+iteration2_keff,alpha_slope,-0.4309412049054187,0.4309412049054187,2.0915127504065882e-119,2.0
+iteration2_keff,SS316_T_ref,0.03749140632634635,0.03749140632634635,0.0545487417024402,5.0
+iteration2_keff,SS316_k_ref,-0.032006546393452684,0.032006546393452684,0.10078731602987494,7.0
+iteration2_keff,SS316_alpha,-0.05731012546634593,0.05731012546634593,0.0032812262063096746,3.0
+iteration2_max_fuel_temp,E_slope,-0.07031988286848109,0.07031988286848109,0.0003073733719072229,3.0
+iteration2_max_fuel_temp,E_intercept,-0.005918472510876695,0.005918472510876695,0.7616014260811732,8.0
+iteration2_max_fuel_temp,nu,-0.012815526373600495,0.012815526373600495,0.5112195529344934,7.0
+iteration2_max_fuel_temp,alpha_base,-0.0592124750252711,0.0592124750252711,0.0023827531302918516,4.0
+iteration2_max_fuel_temp,alpha_slope,0.030602152377500025,0.030602152377500025,0.11664615672406968,5.0
+iteration2_max_fuel_temp,SS316_T_ref,0.37324656850095655,0.37324656850095655,1.0132698496729094e-87,2.0
+iteration2_max_fuel_temp,SS316_k_ref,-0.6369939399346636,0.6369939399346636,2.3571843245194007e-299,1.0
+iteration2_max_fuel_temp,SS316_alpha,-0.01567528908330901,0.01567528908330901,0.42165615960822134,6.0
+iteration2_max_monolith_temp,E_slope,-0.07200448127788078,0.07200448127788078,0.00021929400505818822,3.0
+iteration2_max_monolith_temp,E_intercept,-0.0063615474300586,0.0063615474300586,0.7443556667406659,8.0
+iteration2_max_monolith_temp,nu,-0.012645961048744537,0.012645961048744537,0.5168251540907365,7.0
+iteration2_max_monolith_temp,alpha_base,-0.048334672280362576,0.048334672280362576,0.013173543588690443,4.0
+iteration2_max_monolith_temp,alpha_slope,0.03725074527821652,0.03725074527821652,0.05611978500972715,5.0
+iteration2_max_monolith_temp,SS316_T_ref,0.37424471870154113,0.37424471870154113,3.233427761961346e-88,2.0
+iteration2_max_monolith_temp,SS316_k_ref,-0.6368238755980897,0.6368238755980897,3.8063416257901543e-299,1.0
+iteration2_max_monolith_temp,SS316_alpha,-0.014728551161339889,0.014728551161339889,0.4502406394325472,6.0
+iteration2_max_global_stress,E_slope,0.20681341759274396,0.20681341759274396,8.457459376254336e-27,4.0
+iteration2_max_global_stress,E_intercept,0.77043175405813,0.77043175405813,0.0,1.0
+iteration2_max_global_stress,nu,0.21369322035744712,0.21369322035744712,1.5344530037692135e-28,3.0
+iteration2_max_global_stress,alpha_base,0.2641638078451739,0.2641638078451739,3.0765809316650295e-43,2.0
+iteration2_max_global_stress,alpha_slope,0.18988271350161662,0.18988271350161662,8.988606673031925e-23,5.0
+iteration2_max_global_stress,SS316_T_ref,0.10591685109402203,0.10591685109402203,5.194299799119369e-08,7.0
+iteration2_max_global_stress,SS316_k_ref,-0.17962369679944262,0.17962369679944262,1.648426882858362e-20,6.0
+iteration2_max_global_stress,SS316_alpha,-0.013721051006894679,0.013721051006894679,0.4818298921486325,8.0
+iteration2_wall2,E_slope,-0.0628910302157423,0.0628910302157423,0.0012512381547527525,5.0
+iteration2_wall2,E_intercept,-0.029703133644900914,0.029703133644900914,0.12778541128922027,8.0
+iteration2_wall2,nu,0.20101232591654772,0.20101232591654772,2.2287400401573123e-25,3.0
+iteration2_wall2,alpha_base,0.8760653741298818,0.8760653741298818,0.0,1.0
+iteration2_wall2,alpha_slope,0.3781084827981169,0.3781084827981169,3.740317360756904e-90,2.0
+iteration2_wall2,SS316_T_ref,-0.05600286331598715,0.05600286331598715,0.004067052281999117,6.0
+iteration2_wall2,SS316_k_ref,0.0630699228430265,0.0630699228430265,0.0012116116688919408,4.0
+iteration2_wall2,SS316_alpha,0.04920062007891967,0.04920062007891967,0.011618973562529606,7.0
+
+
 ========================================================================================================================
 [分组] D_inverse_benchmark_maintext
 [分组说明] 当前主文采用的 reduced maintext inverse benchmark 结果。
 ========================================================================================================================
 
 ########################################################################################################################
-文件: experiments_phys_levels/inverse_benchmark_meta_reduced_maintext.json
+逻辑名称: inverse_benchmark_meta_reduced_maintext
 类别: D_inverse_benchmark_maintext
 用途: maintext 版本 reduced inverse benchmark 的配置与运行元数据。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_meta_reduced_maintext.json
+存在: 是
+大小: 0.7 KB
+修改时间: 2026-03-24 21:34:37
+候选路径:
+  - experiments_phys_levels/inverse_benchmark_meta_reduced_maintext.json
+  - experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_meta_reduced_maintext.json
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
-
+{
+  "final_level": 2,
+  "fixed_surrogate": true,
+  "run_tag": "reduced_maintext",
+  "calibration_input_cols": [
+    "E_intercept",
+    "alpha_base",
+    "alpha_slope",
+    "nu"
+  ],
+  "calib_holdout_frac": 0.15,
+  "n_cases": 50,
+  "case_selection": "stress_stratified",
+  "obs_cols": [
+    "iteration2_max_global_stress",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_wall2",
+    "iteration2_keff"
+  ],
+  "prior_type": "trunc_gaussian",
+  "n_mcmc": 8000,
+  "burn_in": 2000,
+  "thin": 5,
+  "obs_noise_frac": 0.02,
+  "proposal_scale": 0.15,
+  "reference_strategy_for_noncalibrated_params": "emulator_pool_mean",
+  "checkpoint_level": 2,
+  "save_per_case_posterior": true
+}
 
 ########################################################################################################################
-文件: experiments_phys_levels/inverse_benchmark_case_summary_reduced_maintext.csv
+逻辑名称: inverse_benchmark_case_summary_reduced_maintext
 类别: D_inverse_benchmark_maintext
 用途: maintext 版本 reduced inverse 的 case 级 benchmark 汇总表。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_case_summary_reduced_maintext.csv
+存在: 是
+大小: 4.5 KB
+修改时间: 2026-03-24 21:34:37
+候选路径:
+  - experiments_phys_levels/inverse_benchmark_case_summary_reduced_maintext.csv
+  - experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_case_summary_reduced_maintext.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿benchmark_case_id,pool_case_index,accept_rate,n_post_samples,obs_stress,obs_keff,mean_abs_obs_fit_error,obs_coverage90_mean,feasible_fraction_110,feasible_fraction_120,feasible_fraction_131
+0,14,0.62325,1200,100.31,1.1029303285683894,1.1499636387552334,1.0,0.8091666666666667,0.9958333333333333,1.0
+1,246,0.61,1200,114.34,1.1030920336149834,6.583746853414721,0.6,0.0525,0.43083333333333335,0.9108333333333334
+2,159,0.69675,1200,116.7,1.1044526602021287,4.2887791164522815,0.6,0.06,0.4558333333333333,0.9375
+3,248,0.673375,1200,118.63,1.1046845991578187,1.8643658956021258,1.0,0.0525,0.425,0.9033333333333333
+4,228,0.6345,1200,123.52,1.1042940775042274,1.25581125793721,1.0,0.004166666666666667,0.1775,0.7533333333333333
+5,286,0.598375,1200,126.56,1.103426762676016,1.700474123720991,1.0,0.0033333333333333335,0.105,0.6175
+6,158,0.624875,1200,129.58,1.103826471560451,3.0582838405359993,1.0,0.0,0.05333333333333334,0.4558333333333333
+7,144,0.589875,1200,132.04,1.1031299673268935,0.7468630881959166,1.0,0.0,0.02,0.3416666666666667
+8,190,0.6055,1200,134.18,1.10309959743259,5.141696997558388,0.6,0.0,0.005833333333333334,0.16666666666666666
+9,187,0.667875,1200,135.77,1.1044816491178897,1.087882549050633,1.0,0.0,0.008333333333333333,0.24583333333333332
+10,314,0.66425,1200,137.49,1.104256265898417,1.3159998589573743,1.0,0.0008333333333333334,0.011666666666666667,0.1825
+11,138,0.5825,1200,140.84,1.1036962313156775,2.959313228671562,0.8,0.0,0.0,0.05333333333333334
+12,126,0.593875,1200,142.95,1.1031441972802445,1.117094842022291,1.0,0.0,0.0,0.0275
+13,56,0.68025,1200,144.05,1.104635484220617,1.7516432384132095,1.0,0.0,0.0,0.08416666666666667
+14,170,0.57875,1200,145.33,1.1030203289151213,1.0060932457404328,1.0,0.0,0.0,0.014166666666666666
+15,177,0.600625,1200,146.95,1.103511235599191,3.32873293166191,1.0,0.0,0.0,0.0025
+16,108,0.62625,1200,148.29,1.103993820261173,1.1653833849638424,1.0,0.0,0.0,0.005833333333333334
+17,215,0.63925,1200,148.64,1.10400609150796,0.7446262546814928,1.0,0.0,0.0,0.010833333333333334
+18,115,0.5795,1200,150.37,1.1030293086303369,0.7839451626054311,1.0,0.0,0.0,0.0016666666666666668
+19,352,0.581875,1200,152.05,1.102968750373992,1.2209507624646663,1.0,0.0,0.0,0.0
+20,151,0.603,1200,153.7,1.10388407022179,1.9837845263103904,1.0,0.0,0.0,0.0
+21,276,0.56975,1200,154.27,1.1032188781212393,1.427120471184977,1.0,0.0,0.0,0.0
+22,20,0.58425,1200,155.34,1.1035018116069673,0.4200334664658386,1.0,0.0,0.0,0.0
+23,163,0.59375,1200,157.19,1.1038050323633517,3.536915751761543,0.6,0.0,0.0,0.0
+24,334,0.599875,1200,157.34,1.104065909873584,2.321534960134948,1.0,0.0,0.0,0.0
+25,244,0.591625,1200,161.35,1.1032219038463222,4.888679409792511,0.6,0.0,0.0,0.0
+26,107,0.590625,1200,162.77,1.103822412545894,1.2640378373858194,1.0,0.0,0.0,0.0
+27,110,0.5885,1200,163.66,1.102894937210064,3.4940989699087313,0.6,0.0,0.0,0.0
+28,272,0.591625,1200,165.62,1.104141469664394,4.6283609284656375,0.6,0.0,0.0,0.0
+29,346,0.604,1200,166.88,1.1040963408771294,3.1719188703855243,0.8,0.0,0.0,0.0
+30,39,0.66075,1200,169.05,1.1050079637726475,1.875536991011711,1.0,0.0,0.0,0.0
+31,221,0.565375,1200,170.61,1.1038136030147034,2.1034993048885324,1.0,0.0,0.0,0.0
+32,44,0.576625,1200,173.96,1.1034307217232642,1.0332778653075843,1.0,0.0,0.0,0.0
+33,66,0.573125,1200,176.37,1.102526249163727,3.9193481894963056,0.6,0.0,0.0,0.0
+34,308,0.598625,1200,177.33,1.1037171061498274,6.317993902691,0.6,0.0,0.0,0.0
+35,131,0.584125,1200,178.39,1.1035904112548638,1.289386630455385,1.0,0.0,0.0,0.0
+36,292,0.586125,1200,181.56,1.1028203116883717,0.18555725821414087,1.0,0.0,0.0,0.0
+37,136,0.576625,1200,183.6,1.1037203090352996,2.8764859391103657,1.0,0.0,0.0,0.0
+38,347,0.5695,1200,186.87,1.1034644862797327,1.5531286964277726,1.0,0.0,0.0,0.0
+39,129,0.574375,1200,187.24,1.1029563720520787,0.5816185865226563,1.0,0.0,0.0,0.0
+40,62,0.56375,1200,188.44,1.1038180950751932,1.523183897084828,1.0,0.0,0.0,0.0
+41,294,0.575125,1200,190.7,1.1034777262233415,1.6066730468115629,1.0,0.0,0.0,0.0
+42,320,0.5765,1200,191.2,1.1036686747939692,1.8315172834996534,1.0,0.0,0.0,0.0
+43,21,0.571625,1200,195.2,1.1030135555208305,1.8289077289378142,1.0,0.0,0.0,0.0
+44,241,0.583875,1200,198.09,1.102952668561723,1.0869651973863497,1.0,0.0,0.0,0.0
+45,189,0.615875,1200,200.98,1.1044717874488932,3.5028638910597665,1.0,0.0,0.0,0.0
+46,200,0.5655,1200,208.1,1.1032871880734496,1.5890110025475674,1.0,0.0,0.0,0.0
+47,303,0.586875,1200,213.23,1.1028691613980766,2.0363942209754993,1.0,0.0,0.0,0.0
+48,124,0.622875,1200,215.7,1.1022015183918026,6.175414745720106,0.6,0.0,0.0,0.0
+49,336,0.599,1200,232.96,1.1033534600893675,10.64600410805765,0.6,0.0,0.0,0.0
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv
+逻辑名称: inverse_benchmark_parameter_recovery_summary_reduced_maintext
 类别: D_inverse_benchmark_maintext
 用途: maintext 版本 reduced inverse 的参数恢复性总结。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv
+存在: 是
+大小: 0.3 KB
+修改时间: 2026-03-24 21:34:37
+候选路径:
+  - experiments_phys_levels/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv
+  - experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿parameter,mean_abs_error,mean_width90,coverage90,coverage50
+E_intercept,8723576329.894102,22670002175.472214,0.72,0.32
+alpha_base,3.8076702331773364e-07,1.7051448759840996e-06,0.92,0.58
+alpha_slope,3.192342046039812e-10,1.4564146789332107e-09,0.9,0.56
+nu,0.02522579901855411,0.09072675021565792,0.86,0.38
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/inverse_benchmark_observation_fit_summary_reduced_maintext.csv
+逻辑名称: inverse_benchmark_observation_fit_summary_reduced_maintext
 类别: D_inverse_benchmark_maintext
 用途: maintext 版本 reduced inverse 的观测拟合总结。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_observation_fit_summary_reduced_maintext.csv
+存在: 是
+大小: 0.4 KB
+修改时间: 2026-03-24 21:34:37
+候选路径:
+  - experiments_phys_levels/inverse_benchmark_observation_fit_summary_reduced_maintext.csv
+  - experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_observation_fit_summary_reduced_maintext.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿observable,mean_abs_error,mean_width90,coverage90,coverage95
+iteration2_keff,0.00021053001383445125,0.0017470118085480112,1.0,1.0
+iteration2_max_fuel_temp,4.897574376098792,14.17175252540459,0.78,0.82
+iteration2_max_global_stress,1.8374254459428356,38.14562653297967,1.0,1.0
+iteration2_max_monolith_temp,5.561265401592807,15.923225397787933,0.74,0.82
+iteration2_wall2,0.0006146412925191668,0.014108300844194588,1.0,1.0
 
 
 ========================================================================================================================
@@ -276,11 +664,15 @@ iteration2_keff,SS316_alpha,2,-0.00743061900138855,0.05575972109989267,-0.031868
 ========================================================================================================================
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_inverse_full_vs_reduced_summary.csv
+逻辑名称: paper_inverse_full_vs_reduced_summary
 类别: E_inverse_comparison_and_contraction
 用途: full inverse 与 reduced inverse 的总体对比表。
+实际文件: experiments_phys_levels/paper_inverse_full_vs_reduced_summary.csv
 存在: 是
 大小: 0.5 KB
+修改时间: 2026-03-24 18:10:52
+候选路径:
+  - experiments_phys_levels/paper_inverse_full_vs_reduced_summary.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿run_tag,n_cases,mean_accept_rate,mean_obs_fit_error,mean_obs_coverage90,mean_feasible_fraction_110,mean_feasible_fraction_120,mean_feasible_fraction_131
 full,20,0.4494187500000001,1.050578085815306,1.0,0.04658333333333334,0.073375,0.1365
@@ -289,11 +681,15 @@ delta_reduced_minus_full,0,-0.00203125000000004,1.3297048115821128,-0.0799999999
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_inverse_full_vs_reduced_parameter_table.csv
+逻辑名称: paper_inverse_full_vs_reduced_parameter_table
 类别: E_inverse_comparison_and_contraction
 用途: full vs reduced 在参数恢复上的对比表。
+实际文件: experiments_phys_levels/paper_inverse_full_vs_reduced_parameter_table.csv
 存在: 是
 大小: 1.2 KB
+修改时间: 2026-03-24 18:10:52
+候选路径:
+  - experiments_phys_levels/paper_inverse_full_vs_reduced_parameter_table.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿parameter,full_mean_abs_error,full_mean_width90,full_coverage90,full_coverage50,reduced_mean_abs_error,reduced_mean_width90,reduced_coverage90,reduced_coverage50,delta_mean_abs_error,delta_mean_width90,delta_coverage90,delta_coverage50
 E_intercept,6461011641.584569,27050636066.044823,0.85,0.5,7338373334.51518,18284515041.929714,0.65,0.3,877361692.9306107,-8766121024.115108,-0.19999999999999996,-0.2
@@ -307,11 +703,15 @@ nu,0.0237914051659382,0.0828866926050208,0.8,0.5,0.0288029256450251,0.0799660087
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_inverse_full_vs_reduced_observable_table.csv
+逻辑名称: paper_inverse_full_vs_reduced_observable_table
 类别: E_inverse_comparison_and_contraction
 用途: full vs reduced 在观测拟合上的对比表。
+实际文件: experiments_phys_levels/paper_inverse_full_vs_reduced_observable_table.csv
 存在: 是
 大小: 1.1 KB
+修改时间: 2026-03-24 18:10:52
+候选路径:
+  - experiments_phys_levels/paper_inverse_full_vs_reduced_observable_table.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿observable,full_mean_abs_error,full_mean_width90,full_coverage90,full_coverage95,reduced_mean_abs_error,reduced_mean_width90,reduced_coverage90,reduced_coverage95,delta_mean_abs_error,delta_mean_width90,delta_coverage90,delta_coverage95
 iteration2_keff,0.0005028287636358,0.002034171097761,1.0,1.0,0.0004950288955328,0.0015276557905378,0.95,1.0,-7.799868102999923e-06,-0.0005065153072231997,-0.050000000000000044,0.0
@@ -322,13 +722,22 @@ iteration2_wall2,0.0004275516637296,0.0102580341244298,1.0,1.0,0.000681984182189
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_prior_posterior_contraction_summary_reduced.csv
+逻辑名称: paper_prior_posterior_contraction_summary_reduced
 类别: E_inverse_comparison_and_contraction
 用途: reduced inverse 的 prior-posterior 收缩量化结果。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/_legacy_unused_20260325_161538/paper_prior_posterior_contraction_summary_reduced.csv
+存在: 是
+大小: 0.8 KB
+修改时间: 2026-03-23 15:19:48
+候选路径:
+  - experiments_phys_levels/paper_prior_posterior_contraction_summary_reduced.csv
+  - experiments_phys_levels/_legacy_unused_20260325_161538/paper_prior_posterior_contraction_summary_reduced.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿parameter,n_cases,prior_width90_mean,posterior_width90_mean,width90_ratio_mean,width90_ratio_median,var_ratio_mean,var_ratio_median,mean_shift_abs_mean,fraction_width90_contract,fraction_var_contract
+E_intercept,20,101964311154.62393,25200258908.77387,0.24715853121786086,0.2383272390230201,0.0561021815888787,0.05048812724690677,9057209088.385246,1.0,1.0
+alpha_base,20,5.317431716338496e-06,1.3806883484626632e-06,0.2596238184395216,0.25498008133593386,0.06129606203230605,0.05915870327838092,1.1735362653854316e-06,1.0,1.0
+alpha_slope,20,2.6499970930696017e-09,1.361246815093058e-09,0.5137292285450484,0.501465241466962,0.24666742608929354,0.2349304324256527,2.7656815532692293e-10,1.0,1.0
+SS316_k_ref,20,12.802567405896756,4.40693476708125,0.34416917839622274,0.33842902202196856,0.10914786669573984,0.10598874833331537,1.7934002043284294,1.0,1.0
 
 
 ========================================================================================================================
@@ -337,11 +746,15 @@ iteration2_wall2,0.0004275516637296,0.0102580341244298,1.0,1.0,0.000681984182189
 ========================================================================================================================
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_speed_benchmark_detailed.json
+逻辑名称: paper_speed_benchmark_detailed
 类别: F_speed_ood_and_supporting_results
 用途: 高保真 CPU 与代理 GPU 工作流实际 wall-clock 对比记录。
+实际文件: experiments_phys_levels/paper_speed_benchmark_detailed.json
 存在: 是
 大小: 811.0 KB
+修改时间: 2026-03-19 00:37:00
+候选路径:
+  - experiments_phys_levels/paper_speed_benchmark_detailed.json
 ------------------------------------------------------------------------------------------------------------------------
 {
   "meta": {
@@ -1027,11 +1440,15 @@ iteration2_wall2,0.0004275516637296,0.0102580341244298,1.0,1.0,0.000681984182189
 }
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_ood_results.csv
+逻辑名称: paper_ood_results
 类别: F_speed_ood_and_supporting_results
 用途: OOD 汇总结果，适合附录和局限性讨论。
+实际文件: experiments_phys_levels/paper_ood_results.csv
 存在: 是
 大小: 0.9 KB
+修改时间: 2026-03-13 13:15:18
+候选路径:
+  - experiments_phys_levels/paper_ood_results.csv
 ------------------------------------------------------------------------------------------------------------------------
 ﻿level,ood_feature,n_ood,MAE_mean_all,RMSE_mean_all,R2_mean_all,PICP90_mean_all,MPIW90_mean_all,CRPS_mean_all,stress_MAE,stress_RMSE,stress_R2,stress_PICP90,stress_MPIW90,stress_CRPS,keff_MAE,keff_RMSE,keff_R2,keff_PICP90,keff_MPIW90,keff_CRPS
 0,alpha_slope,432,2.547964334487915,3.15157413482666,-7456348.821055271,0.9163773148148148,10.013774178841071,1.7862712134805623,6.318292140960693,8.106781959533691,0.930046021938324,0.8981481481481481,26.122764282412028,4.479947390503477,0.00023965814034454525,0.0005634966073557734,0.6449511051177979,0.9351851851851852,0.0013666782076412456,0.00019363053329761776
@@ -1039,22 +1456,128 @@ iteration2_wall2,0.0004275516637296,0.0102580341244298,1.0,1.0,0.000681984182189
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_iter1_iter2_forward_compare.csv
+逻辑名称: paper_iter1_iter2_forward_compare
 类别: F_speed_ood_and_supporting_results
 用途: iter1 与 iter2 的 forward UQ 对比结果。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_forward_compare.csv
+存在: 是
+大小: 2.6 KB
+修改时间: 2026-03-24 14:51:53
+候选路径:
+  - experiments_phys_levels/paper_iter1_iter2_forward_compare.csv
+  - experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_forward_compare.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿level,output,iter1_mean,iter1_std,iter1_q95,iter2_mean,iter2_std,iter2_q95,mean_shift,std_ratio,q95_shift,mean_shift_direction,uncertainty_change,tail_change
+0,keff,0.9705305384078808,0.1944345360347622,1.274965860357605,1.103785551420082,0.001655152076808,1.1057787575242994,0.13325501301220122,0.008512644464065628,-0.16918710283330562,increase,reduced,lower
+0,avg_fuel_temp,1020.696145597723,15.415899214984105,1051.2632211847272,1001.6838501906255,5.212755494901974,1011.6835994741164,-19.01229540709744,0.33814151365460976,-39.57962171061081,decrease,reduced,lower
+0,max_fuel_temp,1109.4199686564154,24.13973822866641,1156.5180306285288,1075.884534336336,10.269669138460523,1095.3468985570605,-33.5354343200795,0.4254258700396621,-61.171132071468264,decrease,reduced,lower
+0,max_monolith_temp,1077.690101618124,28.834564968952904,1135.5352091683349,1037.180855219983,11.013773101947862,1057.7062848009743,-40.50924639814093,0.3819642541445089,-77.82892436736051,decrease,reduced,lower
+0,max_global_stress,204.2009461658145,72.99769114288364,340.4191893771918,154.03954290850135,47.15740062912323,238.7189697736484,-50.16140325731317,0.6460122216306542,-101.70021960354339,decrease,reduced,lower
+0,wall2,29.911274820225884,0.0410693553494596,29.97692164306573,29.9057004390405,0.0374104936689581,29.966347923418773,-0.005574381185383004,0.9109101749886475,-0.010573719646956192,decrease,reduced,lower
+2,keff,1.124963229526796,0.1269343799040159,1.2694424414293697,1.1038156506708108,0.0016656925189583,1.1058831323410592,-0.021147578855985172,0.013122469422426973,-0.1635593090883105,decrease,reduced,lower
+2,avg_fuel_temp,1018.506060818282,17.124291967877117,1050.9016610234155,1001.5705778781888,5.6202179944732045,1012.3492413486192,-16.935482940093152,0.32820148155705675,-38.55241967479628,decrease,reduced,lower
+2,max_fuel_temp,1107.4497756972153,30.079300322994158,1163.3102091733397,1075.7259208668183,10.680511023407112,1096.1786371929138,-31.72385483039693,0.3550784396152336,-67.13157198042586,decrease,reduced,lower
+2,max_monolith_temp,1073.4041165453527,33.46348267452255,1137.7127348897825,1037.9251613457943,11.92070355529935,1060.7543445892454,-35.47895519955841,0.35623021283361006,-76.95839030053708,decrease,reduced,lower
+2,max_global_stress,199.79082227578192,69.54436096803401,327.2072920856137,156.63400317440465,48.53645925866345,245.01263805989177,-43.156819101377266,0.6979208462490939,-82.19465402572192,decrease,reduced,lower
+2,wall2,29.91273727004433,0.035255960430394,29.96894450990011,29.9089974466694,0.0343622849962529,29.964287581386365,-0.003739823374932172,0.9746517915210354,-0.004656928513742997,decrease,reduced,lower
 
 
 ########################################################################################################################
-文件: experiments_phys_levels/paper_iter1_iter2_sobol_compare.csv
+逻辑名称: paper_iter1_iter2_sobol_compare
 类别: F_speed_ood_and_supporting_results
 用途: iter1 与 iter2 的 Sobol 主导因子变化结果。
-存在: 否
-大小: N/A
+实际文件: experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_sobol_compare.csv
+存在: 是
+大小: 14.0 KB
+修改时间: 2026-03-24 15:50:35
+候选路径:
+  - experiments_phys_levels/paper_iter1_iter2_sobol_compare.csv
+  - experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_sobol_compare.csv
 ------------------------------------------------------------------------------------------------------------------------
-[文件不存在]
+﻿level,base_output,input,iter1_rank,iter2_rank,iter1_ST_mean,iter2_ST_mean,iter1_ST_ci_low,iter1_ST_ci_high,iter2_ST_ci_low,iter2_ST_ci_high,iter1_stable,iter2_stable,ST_shift,rank_shift
+0,avg_fuel_temp,E_intercept,6,7,0.0127221756149083,0.0046741769881919,0.0121379393478447,0.0133064118819719,0.0044753344181033,0.0048730195582804,True,True,-0.0080479986267164,1
+0,avg_fuel_temp,E_slope,5,4,0.0170727284159511,0.0259327728301286,0.0164619526046652,0.0176835042272369,0.0249113671661576,0.0269541784940996,True,True,0.008860044414177502,-1
+0,avg_fuel_temp,SS316_T_ref,2,2,0.2388747170567512,0.2542545698583126,0.2291610947040074,0.2485883394094951,0.2446626059021402,0.263846533814485,True,True,0.015379852801561372,0
+0,avg_fuel_temp,SS316_alpha,3,3,0.1142943602055311,0.0346306269057095,0.1099741479249862,0.1186145724860759,0.0323978654009169,0.036863388410502,True,True,-0.0796637332998216,0
+0,avg_fuel_temp,SS316_k_ref,1,1,0.6955370455980301,0.7408704787492753,0.6790429342170448,0.7120311569790154,0.7212546873518026,0.7604862701467479,True,True,0.04533343315124516,0
+0,avg_fuel_temp,alpha_base,7,6,0.0084343248279765,0.0062968696234747,0.0080950747768245,0.0087735748791285,0.0059055360309667,0.0066882032159827,True,True,-0.0021374552045018,-1
+0,avg_fuel_temp,alpha_slope,8,8,0.0082027269760146,0.0024110655300319,0.0078427132896786,0.0085627406623507,0.0022847898299383,0.0025373412301255,True,True,-0.0057916614459827,0
+0,avg_fuel_temp,nu,4,5,0.020147178415209,0.0150787287391722,0.0192721974848802,0.0210221593455379,0.0142840584358379,0.0158733990425064,True,True,-0.0050684496760368,1
+0,max_fuel_temp,E_intercept,6,6,0.0092693144455552,0.0107766047120094,0.0088449553650698,0.0096936735260406,0.0103728560678703,0.0111803533561485,True,True,0.0015072902664542004,0
+0,max_fuel_temp,E_slope,5,4,0.0202790846582502,0.0145612291526049,0.0193096602854938,0.0212485090310065,0.0138191093615114,0.0153033489436984,True,True,-0.005717855505645301,-1
+0,max_fuel_temp,SS316_T_ref,2,2,0.2441832058131695,0.2331407606601715,0.2344095723111833,0.2539568393151556,0.2270587924005256,0.2392227289198174,True,True,-0.011042445152997987,0
+0,max_fuel_temp,SS316_alpha,3,3,0.1208443909883499,0.0301475780084729,0.115424524227169,0.1262642577495307,0.0289141159599216,0.0313810400570242,True,True,-0.090696812979877,0
+0,max_fuel_temp,SS316_k_ref,1,1,0.6519727140665055,0.7666595429182053,0.6330876949756171,0.6708577331573938,0.7431919356517442,0.7901271501846663,True,True,0.11468682885169978,0
+0,max_fuel_temp,alpha_base,7,5,0.0091007250593975,0.014119993103668,0.0086717921648408,0.0095296579539542,0.0133855171118283,0.0148544690955078,True,True,0.005019268044270501,-2
+0,max_fuel_temp,alpha_slope,8,7,0.0079218252096325,0.0068402631906792,0.0074663112893959,0.0083773391298691,0.006491883930713,0.0071886424506454,True,True,-0.0010815620189532993,-1
+0,max_fuel_temp,nu,4,8,0.0229420241899788,0.0060807002009823,0.021753941760607,0.0241301066193506,0.0057731900142818,0.0063882103876829,True,True,-0.0168613239889965,4
+0,max_monolith_temp,E_intercept,6,7,0.0128186114598065,0.0070828737458214,0.0121496444508676,0.0134875784687455,0.0067198307926379,0.0074459166990048,True,True,-0.0057357377139851005,1
+0,max_monolith_temp,E_slope,4,4,0.0295718451961874,0.0241547252051532,0.0283864346034937,0.0307572557888811,0.0229597282051474,0.025349722205159,True,True,-0.005417119991034201,0
+0,max_monolith_temp,SS316_T_ref,2,2,0.2471381813287735,0.2290973238646984,0.2379155469416908,0.2563608157158561,0.2213270025888687,0.2368676451405281,True,True,-0.018040857464075105,0
+0,max_monolith_temp,SS316_alpha,3,3,0.1277186643332243,0.0257175466977059,0.1227418844556447,0.1326954442108038,0.0243004676750966,0.0271346257203153,True,True,-0.10200111763551839,0
+0,max_monolith_temp,SS316_k_ref,1,1,0.6207272827625274,0.7270484864711761,0.6019849412062506,0.6394696243188043,0.7126367958834681,0.7414601770588842,True,True,0.10632120370864873,0
+0,max_monolith_temp,alpha_base,7,5,0.0062365097692236,0.012510952912271,0.0058415532943033,0.0066314662441438,0.0120263364844465,0.0129955693400954,True,True,0.0062744431430474005,-2
+0,max_monolith_temp,alpha_slope,8,8,0.0056623874232172,0.0045499307918362,0.0053167002386976,0.0060080746077369,0.0042935150785658,0.0048063465051066,True,True,-0.001112456631381,0
+0,max_monolith_temp,nu,5,6,0.0165382551494985,0.0080112881259992,0.0158595395622304,0.0172169707367667,0.0076984967467155,0.008324079505283,True,True,-0.008526967023499298,1
+0,max_global_stress,E_intercept,1,1,0.527619355916977,0.7460913896560669,0.5108023458841642,0.5444363659497897,0.7226454098528137,0.7695373694593202,True,True,0.21847203373908997,0
+0,max_global_stress,E_slope,7,4,0.0256685060448944,0.0491155540570616,0.0247218921854703,0.0266151199043185,0.0479559433514662,0.050275164762657,True,True,0.023447048012167196,-3
+0,max_global_stress,SS316_T_ref,4,7,0.0723925672471523,0.0113704064860939,0.0695152959052708,0.0752698385890338,0.011002250434669,0.0117385625375189,True,True,-0.0610221607610584,3
+0,max_global_stress,SS316_alpha,5,8,0.0389669394120574,0.0026613718364387,0.0372361350748903,0.0406977437492244,0.002538746429604,0.0027839972432734,True,True,-0.0363055675756187,3
+0,max_global_stress,SS316_k_ref,2,5,0.2646289467811584,0.0351711691357195,0.2559070901944383,0.2733508033678785,0.0338884783518564,0.0364538599195826,True,True,-0.2294577776454389,3
+0,max_global_stress,alpha_base,3,2,0.0993253670632839,0.1216646797955036,0.0964805856864922,0.1021701484400755,0.1189507387026835,0.1243786208883237,True,True,0.0223393127322197,-1
+0,max_global_stress,alpha_slope,8,6,0.0175440124701708,0.0162811193149536,0.0168055801296027,0.0182824448107389,0.0155673570029241,0.0169948816269832,True,True,-0.0012628931552171978,-2
+0,max_global_stress,nu,6,3,0.026082937605679,0.0584863452240824,0.0250173388030931,0.0271485364082649,0.0569937708315883,0.0599789196165766,True,True,0.0324034076184034,-3
+0,wall2,E_intercept,7,5,0.00301960632205,0.0039603348239324,0.0029132278014681,0.003125984842632,0.0037548881004137,0.0041657815474512,True,True,0.0009407285018823998,-2
+0,wall2,E_slope,8,8,0.000622114771977,0.0011184439004864,0.0005928030279481,0.0006514265160059,0.0010634009837261,0.0011734868172467,True,True,0.0004963291285094001,0
+0,wall2,SS316_T_ref,6,7,0.0041940089897252,0.0015719298447947,0.0040535652687232,0.0043344527107273,0.0014927138734829,0.0016511458161066,True,True,-0.0026220791449305,1
+0,wall2,SS316_alpha,5,4,0.0052253718022257,0.0041711738682352,0.0050307147986061,0.0054200288058452,0.0039793754450207,0.0043629722914496,True,True,-0.0010541979339905002,-1
+0,wall2,SS316_k_ref,4,6,0.0119094558991491,0.0035527668544091,0.0113582425286776,0.0124606692696207,0.0033902957286342,0.003715237980184,True,True,-0.00835668904474,2
+0,wall2,alpha_base,1,1,0.765172079205513,0.7529413759708404,0.7480222522259619,0.7823219061850641,0.735471977835609,0.7704107741060718,True,True,-0.012230703234672569,0
+0,wall2,alpha_slope,2,2,0.1357041530311107,0.1245561975985765,0.1320477783564163,0.1393605277058052,0.1208380280520859,0.1282743671450671,True,True,-0.01114795543253419,0
+0,wall2,nu,3,3,0.095657842606306,0.1055260378867387,0.0930487639369294,0.0982669212756827,0.101906611163103,0.1091454646103745,True,True,0.009868195280432701,0
+2,avg_fuel_temp,E_intercept,8,8,0.0040000086533837,0.0045628804597072,0.0036945631301125,0.0043054541766548,0.0043152415941983,0.004810519325216,True,True,0.0005628718063235005,0
+2,avg_fuel_temp,E_slope,7,7,0.005635205283761,0.0066669309977442,0.0052561523232878,0.0060142582442342,0.0063578969591925,0.0069759650362958,True,True,0.0010317257139832005,0
+2,avg_fuel_temp,SS316_T_ref,2,2,0.3154183432459831,0.2695482805371284,0.3017337679256443,0.3291029185663219,0.2582102376623675,0.2808863234118893,True,True,-0.045870062708854686,0
+2,avg_fuel_temp,SS316_alpha,3,3,0.135700561106205,0.0396339194849133,0.1273262195328459,0.144074902679564,0.037832252487362,0.0414355864824646,True,True,-0.09606664162129169,0
+2,avg_fuel_temp,SS316_k_ref,1,1,0.6774106532335281,0.7205295920372009,0.6534579910567468,0.7013633154103094,0.7005012220047,0.7405579620697018,True,True,0.04311893880367279,0
+2,avg_fuel_temp,alpha_base,4,4,0.025717937760055,0.0225095809437334,0.0242394037873495,0.0271964717327605,0.0215605111133086,0.0234586507741582,True,True,-0.0032083568163215996,0
+2,avg_fuel_temp,alpha_slope,6,6,0.0212730190716683,0.0184722214005887,0.019779169775652,0.0227668683676846,0.0174545454378398,0.0194898973633376,True,True,-0.002800797671079599,0
+2,avg_fuel_temp,nu,5,5,0.021934447530657,0.0206510788761079,0.0201939128391032,0.0236749822222108,0.0197425758728551,0.0215595818793607,True,True,-0.001283368654549099,0
+2,max_fuel_temp,E_intercept,8,8,0.0030739817419089,0.0036796031636185,0.0028670041539447,0.0032809593298731,0.0035400736441283,0.0038191326831088,True,True,0.0006056214217095997,0
+2,max_fuel_temp,E_slope,7,7,0.00692001467105,0.0056482929736375,0.006532734084334,0.0073072952577659,0.0053028311933962,0.0059937547538789,True,True,-0.0012717216974125001,0
+2,max_fuel_temp,SS316_T_ref,2,2,0.3080675564706325,0.2745717614889145,0.2948664421619537,0.3212686707793114,0.2660674391802753,0.2830760837975536,True,True,-0.03349579498171801,0
+2,max_fuel_temp,SS316_alpha,3,3,0.1217658389359712,0.0404247848317027,0.1152971802328906,0.1282344976390518,0.0382198350316742,0.0426297346317311,True,True,-0.0813410541042685,0
+2,max_fuel_temp,SS316_k_ref,1,1,0.6541351109743119,0.7174811750650406,0.6370692511292483,0.6712009708193755,0.6953474395244117,0.7396149106056695,True,True,0.06334606409072874,0
+2,max_fuel_temp,alpha_base,4,5,0.0263263928703963,0.0190479955635964,0.0249185601449384,0.0277342255958542,0.0180946846350254,0.0200013064921675,True,True,-0.0072783973067999,1
+2,max_fuel_temp,alpha_slope,6,6,0.019449293334037,0.01437309528701,0.0179871355322566,0.0209114511358174,0.0134122464131933,0.0153339441608267,True,True,-0.005076198047026999,0
+2,max_fuel_temp,nu,5,4,0.0240079826675355,0.0194790974259376,0.022615933339965,0.025400031995106,0.0184524264928514,0.0205057683590239,True,True,-0.004528885241597901,-1
+2,max_monolith_temp,E_intercept,8,8,0.003361366840545,0.0048840406583622,0.0031698383933067,0.0035528952877834,0.0046482409777321,0.0051198403389922,True,True,0.0015226738178171998,0
+2,max_monolith_temp,E_slope,7,7,0.0058357780799269,0.0056652055121958,0.0054416438385831,0.0062299123212708,0.0053829180839984,0.0059474929403932,True,True,-0.0001705725677310999,0
+2,max_monolith_temp,SS316_T_ref,2,2,0.3289777457714081,0.2560659758746624,0.315246123552523,0.3427093679902931,0.2467453800500745,0.2653865716992502,True,True,-0.07291176989674569,0
+2,max_monolith_temp,SS316_alpha,3,3,0.1304729018360376,0.0358324958011508,0.1248186191562332,0.136127184515842,0.0335060781917811,0.0381589134105204,True,True,-0.0946404060348868,0
+2,max_monolith_temp,SS316_k_ref,1,1,0.6647343367338181,0.7220964342355728,0.6400609522242356,0.6894077212434006,0.7019961593629677,0.7421967091081779,True,True,0.057362097501754694,0
+2,max_monolith_temp,alpha_base,4,4,0.0263704564422369,0.0314353758469223,0.0246822604968473,0.0280586523876264,0.0301214137467702,0.0327493379470745,True,True,0.005064919404685397,0
+2,max_monolith_temp,alpha_slope,6,6,0.0207096812315285,0.0213952932506799,0.0190720154667871,0.0223473469962699,0.0201622181756894,0.0226283683256704,True,True,0.0006856120191514013,0
+2,max_monolith_temp,nu,5,5,0.0228515606373548,0.0221262627281248,0.0216054191296364,0.0240977021450732,0.0213149811003864,0.0229375443558632,True,True,-0.0007252979092300001,0
+2,max_global_stress,E_intercept,1,1,0.5134989425539971,0.651779779791832,0.499899791601293,0.5270980935067012,0.6346032229859654,0.6689563365976986,True,True,0.1382808372378349,0
+2,max_global_stress,E_slope,6,3,0.0536475528031587,0.0725166391581297,0.0518886571513524,0.0554064484549651,0.0702757123063387,0.0747575660099207,True,True,0.018869086354970997,-3
+2,max_global_stress,SS316_T_ref,4,7,0.0608375357463955,0.0106879667378962,0.0584163726594004,0.0632586988333907,0.0102854073212051,0.0110905261545873,True,True,-0.0501495690084993,3
+2,max_global_stress,SS316_alpha,7,8,0.0404977248981595,0.0039970150915905,0.0389030188107622,0.0420924309855567,0.003846901308451,0.0041471288747301,True,True,-0.036500709806569,1
+2,max_global_stress,SS316_k_ref,2,5,0.1704637296497821,0.058948372118175,0.16599432323482,0.1749331360647443,0.0564339071572829,0.0614628370790671,True,True,-0.1115153575316071,3
+2,max_global_stress,alpha_base,3,2,0.1335399840027094,0.1414996940642595,0.1285115005395706,0.1385684674658481,0.1357654043972502,0.1472339837312687,True,True,0.007959710061550107,-1
+2,max_global_stress,alpha_slope,8,6,0.0340894293040037,0.0350766762159764,0.0328185798452086,0.0353602787627988,0.0338612244284869,0.036292128003466,True,True,0.000987246911972696,-2
+2,max_global_stress,nu,5,4,0.0598214916884899,0.071353231370449,0.0581972325696449,0.0614457508073349,0.0690341525878873,0.0736723101530107,True,True,0.011531739681959093,-1
+2,wall2,E_intercept,6,4,0.0036281895358115,0.0030104346107691,0.0034557606919693,0.0038006183796537,0.0028759701926278,0.0031448990289104,True,True,-0.0006177549250424002,-2
+2,wall2,E_slope,8,8,0.0006946227396838,0.000764689859352,0.0006612788617458,0.0007279666176217,0.0007262479066866,0.0008031318120175,True,True,7.006711966819998e-05,0
+2,wall2,SS316_T_ref,5,5,0.0052294873865321,0.0023313081183005,0.0049354862968609,0.0055234884762032,0.0021669655273679,0.0024956507092331,True,True,-0.0028981792682316004,0
+2,wall2,SS316_alpha,7,7,0.0033007048652507,0.0016073319537099,0.003120626455148,0.0034807832753534,0.0015129460912552,0.0017017178161646,True,True,-0.0016933729115408,0
+2,wall2,SS316_k_ref,4,6,0.0053209348814561,0.002312991610961,0.0051035197012578,0.0055383500616545,0.0022039622263573,0.0024220209955646,True,True,-0.0030079432704951,2
+2,wall2,alpha_base,1,1,0.7334639221429825,0.7386916518211365,0.7165323610215681,0.7503954832643969,0.7236572442496984,0.7537260593925746,True,True,0.005227729678153992,0
+2,wall2,alpha_slope,2,2,0.180792386084795,0.1783452495932579,0.1746826201841124,0.1869021519854776,0.1732313397714515,0.1834591594150642,True,True,-0.0024471364915371052,0
+2,wall2,nu,3,3,0.094205517321825,0.0983808621764183,0.0916201722731218,0.0967908623705281,0.0957064841248783,0.1010552402279583,True,True,0.004175344854593296,0
 
 
+========================================================================================================================
+[缺失文件汇总]
+========================================================================================================================
+所有逻辑结果项均已找到对应文件。

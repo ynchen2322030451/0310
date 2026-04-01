@@ -1,0 +1,35 @@
+{
+  "csv_path": "/home/tjzs/Documents/fenics_data/fenics_data/txt_extract/dataset_v3.csv",
+  "seed": 2026,
+  "n_total": 2900,
+  "n_train": 2029,
+  "n_val": 436,
+  "n_test": 435,
+  "input_cols": [
+    "E_slope",
+    "E_intercept",
+    "nu",
+    "alpha_base",
+    "alpha_slope",
+    "SS316_T_ref",
+    "SS316_k_ref",
+    "SS316_alpha"
+  ],
+  "output_cols": [
+    "iteration1_avg_fuel_temp",
+    "iteration1_max_fuel_temp",
+    "iteration1_max_monolith_temp",
+    "iteration1_max_global_stress",
+    "iteration1_monolith_new_temperature",
+    "iteration1_Hcore_after",
+    "iteration1_wall2",
+    "iteration2_keff",
+    "iteration2_avg_fuel_temp",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_max_global_stress",
+    "iteration2_monolith_new_temperature",
+    "iteration2_Hcore_after",
+    "iteration2_wall2"
+  ]
+}

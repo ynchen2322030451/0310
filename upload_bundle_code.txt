@@ -1,58 +1,125 @@
-0310 项目代码汇总（精选版）
+0310 项目代码汇总（精选版，自动候选路径解析）
 ========================================================================================================================
-生成时间: 2026-03-27 12:53:35
+生成时间: 2026-03-29 13:05:28
 项目根目录: /home/tjzs/Documents/0310
 
 【目录索引】
 
 - A_core_config_and_training
-  说明: 核心配置与统一训练入口，支撑所有下游分析。
-    * paper_experiment_config.py -- 统一管理论文实验配置，包括输入/输出、主阈值、主输出、层级定义、路径与随机种子。
-    * run_phys_levels_main.py -- 主训练与主评估脚本，负责 baseline / regularized surrogate 的训练、测试和指标输出。
-    * run_prepare_fixed_surrogate.py -- 生成固定 train/val/test 划分并保存索引与数据文件，保证后续所有实验共享同一数据拆分。
-    * run_fixed_surrogate_train_base.py -- 在固定数据划分上训练 baseline surrogate，作为与正则化模型对照的统一基线。
+  说明: 模型定义、固定数据划分与训练主链。
+    * paper_experiment_config
+      当前文件: paper_experiment_config.py
+      用途: 统一管理论文实验配置，包括输入/输出、主输出、阈值、seed、路径等。
+    * run_phys_levels_main
+      当前文件: run_phys_levels_main.py
+      用途: 核心模型定义、训练函数、基础评估函数所在主脚本，是下游所有实验的底层依赖。
+    * run_fixed_surrogate_train_base
+      当前文件: run_fixed_surrogate_train_base.py
+      用途: 固定数据划分上的 baseline/base 模型训练脚本。
+    * run_prepare_fixed_surrogate
+      当前文件: run_prepare_fixed_surrogate.py
+      用途: 固定 split 的准备脚本，用于冻结 train/val/test 划分。
 
-- B_forward_risk_sensitivity
-  说明: 主文的正向不确定性传播、风险量化与全局敏感性主链。
-    * run_forward_uq_analysis.py -- 基于固定 surrogate 进行正向不确定性传播，输出分布统计、CVR 和失效概率。
-    * run_safety_threshold_analysis.py -- 针对主应力阈值进行 test-set 风险分析，比较 predictive probability、mean-only 判断与真实标签。
-    * run_sobol_analysis.py -- 执行 Sobol 全局敏感性分析，输出 S1/ST 指标及其不确定性统计。
-    * run_sobol_ci_methods_summary.py -- 将 Sobol 原始结果进一步整理为带 CI 的 methods-ready 与 results-ready 汇总表。
+- B_forward_uq_and_risk
+  说明: 正向不确定性传播与风险分析主链。
+    * run_forward_uq_analysis
+      当前文件: run_forward_uq_analysis.py
+      用途: 正向不确定性传播主脚本，导出输出分布、失效概率、联合样本和 CVR。
+    * run_safety_threshold_analysis
+      当前文件: run_safety_threshold_analysis.py
+      用途: 测试集阈值风险分析脚本，用于比较 truth / mean / predictive risk。
+    * plot_forward_uq_and_sobol_figures
+      当前文件: plot_forward_uq_and_sobol_figures.py
+      用途: forward UQ、threshold risk、Sobol、CVR 等主文图绘图脚本。
 
-- C_inverse_pipeline
-  说明: 主文 inverse benchmark、收缩分析与 full/reduced 对照主链。
-    * run_inverse_benchmark_fixed_surrogate.py -- 在固定 surrogate 条件下执行 inverse benchmark，是当前主文 inverse UQ 的核心脚本。
-    * run_inverse_diagnostics.py -- 汇总 inverse benchmark 结果，生成参数恢复、观测拟合、接受率和可行域等诊断结果。
-    * run_inverse_full_vs_reduced_compare.py -- 比较 full inverse 与 reduced inverse 的观测层面和参数层面差异。
-    * run_prior_posterior_contraction_summary.py -- 量化 prior 到 posterior 的宽度收缩、方差收缩和均值偏移。
+- C_sensitivity_and_comparison
+  说明: Sobol、数据集敏感性与模型对比分析主链。
+    * run_sobol_analysis
+      当前文件: run_sobol_analysis.py
+      用途: Sobol 全局敏感性分析主脚本。
+    * run_sobol_ci_methods_summary
+      当前文件: run_sobol_ci_methods_summary.py
+      用途: 将 Sobol+CI 结果整理成 methods/results 可直接使用的 summary。
+    * run_dataset_sensitivity_analysis
+      当前文件: run_dataset_sensitivity_analysis.py
+      用途: 直接基于固定数据集做 Spearman 敏感性分析，用于与 surrogate Sobol 对照。
+    * run_compare_fixed_models
+      当前文件: run_compare_fixed_models.py
+      用途: 固定 baseline 与 fixed level2 的测试集性能对比脚本。
+    * run_iter1_iter2_forward_compare
+      当前文件: run_iter1_iter2_forward_compare.py
+      用途: iter1 与 iter2 的 forward UQ 结果比较脚本。
+    * run_iter1_iter2_sobol_compare
+      当前文件: run_iter1_iter2_sobol_compare.py
+      用途: iter1 与 iter2 的 Sobol 主导因子比较脚本。
 
-- D_feasible_region_and_plotting
-  说明: 二维可行域导出与主文图绘制脚本。
-    * run_export_2d_feasible_region.py -- 导出二维主导参数平面上的 prior / posterior / feasible region 数据。
-    * plot_2d_inverse_feasible_region_final.py -- 绘制最终版二维 feasible-region 与 posterior contraction 图。
-    * plot_forward_uq_and_sobol_figures.py -- 绘制正向 UQ、risk curve、Sobol、CVR 等主文图。
-    * plot_inverse_figures.py -- 绘制 inverse benchmark 主图，包括参数恢复、观测拟合和代表性 case 图。
+- D_inverse_uq_main
+  说明: inverse UQ、benchmark、收缩与二维可行域分析主链。
+    * run_calibration_benchmark
+      当前文件: run_calibration_benchmark.py
+      用途: reduced/full inverse benchmark 的主脚本。
+    * run_inverse_benchmark_fixed_surrogate
+      当前文件: run_inverse_benchmark_fixed_surrogate.py
+      用途: 固定 surrogate 条件下的 inverse benchmark 版本脚本。
+    * run_inverse_diagnostics
+      当前文件: run_inverse_diagnostics.py
+      用途: inverse benchmark 结果汇总、诊断与图输入整理脚本。
+    * run_inverse_full_vs_reduced_compare
+      当前文件: run_inverse_full_vs_reduced_compare.py
+      用途: full inverse 与 reduced inverse 的结果对比脚本。
+    * run_prior_posterior_contraction_summary
+      当前文件: run_prior_posterior_contraction_summary.py
+      用途: prior-posterior contraction 定量汇总脚本。
+    * run_export_2d_feasible_region
+      当前文件: run_export_2d_feasible_region.py
+      用途: 导出二维 dominant-parameter plane 的 prior/posterior/feasible region 数据。
+    * plot_2d_inverse_feasible_region_final
+      当前文件: plot_2d_inverse_feasible_region_final.py
+      用途: 二维 feasible-region 与 posterior contraction 最终版绘图脚本。
+    * plot_inverse_figures
+      当前文件: plot_inverse_figures.py
+      用途: inverse benchmark 主图绘图脚本。
 
-- E_speed_ood_and_supporting_analysis
-  说明: 速度、OOD 与 iter1/iter2 对比等补充分析。
-    * run_speedup_benchmark.py -- 执行代理模型与高保真流程的速度对比基准测试。
-    * run_practical_speed_benchmark.py -- 记录实际运行环境下的 HF CPU 与 surrogate GPU 的 wall-clock 对比。
-    * run_ood_evaluation.py -- 对选定参数进行 OOD 外推测试，作为附录/讨论支撑。
-    * run_iter1_iter2_forward_compare.py -- 比较 iter1 与 iter2 输出在 forward UQ 下的统计差异。
-    * run_iter1_iter2_sobol_compare.py -- 比较 iter1 与 iter2 输出的 Sobol 主导因子变化。
+- E_speed_ood_and_supporting
+  说明: 速度、OOD 等补充性实验代码。
+    * run_speedup_benchmark
+      当前文件: run_speedup_benchmark.py
+      用途: 代理模型与高保真程序的速度对比脚本。
+    * run_practical_speed_benchmark
+      当前文件: run_practical_speed_benchmark.py
+      用途: 记录实际 wall-clock 的实用速度基准脚本。
+    * run_ood_evaluation
+      当前文件: run_ood_evaluation.py
+      用途: OOD 泛化评估脚本。
+
+- F_project_maintenance
+  说明: 项目维护和打包相关工具代码。
+    * bundle_code_to_txt
+      当前文件: bundle_code_to_txt.py
+      用途: 代码打包脚本本体。
+    * bundle_results_to_txt
+      当前文件: bundle_results_to_txt.py
+      用途: 结果打包脚本本体。
+    * cleanup_legacy_files
+      当前文件: cleanup_legacy_files.py
+      用途: 历史遗留文件整理脚本。
 
 
 ========================================================================================================================
 [分组] A_core_config_and_training
-[分组说明] 核心配置与统一训练入口，支撑所有下游分析。
+[分组说明] 模型定义、固定数据划分与训练主链。
 ========================================================================================================================
 
 ########################################################################################################################
-文件: paper_experiment_config.py
+逻辑名称: paper_experiment_config
 类别: A_core_config_and_training
-用途: 统一管理论文实验配置，包括输入/输出、主阈值、主输出、层级定义、路径与随机种子。
+用途: 统一管理论文实验配置，包括输入/输出、主输出、阈值、seed、路径等。
+实际文件: paper_experiment_config.py
 存在: 是
 大小: 3.6 KB
+修改时间: 2026-03-24 22:40:34
+候选路径:
+  - paper_experiment_config.py
 ------------------------------------------------------------------------------------------------------------------------
 # paper_experiment_config.py
 # ============================================================
@@ -172,11 +239,15 @@ PARAM_META = {
 }
 
 ########################################################################################################################
-文件: run_phys_levels_main.py
+逻辑名称: run_phys_levels_main
 类别: A_core_config_and_training
-用途: 主训练与主评估脚本，负责 baseline / regularized surrogate 的训练、测试和指标输出。
+用途: 核心模型定义、训练函数、基础评估函数所在主脚本，是下游所有实验的底层依赖。
+实际文件: run_phys_levels_main.py
 存在: 是
 大小: 30.9 KB
+修改时间: 2026-03-12 11:10:41
+候选路径:
+  - run_phys_levels_main.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_phys_levels_main.py
 # ============================================================
@@ -1046,480 +1117,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_prepare_fixed_surrogate.py
+逻辑名称: run_fixed_surrogate_train_base
 类别: A_core_config_and_training
-用途: 生成固定 train/val/test 划分并保存索引与数据文件，保证后续所有实验共享同一数据拆分。
-存在: 是
-大小: 14.5 KB
-------------------------------------------------------------------------------------------------------------------------
-# run_prepare_fixed_surrogate.py
-# ============================================================
-# Prepare one fixed surrogate for all downstream experiments
-#
-# This script ONLY does:
-#   1) freeze train/val/test split
-#   2) run Optuna hyperparameter search
-#   3) train one final surrogate
-#   4) save checkpoint / scalers / split / metrics / predictions
-#
-# Downstream scripts should ONLY load the saved artifacts,
-# and must NOT retrain a new neural network.
-# ============================================================
-
-import os
-import json
-import pickle
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-import torch
-import optuna
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-
-from paper_experiment_config import (
-    CSV_PATH,
-    OUT_DIR,
-    SEED,
-    TRIALS,
-    INPUT_COLS,
-    OUTPUT_COLS,
-    ITER1_IDX,
-    ITER2_IDX,
-    PRIMARY_OUTPUTS,
-)
-from run_phys_levels_main import (
-    load_dataset,
-    seed_all,
-    get_device,
-    ensure_dir,
-    summarize,
-    print_stats,
-    objective_factory,
-    train_with_params,
-    gaussian_nll,
-    compute_basic_metrics,
-    compute_prob_metrics_gaussian,
-    eval_inequality_violation,
-    _to_numpy,
-)
-
-# ============================================================
-# User settings
-# ============================================================
-
-LEVEL = 2                      # fixed surrogate level for downstream experiments
-TEST_FRAC = 0.15
-VAL_FRAC_WITHIN_TRAIN = 0.1765  # gives ~70/15/15 overall
-REMAKE_SPLIT = False           # True = overwrite frozen split
-RUN_TAG = "fixed_level2"
-
-# Optional: if you later want baseline fixed surrogate too, set LEVEL = 0 once and rerun.
-
-
-# ============================================================
-# Paths
-# ============================================================
-
-ROOT_OUT = Path(OUT_DIR)
-SPLIT_DIR = ROOT_OUT / "fixed_split"
-ART_DIR = ROOT_OUT / f"fixed_surrogate_{RUN_TAG}"
-
-SPLIT_META_JSON = SPLIT_DIR / "split_meta.json"
-TRAIN_CSV = SPLIT_DIR / "train.csv"
-VAL_CSV = SPLIT_DIR / "val.csv"
-TEST_CSV = SPLIT_DIR / "test.csv"
-TRAIN_IDX_CSV = SPLIT_DIR / "train_indices.csv"
-VAL_IDX_CSV = SPLIT_DIR / "val_indices.csv"
-TEST_IDX_CSV = SPLIT_DIR / "test_indices.csv"
-
-BEST_JSON = ART_DIR / f"best_level{LEVEL}.json"
-CKPT_PT = ART_DIR / f"checkpoint_level{LEVEL}.pt"
-SCALERS_PKL = ART_DIR / f"scalers_level{LEVEL}.pkl"
-META_STATS_JSON = ART_DIR / "meta_stats.json"
-METRICS_JSON = ART_DIR / f"metrics_level{LEVEL}.json"
-PER_DIM_CSV = ART_DIR / f"paper_metrics_per_dim_level{LEVEL}.csv"
-TEST_PRED_JSON = ART_DIR / f"test_predictions_level{LEVEL}.json"
-SANITY_CSV = ART_DIR / f"sanity_level{LEVEL}.csv"
-
-
-# ============================================================
-# Split helpers
-# ============================================================
-
-def save_split_indices(idx_train, idx_val, idx_test):
-    pd.DataFrame({"index": idx_train}).to_csv(TRAIN_IDX_CSV, index=False, encoding="utf-8-sig")
-    pd.DataFrame({"index": idx_val}).to_csv(VAL_IDX_CSV, index=False, encoding="utf-8-sig")
-    pd.DataFrame({"index": idx_test}).to_csv(TEST_IDX_CSV, index=False, encoding="utf-8-sig")
-
-
-def make_split_once(df: pd.DataFrame):
-    idx_all = np.arange(len(df))
-
-    idx_trainval, idx_test = train_test_split(
-        idx_all,
-        test_size=TEST_FRAC,
-        random_state=SEED,
-        shuffle=True,
-    )
-
-    idx_train, idx_val = train_test_split(
-        idx_trainval,
-        test_size=VAL_FRAC_WITHIN_TRAIN,
-        random_state=SEED,
-        shuffle=True,
-    )
-
-    idx_train = np.sort(idx_train)
-    idx_val = np.sort(idx_val)
-    idx_test = np.sort(idx_test)
-
-    df_train = df.iloc[idx_train].reset_index(drop=True)
-    df_val = df.iloc[idx_val].reset_index(drop=True)
-    df_test = df.iloc[idx_test].reset_index(drop=True)
-
-    save_split_indices(idx_train, idx_val, idx_test)
-
-    df_train.to_csv(TRAIN_CSV, index=False, encoding="utf-8-sig")
-    df_val.to_csv(VAL_CSV, index=False, encoding="utf-8-sig")
-    df_test.to_csv(TEST_CSV, index=False, encoding="utf-8-sig")
-
-    split_meta = {
-        "csv_path": CSV_PATH,
-        "seed": SEED,
-        "test_frac": TEST_FRAC,
-        "val_frac_within_train": VAL_FRAC_WITHIN_TRAIN,
-        "n_total": int(len(df)),
-        "n_train": int(len(df_train)),
-        "n_val": int(len(df_val)),
-        "n_test": int(len(df_test)),
-        "input_cols": INPUT_COLS,
-        "output_cols": OUTPUT_COLS,
-    }
-    with open(SPLIT_META_JSON, "w", encoding="utf-8") as f:
-        json.dump(split_meta, f, indent=2, ensure_ascii=False)
-
-    return df_train, df_val, df_test, idx_train, idx_val, idx_test
-
-
-def load_frozen_split():
-    df_train = pd.read_csv(TRAIN_CSV)
-    df_val = pd.read_csv(VAL_CSV)
-    df_test = pd.read_csv(TEST_CSV)
-
-    idx_train = pd.read_csv(TRAIN_IDX_CSV)["index"].to_numpy(dtype=int)
-    idx_val = pd.read_csv(VAL_IDX_CSV)["index"].to_numpy(dtype=int)
-    idx_test = pd.read_csv(TEST_IDX_CSV)["index"].to_numpy(dtype=int)
-
-    return df_train, df_val, df_test, idx_train, idx_val, idx_test
-
-
-def get_or_make_split(df: pd.DataFrame):
-    if (
-        (not REMAKE_SPLIT)
-        and TRAIN_CSV.exists()
-        and VAL_CSV.exists()
-        and TEST_CSV.exists()
-        and TRAIN_IDX_CSV.exists()
-        and VAL_IDX_CSV.exists()
-        and TEST_IDX_CSV.exists()
-        and SPLIT_META_JSON.exists()
-    ):
-        print("[INFO] Loading frozen split from disk.")
-        return load_frozen_split()
-
-    print("[INFO] Creating new frozen split.")
-    return make_split_once(df)
-
-
-# ============================================================
-# Prepare tensors + scalers
-# ============================================================
-
-def build_scaled_pack(df_train, df_val, df_test, device):
-    X_tr = df_train[INPUT_COLS].to_numpy(dtype=float)
-    Y_tr = df_train[OUTPUT_COLS].to_numpy(dtype=float)
-
-    X_va = df_val[INPUT_COLS].to_numpy(dtype=float)
-    Y_va = df_val[OUTPUT_COLS].to_numpy(dtype=float)
-
-    X_te = df_test[INPUT_COLS].to_numpy(dtype=float)
-    Y_te = df_test[OUTPUT_COLS].to_numpy(dtype=float)
-
-    sx = StandardScaler().fit(X_tr)
-    sy = StandardScaler().fit(Y_tr)
-
-    Xtr_s = sx.transform(X_tr)
-    Xva_s = sx.transform(X_va)
-    Xte_s = sx.transform(X_te)
-
-    Ytr_s = sy.transform(Y_tr)
-    Yva_s = sy.transform(Y_va)
-    Yte_s = sy.transform(Y_te)
-
-    delta_tr = Ytr_s[:, ITER2_IDX] - Ytr_s[:, ITER1_IDX]
-    bias_delta = delta_tr.mean(axis=0)
-    bias_delta_t = torch.tensor(bias_delta, dtype=torch.float32, device=device)
-
-    x_tr = torch.tensor(Xtr_s, dtype=torch.float32, device=device)
-    y_tr = torch.tensor(Ytr_s, dtype=torch.float32, device=device)
-    x_va = torch.tensor(Xva_s, dtype=torch.float32, device=device)
-    y_va = torch.tensor(Yva_s, dtype=torch.float32, device=device)
-    x_te = torch.tensor(Xte_s, dtype=torch.float32, device=device)
-    y_te = torch.tensor(Yte_s, dtype=torch.float32, device=device)
-
-    return {
-        "X_tr": X_tr, "Y_tr": Y_tr,
-        "X_va": X_va, "Y_va": Y_va,
-        "X_te": X_te, "Y_te": Y_te,
-        "Xtr_s": Xtr_s, "Ytr_s": Ytr_s,
-        "Xva_s": Xva_s, "Yva_s": Yva_s,
-        "Xte_s": Xte_s, "Yte_s": Yte_s,
-        "sx": sx, "sy": sy,
-        "x_tr": x_tr, "y_tr": y_tr,
-        "x_va": x_va, "y_va": y_va,
-        "x_te": x_te, "y_te": y_te,
-        "bias_delta_t": bias_delta_t,
-    }
-
-
-# ============================================================
-# Main
-# ============================================================
-
-def main():
-    seed_all(SEED)
-    ensure_dir(str(ROOT_OUT))
-    ensure_dir(str(SPLIT_DIR))
-    ensure_dir(str(ART_DIR))
-
-    device = get_device()
-    print(f"[INFO] device = {device}")
-
-    # 1) load full dataset
-    df = load_dataset()
-
-    in_stats = summarize(df, INPUT_COLS)
-    out_stats = summarize(df, OUTPUT_COLS)
-    print_stats("INPUT STATS", in_stats)
-    print_stats("OUTPUT STATS", out_stats)
-
-    with open(META_STATS_JSON, "w", encoding="utf-8") as f:
-        json.dump(
-            {
-                "input_stats": in_stats,
-                "output_stats": out_stats,
-                "input_cols": INPUT_COLS,
-                "output_cols": OUTPUT_COLS,
-            },
-            f,
-            indent=2,
-            ensure_ascii=False,
-        )
-
-    # 2) freeze split
-    df_train, df_val, df_test, idx_train, idx_val, idx_test = get_or_make_split(df)
-
-    # 3) build tensors/scalers
-    pack = build_scaled_pack(df_train, df_val, df_test, device)
-
-    # 4) hyperparameter search
-    print(f"\n================= OPTUNA FIXED SURROGATE LEVEL {LEVEL} =================")
-    study = optuna.create_study(
-        direction="minimize",
-        sampler=optuna.samplers.TPESampler(seed=SEED),
-        pruner=optuna.pruners.MedianPruner(n_warmup_steps=8),
-    )
-
-    study.optimize(
-        objective_factory(
-            level=LEVEL,
-            x_tr=pack["x_tr"],
-            y_tr=pack["y_tr"],
-            x_va=pack["x_va"],
-            y_va=pack["y_va"],
-            Xtr_np=pack["Xtr_s"],
-            Ytr_np=pack["Ytr_s"],
-            bias_delta_t=pack["bias_delta_t"],
-            device=device,
-        ),
-        n_trials=TRIALS
-    )
-
-    best_params = study.best_params
-    best_value = float(study.best_value)
-
-    with open(BEST_JSON, "w", encoding="utf-8") as f:
-        json.dump(
-            {
-                "level": LEVEL,
-                "best_value": best_value,
-                "best_params": best_params,
-                "run_tag": RUN_TAG,
-            },
-            f,
-            indent=2,
-            ensure_ascii=False,
-        )
-
-    print(f"[BEST] level={LEVEL}  value={best_value:.6g}")
-    print(best_params)
-
-    # 5) train final fixed surrogate
-    model, mono_pairs = train_with_params(
-        best_params=best_params,
-        level=LEVEL,
-        x_tr=pack["x_tr"],
-        y_tr=pack["y_tr"],
-        x_va=pack["x_va"],
-        y_va=pack["y_va"],
-        Xtr_np=pack["Xtr_s"],
-        Ytr_np=pack["Ytr_s"],
-        bias_delta_t=pack["bias_delta_t"],
-        device=device,
-    )
-
-    # 6) save checkpoint + scalers
-    torch.save(
-        {
-            "level": LEVEL,
-            "run_tag": RUN_TAG,
-            "best_params": best_params,
-            "model_state_dict": model.state_dict(),
-            "split_meta_path": str(SPLIT_META_JSON),
-            "train_indices_path": str(TRAIN_IDX_CSV),
-            "val_indices_path": str(VAL_IDX_CSV),
-            "test_indices_path": str(TEST_IDX_CSV),
-        },
-        CKPT_PT,
-    )
-
-    with open(SCALERS_PKL, "wb") as f:
-        pickle.dump({"sx": pack["sx"], "sy": pack["sy"]}, f)
-
-    # 7) evaluate on frozen test set
-    with torch.no_grad():
-        mu_te_s, logvar_te = model(pack["x_te"])
-        var_te_s = torch.exp(logvar_te)
-
-    mu_te_s_np = _to_numpy(mu_te_s)
-    y_te_s_np = _to_numpy(pack["y_te"])
-
-    mu_te = pack["sy"].inverse_transform(mu_te_s_np)
-    y_te_true = pack["sy"].inverse_transform(y_te_s_np)
-    sigma_te = np.sqrt(_to_numpy(var_te_s)) * pack["sy"].scale_
-
-    basic = compute_basic_metrics(y_te_true, mu_te)
-    prob90 = compute_prob_metrics_gaussian(y_te_true, mu_te, sigma_te, alpha=0.10)
-    test_nll = float(gaussian_nll(pack["y_te"], mu_te_s, logvar_te).item())
-
-    idx_map = {c: i for i, c in enumerate(OUTPUT_COLS)}
-    viol = eval_inequality_violation(mu_te, idx_map)
-
-    primary_idx = [OUTPUT_COLS.index(c) for c in PRIMARY_OUTPUTS]
-
-    metrics = {
-        "level": LEVEL,
-        "run_tag": RUN_TAG,
-        "fixed_surrogate": True,
-        "split_meta_path": str(SPLIT_META_JSON),
-        "test_nll_standardized": test_nll,
-        "basic_all_mean": {
-            "MAE_mean": float(np.mean(basic["MAE"])),
-            "RMSE_mean": float(np.mean(basic["RMSE"])),
-            "R2_mean": float(np.mean(basic["R2"])),
-        },
-        "basic_primary_mean": {
-            "MAE_mean": float(np.mean(basic["MAE"][primary_idx])),
-            "RMSE_mean": float(np.mean(basic["RMSE"][primary_idx])),
-            "R2_mean": float(np.mean(basic["R2"][primary_idx])),
-        },
-        "prob90_all_mean": {
-            "PICP_mean": float(np.mean(prob90["PICP"])),
-            "MPIW_mean": float(np.mean(prob90["MPIW"])),
-            "CRPS_mean": float(np.mean(prob90["CRPS"])),
-        },
-        "prob90_primary_mean": {
-            "PICP_mean": float(np.mean(prob90["PICP"][primary_idx])),
-            "MPIW_mean": float(np.mean(prob90["MPIW"][primary_idx])),
-            "CRPS_mean": float(np.mean(prob90["CRPS"][primary_idx])),
-        },
-        "ineq_violation_rates_on_mu": viol,
-        "n_train": int(len(df_train)),
-        "n_val": int(len(df_val)),
-        "n_test": int(len(df_test)),
-    }
-
-    with open(METRICS_JSON, "w", encoding="utf-8") as f:
-        json.dump(metrics, f, indent=2, ensure_ascii=False)
-
-    # 8) save per-dim table
-    per_dim_rows = []
-    for j, name in enumerate(OUTPUT_COLS):
-        per_dim_rows.append({
-            "level": LEVEL,
-            "run_tag": RUN_TAG,
-            "output": name,
-            "iter": "iter1" if j < 8 else "iter2",
-            "MAE": float(basic["MAE"][j]),
-            "RMSE": float(basic["RMSE"][j]),
-            "R2": float(basic["R2"][j]),
-            "PICP90": float(prob90["PICP"][j]),
-            "MPIW90": float(prob90["MPIW"][j]),
-            "CRPS": float(prob90["CRPS"][j]),
-        })
-    pd.DataFrame(per_dim_rows).to_csv(PER_DIM_CSV, index=False, encoding="utf-8-sig")
-
-    # 9) save raw test predictions
-    pred_dump = {
-        "level": LEVEL,
-        "run_tag": RUN_TAG,
-        "fixed_surrogate": True,
-        "y_true": y_te_true.tolist(),
-        "mu": mu_te.tolist(),
-        "sigma": sigma_te.tolist(),
-        "output_names": OUTPUT_COLS,
-        "split_meta_path": str(SPLIT_META_JSON),
-    }
-    with open(TEST_PRED_JSON, "w", encoding="utf-8") as f:
-        json.dump(pred_dump, f, indent=2, ensure_ascii=False)
-
-    # 10) save sanity csv
-    sanity_rows = []
-    for j, name in enumerate(OUTPUT_COLS):
-        yt = y_te_true[:, j]
-        yp = mu_te[:, j]
-        sanity_rows.append({
-            "output": name,
-            "y_true_mean": float(np.mean(yt)),
-            "y_true_std": float(np.std(yt)),
-            "y_pred_mean": float(np.mean(yp)),
-            "y_pred_std": float(np.std(yp)),
-            "y_true_min": float(np.min(yt)),
-            "y_true_max": float(np.max(yt)),
-            "y_pred_min": float(np.min(yp)),
-            "y_pred_max": float(np.max(yp)),
-        })
-    pd.DataFrame(sanity_rows).to_csv(SANITY_CSV, index=False, encoding="utf-8-sig")
-
-    print("\n[DONE] Fixed surrogate prepared successfully.")
-    print(f"[ART] split saved to: {SPLIT_DIR}")
-    print(f"[ART] surrogate artifacts saved to: {ART_DIR}")
-    print(f"[ART] checkpoint: {CKPT_PT}")
-    print(f"[ART] scalers:   {SCALERS_PKL}")
-    print(f"[ART] metrics:   {METRICS_JSON}")
-
-
-if __name__ == "__main__":
-    main()
-
-########################################################################################################################
-文件: run_fixed_surrogate_train_base.py
-类别: A_core_config_and_training
-用途: 在固定数据划分上训练 baseline surrogate，作为与正则化模型对照的统一基线。
+用途: 固定数据划分上的 baseline/base 模型训练脚本。
+实际文件: run_fixed_surrogate_train_base.py
 存在: 是
 大小: 14.9 KB
+修改时间: 2026-03-25 15:57:31
+候选路径:
+  - run_fixed_surrogate_train_base.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_fixed_surrogate_train_base.py
 # ============================================================
@@ -2018,17 +1624,495 @@ def main():
 if __name__ == "__main__":
     main()
 
+########################################################################################################################
+逻辑名称: run_prepare_fixed_surrogate
+类别: A_core_config_and_training
+用途: 固定 split 的准备脚本，用于冻结 train/val/test 划分。
+实际文件: run_prepare_fixed_surrogate.py
+存在: 是
+大小: 14.5 KB
+修改时间: 2026-03-24 21:41:08
+候选路径:
+  - run_prepare_fixed_surrogate.py
+------------------------------------------------------------------------------------------------------------------------
+# run_prepare_fixed_surrogate.py
+# ============================================================
+# Prepare one fixed surrogate for all downstream experiments
+#
+# This script ONLY does:
+#   1) freeze train/val/test split
+#   2) run Optuna hyperparameter search
+#   3) train one final surrogate
+#   4) save checkpoint / scalers / split / metrics / predictions
+#
+# Downstream scripts should ONLY load the saved artifacts,
+# and must NOT retrain a new neural network.
+# ============================================================
+
+import os
+import json
+import pickle
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
+import optuna
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from paper_experiment_config import (
+    CSV_PATH,
+    OUT_DIR,
+    SEED,
+    TRIALS,
+    INPUT_COLS,
+    OUTPUT_COLS,
+    ITER1_IDX,
+    ITER2_IDX,
+    PRIMARY_OUTPUTS,
+)
+from run_phys_levels_main import (
+    load_dataset,
+    seed_all,
+    get_device,
+    ensure_dir,
+    summarize,
+    print_stats,
+    objective_factory,
+    train_with_params,
+    gaussian_nll,
+    compute_basic_metrics,
+    compute_prob_metrics_gaussian,
+    eval_inequality_violation,
+    _to_numpy,
+)
+
+# ============================================================
+# User settings
+# ============================================================
+
+LEVEL = 2                      # fixed surrogate level for downstream experiments
+TEST_FRAC = 0.15
+VAL_FRAC_WITHIN_TRAIN = 0.1765  # gives ~70/15/15 overall
+REMAKE_SPLIT = False           # True = overwrite frozen split
+RUN_TAG = "fixed_level2"
+
+# Optional: if you later want baseline fixed surrogate too, set LEVEL = 0 once and rerun.
+
+
+# ============================================================
+# Paths
+# ============================================================
+
+ROOT_OUT = Path(OUT_DIR)
+SPLIT_DIR = ROOT_OUT / "fixed_split"
+ART_DIR = ROOT_OUT / f"fixed_surrogate_{RUN_TAG}"
+
+SPLIT_META_JSON = SPLIT_DIR / "split_meta.json"
+TRAIN_CSV = SPLIT_DIR / "train.csv"
+VAL_CSV = SPLIT_DIR / "val.csv"
+TEST_CSV = SPLIT_DIR / "test.csv"
+TRAIN_IDX_CSV = SPLIT_DIR / "train_indices.csv"
+VAL_IDX_CSV = SPLIT_DIR / "val_indices.csv"
+TEST_IDX_CSV = SPLIT_DIR / "test_indices.csv"
+
+BEST_JSON = ART_DIR / f"best_level{LEVEL}.json"
+CKPT_PT = ART_DIR / f"checkpoint_level{LEVEL}.pt"
+SCALERS_PKL = ART_DIR / f"scalers_level{LEVEL}.pkl"
+META_STATS_JSON = ART_DIR / "meta_stats.json"
+METRICS_JSON = ART_DIR / f"metrics_level{LEVEL}.json"
+PER_DIM_CSV = ART_DIR / f"paper_metrics_per_dim_level{LEVEL}.csv"
+TEST_PRED_JSON = ART_DIR / f"test_predictions_level{LEVEL}.json"
+SANITY_CSV = ART_DIR / f"sanity_level{LEVEL}.csv"
+
+
+# ============================================================
+# Split helpers
+# ============================================================
+
+def save_split_indices(idx_train, idx_val, idx_test):
+    pd.DataFrame({"index": idx_train}).to_csv(TRAIN_IDX_CSV, index=False, encoding="utf-8-sig")
+    pd.DataFrame({"index": idx_val}).to_csv(VAL_IDX_CSV, index=False, encoding="utf-8-sig")
+    pd.DataFrame({"index": idx_test}).to_csv(TEST_IDX_CSV, index=False, encoding="utf-8-sig")
+
+
+def make_split_once(df: pd.DataFrame):
+    idx_all = np.arange(len(df))
+
+    idx_trainval, idx_test = train_test_split(
+        idx_all,
+        test_size=TEST_FRAC,
+        random_state=SEED,
+        shuffle=True,
+    )
+
+    idx_train, idx_val = train_test_split(
+        idx_trainval,
+        test_size=VAL_FRAC_WITHIN_TRAIN,
+        random_state=SEED,
+        shuffle=True,
+    )
+
+    idx_train = np.sort(idx_train)
+    idx_val = np.sort(idx_val)
+    idx_test = np.sort(idx_test)
+
+    df_train = df.iloc[idx_train].reset_index(drop=True)
+    df_val = df.iloc[idx_val].reset_index(drop=True)
+    df_test = df.iloc[idx_test].reset_index(drop=True)
+
+    save_split_indices(idx_train, idx_val, idx_test)
+
+    df_train.to_csv(TRAIN_CSV, index=False, encoding="utf-8-sig")
+    df_val.to_csv(VAL_CSV, index=False, encoding="utf-8-sig")
+    df_test.to_csv(TEST_CSV, index=False, encoding="utf-8-sig")
+
+    split_meta = {
+        "csv_path": CSV_PATH,
+        "seed": SEED,
+        "test_frac": TEST_FRAC,
+        "val_frac_within_train": VAL_FRAC_WITHIN_TRAIN,
+        "n_total": int(len(df)),
+        "n_train": int(len(df_train)),
+        "n_val": int(len(df_val)),
+        "n_test": int(len(df_test)),
+        "input_cols": INPUT_COLS,
+        "output_cols": OUTPUT_COLS,
+    }
+    with open(SPLIT_META_JSON, "w", encoding="utf-8") as f:
+        json.dump(split_meta, f, indent=2, ensure_ascii=False)
+
+    return df_train, df_val, df_test, idx_train, idx_val, idx_test
+
+
+def load_frozen_split():
+    df_train = pd.read_csv(TRAIN_CSV)
+    df_val = pd.read_csv(VAL_CSV)
+    df_test = pd.read_csv(TEST_CSV)
+
+    idx_train = pd.read_csv(TRAIN_IDX_CSV)["index"].to_numpy(dtype=int)
+    idx_val = pd.read_csv(VAL_IDX_CSV)["index"].to_numpy(dtype=int)
+    idx_test = pd.read_csv(TEST_IDX_CSV)["index"].to_numpy(dtype=int)
+
+    return df_train, df_val, df_test, idx_train, idx_val, idx_test
+
+
+def get_or_make_split(df: pd.DataFrame):
+    if (
+        (not REMAKE_SPLIT)
+        and TRAIN_CSV.exists()
+        and VAL_CSV.exists()
+        and TEST_CSV.exists()
+        and TRAIN_IDX_CSV.exists()
+        and VAL_IDX_CSV.exists()
+        and TEST_IDX_CSV.exists()
+        and SPLIT_META_JSON.exists()
+    ):
+        print("[INFO] Loading frozen split from disk.")
+        return load_frozen_split()
+
+    print("[INFO] Creating new frozen split.")
+    return make_split_once(df)
+
+
+# ============================================================
+# Prepare tensors + scalers
+# ============================================================
+
+def build_scaled_pack(df_train, df_val, df_test, device):
+    X_tr = df_train[INPUT_COLS].to_numpy(dtype=float)
+    Y_tr = df_train[OUTPUT_COLS].to_numpy(dtype=float)
+
+    X_va = df_val[INPUT_COLS].to_numpy(dtype=float)
+    Y_va = df_val[OUTPUT_COLS].to_numpy(dtype=float)
+
+    X_te = df_test[INPUT_COLS].to_numpy(dtype=float)
+    Y_te = df_test[OUTPUT_COLS].to_numpy(dtype=float)
+
+    sx = StandardScaler().fit(X_tr)
+    sy = StandardScaler().fit(Y_tr)
+
+    Xtr_s = sx.transform(X_tr)
+    Xva_s = sx.transform(X_va)
+    Xte_s = sx.transform(X_te)
+
+    Ytr_s = sy.transform(Y_tr)
+    Yva_s = sy.transform(Y_va)
+    Yte_s = sy.transform(Y_te)
+
+    delta_tr = Ytr_s[:, ITER2_IDX] - Ytr_s[:, ITER1_IDX]
+    bias_delta = delta_tr.mean(axis=0)
+    bias_delta_t = torch.tensor(bias_delta, dtype=torch.float32, device=device)
+
+    x_tr = torch.tensor(Xtr_s, dtype=torch.float32, device=device)
+    y_tr = torch.tensor(Ytr_s, dtype=torch.float32, device=device)
+    x_va = torch.tensor(Xva_s, dtype=torch.float32, device=device)
+    y_va = torch.tensor(Yva_s, dtype=torch.float32, device=device)
+    x_te = torch.tensor(Xte_s, dtype=torch.float32, device=device)
+    y_te = torch.tensor(Yte_s, dtype=torch.float32, device=device)
+
+    return {
+        "X_tr": X_tr, "Y_tr": Y_tr,
+        "X_va": X_va, "Y_va": Y_va,
+        "X_te": X_te, "Y_te": Y_te,
+        "Xtr_s": Xtr_s, "Ytr_s": Ytr_s,
+        "Xva_s": Xva_s, "Yva_s": Yva_s,
+        "Xte_s": Xte_s, "Yte_s": Yte_s,
+        "sx": sx, "sy": sy,
+        "x_tr": x_tr, "y_tr": y_tr,
+        "x_va": x_va, "y_va": y_va,
+        "x_te": x_te, "y_te": y_te,
+        "bias_delta_t": bias_delta_t,
+    }
+
+
+# ============================================================
+# Main
+# ============================================================
+
+def main():
+    seed_all(SEED)
+    ensure_dir(str(ROOT_OUT))
+    ensure_dir(str(SPLIT_DIR))
+    ensure_dir(str(ART_DIR))
+
+    device = get_device()
+    print(f"[INFO] device = {device}")
+
+    # 1) load full dataset
+    df = load_dataset()
+
+    in_stats = summarize(df, INPUT_COLS)
+    out_stats = summarize(df, OUTPUT_COLS)
+    print_stats("INPUT STATS", in_stats)
+    print_stats("OUTPUT STATS", out_stats)
+
+    with open(META_STATS_JSON, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "input_stats": in_stats,
+                "output_stats": out_stats,
+                "input_cols": INPUT_COLS,
+                "output_cols": OUTPUT_COLS,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    # 2) freeze split
+    df_train, df_val, df_test, idx_train, idx_val, idx_test = get_or_make_split(df)
+
+    # 3) build tensors/scalers
+    pack = build_scaled_pack(df_train, df_val, df_test, device)
+
+    # 4) hyperparameter search
+    print(f"\n================= OPTUNA FIXED SURROGATE LEVEL {LEVEL} =================")
+    study = optuna.create_study(
+        direction="minimize",
+        sampler=optuna.samplers.TPESampler(seed=SEED),
+        pruner=optuna.pruners.MedianPruner(n_warmup_steps=8),
+    )
+
+    study.optimize(
+        objective_factory(
+            level=LEVEL,
+            x_tr=pack["x_tr"],
+            y_tr=pack["y_tr"],
+            x_va=pack["x_va"],
+            y_va=pack["y_va"],
+            Xtr_np=pack["Xtr_s"],
+            Ytr_np=pack["Ytr_s"],
+            bias_delta_t=pack["bias_delta_t"],
+            device=device,
+        ),
+        n_trials=TRIALS
+    )
+
+    best_params = study.best_params
+    best_value = float(study.best_value)
+
+    with open(BEST_JSON, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "level": LEVEL,
+                "best_value": best_value,
+                "best_params": best_params,
+                "run_tag": RUN_TAG,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    print(f"[BEST] level={LEVEL}  value={best_value:.6g}")
+    print(best_params)
+
+    # 5) train final fixed surrogate
+    model, mono_pairs = train_with_params(
+        best_params=best_params,
+        level=LEVEL,
+        x_tr=pack["x_tr"],
+        y_tr=pack["y_tr"],
+        x_va=pack["x_va"],
+        y_va=pack["y_va"],
+        Xtr_np=pack["Xtr_s"],
+        Ytr_np=pack["Ytr_s"],
+        bias_delta_t=pack["bias_delta_t"],
+        device=device,
+    )
+
+    # 6) save checkpoint + scalers
+    torch.save(
+        {
+            "level": LEVEL,
+            "run_tag": RUN_TAG,
+            "best_params": best_params,
+            "model_state_dict": model.state_dict(),
+            "split_meta_path": str(SPLIT_META_JSON),
+            "train_indices_path": str(TRAIN_IDX_CSV),
+            "val_indices_path": str(VAL_IDX_CSV),
+            "test_indices_path": str(TEST_IDX_CSV),
+        },
+        CKPT_PT,
+    )
+
+    with open(SCALERS_PKL, "wb") as f:
+        pickle.dump({"sx": pack["sx"], "sy": pack["sy"]}, f)
+
+    # 7) evaluate on frozen test set
+    with torch.no_grad():
+        mu_te_s, logvar_te = model(pack["x_te"])
+        var_te_s = torch.exp(logvar_te)
+
+    mu_te_s_np = _to_numpy(mu_te_s)
+    y_te_s_np = _to_numpy(pack["y_te"])
+
+    mu_te = pack["sy"].inverse_transform(mu_te_s_np)
+    y_te_true = pack["sy"].inverse_transform(y_te_s_np)
+    sigma_te = np.sqrt(_to_numpy(var_te_s)) * pack["sy"].scale_
+
+    basic = compute_basic_metrics(y_te_true, mu_te)
+    prob90 = compute_prob_metrics_gaussian(y_te_true, mu_te, sigma_te, alpha=0.10)
+    test_nll = float(gaussian_nll(pack["y_te"], mu_te_s, logvar_te).item())
+
+    idx_map = {c: i for i, c in enumerate(OUTPUT_COLS)}
+    viol = eval_inequality_violation(mu_te, idx_map)
+
+    primary_idx = [OUTPUT_COLS.index(c) for c in PRIMARY_OUTPUTS]
+
+    metrics = {
+        "level": LEVEL,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "split_meta_path": str(SPLIT_META_JSON),
+        "test_nll_standardized": test_nll,
+        "basic_all_mean": {
+            "MAE_mean": float(np.mean(basic["MAE"])),
+            "RMSE_mean": float(np.mean(basic["RMSE"])),
+            "R2_mean": float(np.mean(basic["R2"])),
+        },
+        "basic_primary_mean": {
+            "MAE_mean": float(np.mean(basic["MAE"][primary_idx])),
+            "RMSE_mean": float(np.mean(basic["RMSE"][primary_idx])),
+            "R2_mean": float(np.mean(basic["R2"][primary_idx])),
+        },
+        "prob90_all_mean": {
+            "PICP_mean": float(np.mean(prob90["PICP"])),
+            "MPIW_mean": float(np.mean(prob90["MPIW"])),
+            "CRPS_mean": float(np.mean(prob90["CRPS"])),
+        },
+        "prob90_primary_mean": {
+            "PICP_mean": float(np.mean(prob90["PICP"][primary_idx])),
+            "MPIW_mean": float(np.mean(prob90["MPIW"][primary_idx])),
+            "CRPS_mean": float(np.mean(prob90["CRPS"][primary_idx])),
+        },
+        "ineq_violation_rates_on_mu": viol,
+        "n_train": int(len(df_train)),
+        "n_val": int(len(df_val)),
+        "n_test": int(len(df_test)),
+    }
+
+    with open(METRICS_JSON, "w", encoding="utf-8") as f:
+        json.dump(metrics, f, indent=2, ensure_ascii=False)
+
+    # 8) save per-dim table
+    per_dim_rows = []
+    for j, name in enumerate(OUTPUT_COLS):
+        per_dim_rows.append({
+            "level": LEVEL,
+            "run_tag": RUN_TAG,
+            "output": name,
+            "iter": "iter1" if j < 8 else "iter2",
+            "MAE": float(basic["MAE"][j]),
+            "RMSE": float(basic["RMSE"][j]),
+            "R2": float(basic["R2"][j]),
+            "PICP90": float(prob90["PICP"][j]),
+            "MPIW90": float(prob90["MPIW"][j]),
+            "CRPS": float(prob90["CRPS"][j]),
+        })
+    pd.DataFrame(per_dim_rows).to_csv(PER_DIM_CSV, index=False, encoding="utf-8-sig")
+
+    # 9) save raw test predictions
+    pred_dump = {
+        "level": LEVEL,
+        "run_tag": RUN_TAG,
+        "fixed_surrogate": True,
+        "y_true": y_te_true.tolist(),
+        "mu": mu_te.tolist(),
+        "sigma": sigma_te.tolist(),
+        "output_names": OUTPUT_COLS,
+        "split_meta_path": str(SPLIT_META_JSON),
+    }
+    with open(TEST_PRED_JSON, "w", encoding="utf-8") as f:
+        json.dump(pred_dump, f, indent=2, ensure_ascii=False)
+
+    # 10) save sanity csv
+    sanity_rows = []
+    for j, name in enumerate(OUTPUT_COLS):
+        yt = y_te_true[:, j]
+        yp = mu_te[:, j]
+        sanity_rows.append({
+            "output": name,
+            "y_true_mean": float(np.mean(yt)),
+            "y_true_std": float(np.std(yt)),
+            "y_pred_mean": float(np.mean(yp)),
+            "y_pred_std": float(np.std(yp)),
+            "y_true_min": float(np.min(yt)),
+            "y_true_max": float(np.max(yt)),
+            "y_pred_min": float(np.min(yp)),
+            "y_pred_max": float(np.max(yp)),
+        })
+    pd.DataFrame(sanity_rows).to_csv(SANITY_CSV, index=False, encoding="utf-8-sig")
+
+    print("\n[DONE] Fixed surrogate prepared successfully.")
+    print(f"[ART] split saved to: {SPLIT_DIR}")
+    print(f"[ART] surrogate artifacts saved to: {ART_DIR}")
+    print(f"[ART] checkpoint: {CKPT_PT}")
+    print(f"[ART] scalers:   {SCALERS_PKL}")
+    print(f"[ART] metrics:   {METRICS_JSON}")
+
+
+if __name__ == "__main__":
+    main()
+
 ========================================================================================================================
-[分组] B_forward_risk_sensitivity
-[分组说明] 主文的正向不确定性传播、风险量化与全局敏感性主链。
+[分组] B_forward_uq_and_risk
+[分组说明] 正向不确定性传播与风险分析主链。
 ========================================================================================================================
 
 ########################################################################################################################
-文件: run_forward_uq_analysis.py
-类别: B_forward_risk_sensitivity
-用途: 基于固定 surrogate 进行正向不确定性传播，输出分布统计、CVR 和失效概率。
+逻辑名称: run_forward_uq_analysis
+类别: B_forward_uq_and_risk
+用途: 正向不确定性传播主脚本，导出输出分布、失效概率、联合样本和 CVR。
+实际文件: run_forward_uq_analysis.py
 存在: 是
 大小: 12.2 KB
+修改时间: 2026-03-26 20:10:23
+候选路径:
+  - run_forward_uq_analysis.py
+  - new_run_forward_uq_analysis.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_forward_uq_analysis.py
 # ============================================================
@@ -2422,11 +2506,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_safety_threshold_analysis.py
-类别: B_forward_risk_sensitivity
-用途: 针对主应力阈值进行 test-set 风险分析，比较 predictive probability、mean-only 判断与真实标签。
+逻辑名称: run_safety_threshold_analysis
+类别: B_forward_uq_and_risk
+用途: 测试集阈值风险分析脚本，用于比较 truth / mean / predictive risk。
+实际文件: run_safety_threshold_analysis.py
 存在: 是
 大小: 4.0 KB
+修改时间: 2026-03-11 14:49:26
+候选路径:
+  - run_safety_threshold_analysis.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_safety_threshold_analysis.py
 # ============================================================
@@ -2558,11 +2646,417 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_sobol_analysis.py
-类别: B_forward_risk_sensitivity
-用途: 执行 Sobol 全局敏感性分析，输出 S1/ST 指标及其不确定性统计。
+逻辑名称: plot_forward_uq_and_sobol_figures
+类别: B_forward_uq_and_risk
+用途: forward UQ、threshold risk、Sobol、CVR 等主文图绘图脚本。
+实际文件: plot_forward_uq_and_sobol_figures.py
+存在: 是
+大小: 12.2 KB
+修改时间: 2026-03-17 00:59:59
+候选路径:
+  - plot_forward_uq_and_sobol_figures.py
+------------------------------------------------------------------------------------------------------------------------
+# plot_forward_uq_and_sobol_figures.py
+# ============================================================
+# Purpose:
+#   Plot forward-UQ and Sobol figures directly from saved result files.
+#
+# This script DOES NOT retrain any model.
+# It only reads saved summary CSVs and exports figures.
+#
+# Required input files:
+#   1) paper_forward_uq_summary.csv
+#      - used for: forward-UQ global summary and threshold risk
+#
+#   2) forward_uq_primary_outputs_level0.csv
+#      - used for: primary output distribution summary (baseline)
+#
+#   3) forward_uq_primary_outputs_level2.csv
+#      - used for: primary output distribution summary (regularized)
+#
+#   4) forward_uq_failure_prob_level0.csv
+#      - used for: threshold-risk curve (baseline)
+#
+#   5) forward_uq_failure_prob_level2.csv
+#      - used for: threshold-risk curve (regularized)
+#
+#   6) forward_uq_cvr_level0.csv
+#      - used for: CVR bar chart (baseline)
+#
+#   7) forward_uq_cvr_level2.csv
+#      - used for: CVR bar chart (regularized)
+#
+#   8) paper_sobol_results.csv
+#      - used for: Sobol bar charts
+#
+# Optional input files:
+#   9) forward_uq_joint_stress_keff_level0.csv
+#   10) forward_uq_joint_stress_keff_level2.csv
+#      - used for: stress-keff joint scatter
+#
+# ============================================================
+
+import os
+import json
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ============================================================
+# User settings
+# ============================================================
+
+OUT_DIR = "./experiments_phys_levels"
+FIG_DIR = os.path.join(OUT_DIR, "paper_forward_figures_final")
+
+PRIMARY_OUTPUTS = [
+    "iteration2_keff",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_max_global_stress",
+    "iteration2_wall2",
+]
+
+PRIMARY_STRESS_OUTPUT = "iteration2_max_global_stress"
+PRIMARY_KEFF_OUTPUT = "iteration2_keff"
+
+THRESHOLDS = [110.0, 120.0, 131.0]
+
+DPI = 300
+
+# Which outputs to show for Sobol
+SOBOL_OUTPUTS = [
+    "iteration2_max_global_stress",
+    "iteration2_keff",
+]
+
+# ============================================================
+# Utilities
+# ============================================================
+
+def ensure_dir(path: str):
+    os.makedirs(path, exist_ok=True)
+
+
+def load_csv_required(path: str) -> pd.DataFrame:
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Missing required file: {path}")
+    return pd.read_csv(path)
+
+
+def load_csv_optional(path: str):
+    if not os.path.exists(path):
+        return None
+    return pd.read_csv(path)
+
+
+def savefig(path: str):
+    plt.tight_layout()
+    plt.savefig(path, dpi=DPI, bbox_inches="tight")
+    plt.close()
+
+
+# ============================================================
+# Figure 1
+# Forward-UQ distribution summary for primary outputs
+#
+# Files used:
+#   - forward_uq_primary_outputs_level0.csv
+#   - forward_uq_primary_outputs_level2.csv
+#
+# Meaning:
+#   Compare mean / q05 / q50 / q95 for the five primary outputs
+#   between baseline and regularized model.
+# ============================================================
+
+def plot_primary_output_distributions(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2))
+
+    # Panel A: stress
+    for ax, outputs, title in zip(
+        axes,
+        [
+            ["iteration2_max_global_stress"],
+            ["iteration2_max_fuel_temp", "iteration2_max_monolith_temp"],
+            ["iteration2_wall2", "iteration2_keff"],
+        ],
+        [
+            "Stress",
+            "Temperatures",
+            "Geometry + reactivity",
+        ]
+    ):
+        sub0 = df0[df0["output"].isin(outputs)].copy()
+        sub2 = df2[df2["output"].isin(outputs)].copy()
+
+        # keep same order as outputs list
+        sub0["output"] = pd.Categorical(sub0["output"], categories=outputs, ordered=True)
+        sub2["output"] = pd.Categorical(sub2["output"], categories=outputs, ordered=True)
+        sub0 = sub0.sort_values("output")
+        sub2 = sub2.sort_values("output")
+
+        x = np.arange(len(outputs))
+        offset = 0.12
+
+        # baseline
+        ax.errorbar(
+            x - offset,
+            sub0["q50"],
+            yerr=[sub0["q50"] - sub0["q05"], sub0["q95"] - sub0["q50"]],
+            fmt="o",
+            capsize=4,
+            label="Baseline (Level0)"
+        )
+
+        # regularized
+        ax.errorbar(
+            x + offset,
+            sub2["q50"],
+            yerr=[sub2["q50"] - sub2["q05"], sub2["q95"] - sub2["q50"]],
+            fmt="s",
+            capsize=4,
+            label="Regularized (Level2)"
+        )
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(outputs, rotation=30, ha="right")
+        ax.set_title(title)
+        ax.set_ylabel("Value")
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=True)
+    fig.suptitle("Forward uncertainty propagation: primary output distributions", y=1.03)
+    savefig(save_path)
+
+
+# ============================================================
+# Figure 2
+# Threshold-risk curve
+#
+# Files used:
+#   - forward_uq_failure_prob_level0.csv
+#   - forward_uq_failure_prob_level2.csv
+#
+# Meaning:
+#   Show failure probability vs stress threshold
+# ============================================================
+
+def plot_threshold_risk_curve(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
+    plt.figure(figsize=(6.0, 4.5))
+    plt.plot(df0["threshold_MPa"], df0["p_fail"], marker="o", label="Baseline (Level0)")
+    plt.plot(df2["threshold_MPa"], df2["p_fail"], marker="s", label="Regularized (Level2)")
+    plt.xlabel("Stress threshold (MPa)")
+    plt.ylabel("Failure probability")
+    plt.title("Stress exceedance probability versus threshold")
+    plt.legend(frameon=True)
+    savefig(save_path)
+
+
+# ============================================================
+# Figure 3
+# CVR / uncertainty amplification
+#
+# Files used:
+#   - forward_uq_cvr_level0.csv
+#   - forward_uq_cvr_level2.csv
+#
+# Meaning:
+#   Show which output amplifies uncertainty most strongly
+# ============================================================
+
+def plot_cvr_comparison(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
+    # keep only primary outputs and fixed order
+    df0 = df0.set_index("output").loc[PRIMARY_OUTPUTS].reset_index()
+    df2 = df2.set_index("output").loc[PRIMARY_OUTPUTS].reset_index()
+
+    x = np.arange(len(PRIMARY_OUTPUTS))
+    width = 0.35
+
+    plt.figure(figsize=(7.6, 4.8))
+    plt.bar(x - width/2, df0["CVR"], width=width, label="Baseline (Level0)")
+    plt.bar(x + width/2, df2["CVR"], width=width, label="Regularized (Level2)")
+    plt.xticks(x, PRIMARY_OUTPUTS, rotation=30, ha="right")
+    plt.ylabel("CVR")
+    plt.title("Uncertainty amplification across primary outputs")
+    plt.legend(frameon=True)
+    savefig(save_path)
+
+
+# ============================================================
+# Figure 4
+# Sobol bars for stress and keff
+#
+# File used:
+#   - paper_sobol_results.csv
+#
+# Meaning:
+#   Show dominant uncertainty sources for the key outputs
+# ============================================================
+
+def plot_sobol_bars(df_sobol: pd.DataFrame, save_path: str):
+    fig, axes = plt.subplots(1, len(SOBOL_OUTPUTS), figsize=(12.0, 4.8), sharey=False)
+    if len(SOBOL_OUTPUTS) == 1:
+        axes = [axes]
+
+    for ax, out_name in zip(axes, SOBOL_OUTPUTS):
+        sub = df_sobol[df_sobol["output"] == out_name].copy()
+
+        # 0 vs 2 only
+        sub = sub[sub["level"].isin([0, 2])]
+
+        # pivot into wide format
+        p0 = sub[sub["level"] == 0].set_index("input")
+        p2 = sub[sub["level"] == 2].set_index("input")
+
+        inputs = list(p0.index)
+        x = np.arange(len(inputs))
+        width = 0.35
+
+        ax.bar(x - width/2, p0.loc[inputs, "S1"], width=width, label="Level0 S1")
+        ax.bar(x + width/2, p2.loc[inputs, "S1"], width=width, label="Level2 S1")
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(inputs, rotation=30, ha="right")
+        ax.set_ylabel("First-order Sobol index")
+        ax.set_title(out_name)
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=True)
+    fig.suptitle("Variance-based global sensitivity analysis", y=1.03)
+    savefig(save_path)
+
+
+# ============================================================
+# Figure 5 (optional)
+# Stress-keff joint scatter
+#
+# Files used:
+#   - forward_uq_joint_stress_keff_level0.csv
+#   - forward_uq_joint_stress_keff_level2.csv
+#
+# Meaning:
+#   Show the coupled forward-UQ joint response of stress and keff
+# ============================================================
+
+def plot_joint_stress_keff(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
+    if df0 is None or df2 is None:
+        print("[SKIP] joint stress-keff files not found")
+        return
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.6), sharex=True, sharey=True)
+
+    axes[0].scatter(
+        df0["iteration2_max_global_stress"],
+        df0["iteration2_keff"],
+        s=8
+    )
+    axes[0].set_title("Baseline (Level0)")
+    axes[0].set_xlabel("iteration2_max_global_stress")
+    axes[0].set_ylabel("iteration2_keff")
+
+    axes[1].scatter(
+        df2["iteration2_max_global_stress"],
+        df2["iteration2_keff"],
+        s=8
+    )
+    axes[1].set_title("Regularized (Level2)")
+    axes[1].set_xlabel("iteration2_max_global_stress")
+
+    fig.suptitle("Joint forward-UQ response of stress and keff", y=1.02)
+    savefig(save_path)
+
+
+# ============================================================
+# Main
+# ============================================================
+
+def main():
+    ensure_dir(FIG_DIR)
+
+    # Required files
+    df_forward_summary = load_csv_required(os.path.join(OUT_DIR, "paper_forward_uq_summary.csv"))
+    df_primary0 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_primary_outputs_level0.csv"))
+    df_primary2 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_primary_outputs_level2.csv"))
+    df_fail0 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_failure_prob_level0.csv"))
+    df_fail2 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_failure_prob_level2.csv"))
+    df_cvr0 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_cvr_level0.csv"))
+    df_cvr2 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_cvr_level2.csv"))
+    df_sobol = load_csv_required(os.path.join(OUT_DIR, "paper_sobol_results.csv"))
+
+    # Optional files
+    df_joint0 = load_csv_optional(os.path.join(OUT_DIR, "forward_uq_joint_stress_keff_level0.csv"))
+    df_joint2 = load_csv_optional(os.path.join(OUT_DIR, "forward_uq_joint_stress_keff_level2.csv"))
+
+    # Export figures
+    plot_primary_output_distributions(
+        df_primary0, df_primary2,
+        os.path.join(FIG_DIR, "forward_primary_output_distributions.png")
+    )
+
+    plot_threshold_risk_curve(
+        df_fail0, df_fail2,
+        os.path.join(FIG_DIR, "forward_threshold_risk_curve.png")
+    )
+
+    plot_cvr_comparison(
+        df_cvr0, df_cvr2,
+        os.path.join(FIG_DIR, "forward_cvr_comparison.png")
+    )
+
+    plot_sobol_bars(
+        df_sobol,
+        os.path.join(FIG_DIR, "forward_sobol_bars.png")
+    )
+
+    plot_joint_stress_keff(
+        df_joint0, df_joint2,
+        os.path.join(FIG_DIR, "forward_joint_stress_keff.png")
+    )
+
+    summary = {
+        "figure_dir": FIG_DIR,
+        "main_figure_files": [
+            "forward_primary_output_distributions.png",
+            "forward_threshold_risk_curve.png",
+            "forward_cvr_comparison.png",
+            "forward_sobol_bars.png",
+        ],
+        "optional_figure_files": [
+            "forward_joint_stress_keff.png",
+        ],
+        "notes": [
+            "Main-text priority: threshold risk curve, CVR comparison, Sobol bars.",
+            "Primary-output distribution figure is split into 3 panels to avoid unreadable mixed scales.",
+            "Joint stress-keff scatter is optional and more suitable for appendix or discussion.",
+            "This script only reads saved result files and does not rerun forward-UQ or Sobol analysis."
+        ]
+    }
+
+    with open(os.path.join(FIG_DIR, "plotting_readme.json"), "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2, ensure_ascii=False)
+
+    print("[DONE] Forward-UQ / Sobol plotting script finished.")
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
+
+========================================================================================================================
+[分组] C_sensitivity_and_comparison
+[分组说明] Sobol、数据集敏感性与模型对比分析主链。
+========================================================================================================================
+
+########################################################################################################################
+逻辑名称: run_sobol_analysis
+类别: C_sensitivity_and_comparison
+用途: Sobol 全局敏感性分析主脚本。
+实际文件: run_sobol_analysis.py
 存在: 是
 大小: 8.2 KB
+修改时间: 2026-03-26 20:18:14
+候选路径:
+  - run_sobol_analysis.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_sobol_analysis.py
 # ============================================================
@@ -2849,11 +3343,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_sobol_ci_methods_summary.py
-类别: B_forward_risk_sensitivity
-用途: 将 Sobol 原始结果进一步整理为带 CI 的 methods-ready 与 results-ready 汇总表。
+逻辑名称: run_sobol_ci_methods_summary
+类别: C_sensitivity_and_comparison
+用途: 将 Sobol+CI 结果整理成 methods/results 可直接使用的 summary。
+实际文件: run_sobol_ci_methods_summary.py
 存在: 是
 大小: 7.4 KB
+修改时间: 2026-03-24 15:00:46
+候选路径:
+  - run_sobol_ci_methods_summary.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_sobol_ci_methods_summary.py
 import os
@@ -3070,17 +3568,1636 @@ def main():
 if __name__ == "__main__":
     main()
 
+########################################################################################################################
+逻辑名称: run_dataset_sensitivity_analysis
+类别: C_sensitivity_and_comparison
+用途: 直接基于固定数据集做 Spearman 敏感性分析，用于与 surrogate Sobol 对照。
+实际文件: run_dataset_sensitivity_analysis.py
+存在: 是
+大小: 2.7 KB
+修改时间: 2026-03-28 13:22:01
+候选路径:
+  - run_dataset_sensitivity_analysis.py
+------------------------------------------------------------------------------------------------------------------------
+import os
+import numpy as np
+import pandas as pd
+from scipy.stats import spearmanr
+
+from paper_experiment_config import (
+    OUT_DIR,
+    INPUT_COLS,
+    OUTPUT_COLS,
+    PRIMARY_OUTPUTS,
+)
+
+# =========================
+# 配置
+# =========================
+
+DATA_PATH_CANDIDATES = [
+    os.path.join(OUT_DIR, "fixed_split", "train.csv"),
+    os.path.join(OUT_DIR, "fixed_split", "val.csv"),
+    os.path.join(OUT_DIR, "fixed_split", "test.csv"),
+]
+
+SAVE_PATH = os.path.join(OUT_DIR, "dataset_sensitivity_spearman.csv")
+
+
+# =========================
+# 加载数据
+# =========================
+
+def load_dataset():
+    dfs = []
+    for p in DATA_PATH_CANDIDATES:
+        if os.path.exists(p):
+            df = pd.read_csv(p)
+            dfs.append(df)
+            print(f"[INFO] loaded: {p}, shape={df.shape}")
+    if len(dfs) == 0:
+        raise FileNotFoundError("No dataset found.")
+    return pd.concat(dfs, ignore_index=True)
+
+
+# =========================
+# 计算 Spearman
+# =========================
+
+def compute_spearman(df):
+    rows = []
+
+    for out in PRIMARY_OUTPUTS:
+        y = df[out].values
+
+        for inp in INPUT_COLS:
+            x = df[inp].values
+
+            rho, pval = spearmanr(x, y)
+
+            rows.append({
+                "output": out,
+                "input": inp,
+                "spearman_rho": rho,
+                "abs_rho": abs(rho),
+                "p_value": pval,
+            })
+
+    res = pd.DataFrame(rows)
+
+    # 排序（每个 output 内部）
+    res["rank"] = res.groupby("output")["abs_rho"].rank(
+        ascending=False, method="first"
+    )
+
+    return res
+
+
+# =========================
+# 提取 Top-K
+# =========================
+
+def build_topk_summary(df, k=3):
+    rows = []
+
+    for out in PRIMARY_OUTPUTS:
+        sub = df[df["output"] == out].sort_values("abs_rho", ascending=False)
+
+        top_inputs = sub["input"].values[:k]
+        top_rhos = sub["spearman_rho"].values[:k]
+
+        rows.append({
+            "output": out,
+            "top_inputs": ",".join(top_inputs),
+            "top_rhos": ",".join([f"{v:.3f}" for v in top_rhos]),
+        })
+
+    return pd.DataFrame(rows)
+
+
+# =========================
+# 主函数
+# =========================
+
+def main():
+    df = load_dataset()
+
+    print("\n[INFO] computing spearman...")
+
+    res = compute_spearman(df)
+
+    res.to_csv(SAVE_PATH, index=False, encoding="utf-8-sig")
+    print(f"[OK] saved full table: {SAVE_PATH}")
+
+    topk = build_topk_summary(res, k=3)
+
+    topk_path = os.path.join(OUT_DIR, "dataset_sensitivity_top3.csv")
+    topk.to_csv(topk_path, index=False, encoding="utf-8-sig")
+
+    print(f"[OK] saved top3 summary: {topk_path}")
+
+    print("\n=== TOP3 SUMMARY ===")
+    print(topk.to_string(index=False))
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+逻辑名称: run_compare_fixed_models
+类别: C_sensitivity_and_comparison
+用途: 固定 baseline 与 fixed level2 的测试集性能对比脚本。
+实际文件: run_compare_fixed_models.py
+存在: 是
+大小: 10.1 KB
+修改时间: 2026-03-28 13:00:52
+候选路径:
+  - run_compare_fixed_models.py
+------------------------------------------------------------------------------------------------------------------------
+# run_compare_fixed_models.py
+# ============================================================
+# Compare fixed BASE surrogate vs fixed LEVEL2 surrogate
+# on the SAME frozen test split.
+#
+# Main outputs:
+#   - experiments_phys_levels/paper_fixed_model_compare_summary.csv
+#   - experiments_phys_levels/paper_fixed_model_compare_primary.csv
+#   - experiments_phys_levels/paper_fixed_model_compare_per_output.csv
+#   - experiments_phys_levels/paper_fixed_model_compare_summary.json
+# ============================================================
+
+import os
+import json
+import pickle
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
+
+from paper_experiment_config import (
+    OUT_DIR,
+    INPUT_COLS,
+    OUTPUT_COLS,
+    PRIMARY_OUTPUTS,
+    SEED,
+)
+from run_phys_levels_main import (
+    HeteroMLP,
+    get_device,
+    compute_basic_metrics,
+    compute_prob_metrics_gaussian,
+    gaussian_nll,
+)
+
+# ============================================================
+# Settings
+# ============================================================
+
+ROOT_OUT = Path(OUT_DIR)
+SPLIT_DIR = ROOT_OUT / "fixed_split"
+
+TEST_CSV = SPLIT_DIR / "test.csv"
+
+ARTIFACTS = {
+    "base": ROOT_OUT / "fixed_surrogate_fixed_base",
+    "level2": ROOT_OUT / "fixed_surrogate_fixed_level2",
+}
+
+SUMMARY_CSV = ROOT_OUT / "paper_fixed_model_compare_summary.csv"
+PRIMARY_CSV = ROOT_OUT / "paper_fixed_model_compare_primary.csv"
+PER_OUTPUT_CSV = ROOT_OUT / "paper_fixed_model_compare_per_output.csv"
+SUMMARY_JSON = ROOT_OUT / "paper_fixed_model_compare_summary.json"
+
+IGNORE_OUTPUTS = {
+    "iteration1_keff",  # 你已经明确说了忽略它
+}
+
+# ============================================================
+# Utilities
+# ============================================================
+
+def seed_all(seed: int):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def require_file(path: Path):
+    if not path.exists():
+        raise FileNotFoundError(f"Missing required file: {path}")
+
+
+def load_test_data():
+    require_file(TEST_CSV)
+    df = pd.read_csv(TEST_CSV)
+
+    X = df[INPUT_COLS].to_numpy(dtype=float)
+    Y = df[OUTPUT_COLS].to_numpy(dtype=float)
+    return df, X, Y
+
+
+def load_artifact(tag: str):
+    art_dir = ARTIFACTS[tag]
+    require_file(art_dir)
+
+    # 自动匹配 checkpoint / scaler / best_json
+    ckpt_candidates = list(art_dir.glob("checkpoint_level*.pt"))
+    scaler_candidates = list(art_dir.glob("scalers_level*.pkl"))
+    best_candidates = list(art_dir.glob("best_level*.json"))
+
+    if len(ckpt_candidates) != 1:
+        raise RuntimeError(f"{tag}: expected exactly 1 checkpoint_level*.pt, got {len(ckpt_candidates)}")
+    if len(scaler_candidates) != 1:
+        raise RuntimeError(f"{tag}: expected exactly 1 scalers_level*.pkl, got {len(scaler_candidates)}")
+    if len(best_candidates) != 1:
+        raise RuntimeError(f"{tag}: expected exactly 1 best_level*.json, got {len(best_candidates)}")
+
+    ckpt_path = ckpt_candidates[0]
+    scaler_path = scaler_candidates[0]
+    best_json_path = best_candidates[0]
+
+    ckpt = torch.load(ckpt_path, map_location="cpu")
+    with open(scaler_path, "rb") as f:
+        scalers = pickle.load(f)
+    with open(best_json_path, "r", encoding="utf-8") as f:
+        best_obj = json.load(f)
+
+    return {
+        "artifact_dir": str(art_dir),
+        "ckpt_path": str(ckpt_path),
+        "scaler_path": str(scaler_path),
+        "best_json_path": str(best_json_path),
+        "ckpt": ckpt,
+        "sx": scalers["sx"],
+        "sy": scalers["sy"],
+        "best_obj": best_obj,
+    }
+
+
+def build_model_from_ckpt(ckpt: dict, device):
+    bp = ckpt["best_params"]
+    model = HeteroMLP(
+        in_dim=len(INPUT_COLS),
+        out_dim=len(OUTPUT_COLS),
+        width=int(bp["width"]),
+        depth=int(bp["depth"]),
+        dropout=float(bp["dropout"]),
+    ).to(device)
+    model.load_state_dict(ckpt["model_state_dict"], strict=False)
+    model.eval()
+    return model
+
+
+@torch.no_grad()
+def predict_raw(model, sx, sy, X_raw: np.ndarray, device):
+    Xs = sx.transform(X_raw)
+    Xt = torch.tensor(Xs, dtype=torch.float32, device=device)
+
+    mu_s, logvar_s = model(Xt)
+
+    mu_s_np = mu_s.detach().cpu().numpy()
+    logvar_s_np = logvar_s.detach().cpu().numpy()
+
+    mu_raw = sy.inverse_transform(mu_s_np)
+    sigma_raw = np.sqrt(np.exp(logvar_s_np)) * sy.scale_
+
+    return mu_raw, sigma_raw, mu_s, logvar_s
+
+
+def make_group(name: str) -> str:
+    if name in PRIMARY_OUTPUTS:
+        return "primary"
+    return "secondary"
+
+
+def aggregate_metrics_for_subset(per_output_df: pd.DataFrame, output_names: list):
+    sub = per_output_df[per_output_df["output"].isin(output_names)].copy()
+    if len(sub) == 0:
+        return {
+            "n_outputs": 0,
+            "MAE_mean": np.nan,
+            "RMSE_mean": np.nan,
+            "R2_mean": np.nan,
+            "PICP90_mean": np.nan,
+            "MPIW90_mean": np.nan,
+            "CRPS_mean": np.nan,
+        }
+
+    return {
+        "n_outputs": int(len(sub)),
+        "MAE_mean": float(sub["MAE"].mean()),
+        "RMSE_mean": float(sub["RMSE"].mean()),
+        "R2_mean": float(sub["R2"].mean()),
+        "PICP90_mean": float(sub["PICP90"].mean()),
+        "MPIW90_mean": float(sub["MPIW90"].mean()),
+        "CRPS_mean": float(sub["CRPS"].mean()),
+    }
+
+
+def main():
+    seed_all(SEED)
+    device = get_device()
+    print(f"[INFO] device = {device}")
+
+    _, X_test, Y_test = load_test_data()
+
+    all_per_output_rows = []
+    summary_rows = []
+    primary_rows = []
+    summary_json_obj = {
+        "device": str(device),
+        "test_csv": str(TEST_CSV),
+        "artifacts": {},
+        "model_rank_hint": {},
+    }
+
+    comparable_outputs = [o for o in OUTPUT_COLS if o not in IGNORE_OUTPUTS]
+    comparable_primary = [o for o in PRIMARY_OUTPUTS if o not in IGNORE_OUTPUTS]
+
+    for tag in ["base", "level2"]:
+        print(f"\n[INFO] evaluating {tag}")
+
+        art = load_artifact(tag)
+        model = build_model_from_ckpt(art["ckpt"], device)
+
+        mu_raw, sigma_raw, mu_s, logvar_s = predict_raw(
+            model=model,
+            sx=art["sx"],
+            sy=art["sy"],
+            X_raw=X_test,
+            device=device,
+        )
+
+        # standardized targets for NLL
+        Y_test_s = art["sy"].transform(Y_test)
+        Y_test_s_t = torch.tensor(Y_test_s, dtype=torch.float32, device=device)
+        test_nll = float(gaussian_nll(Y_test_s_t, mu_s, logvar_s).item())
+
+        basic = compute_basic_metrics(Y_test, mu_raw)
+        prob90 = compute_prob_metrics_gaussian(Y_test, mu_raw, sigma_raw, alpha=0.10)
+
+        per_output_rows = []
+        for j, out in enumerate(OUTPUT_COLS):
+            row = {
+                "model_tag": tag,
+                "output": out,
+                "iter": "iter1" if j < 8 else "iter2",
+                "group": make_group(out),
+                "ignored_in_main_compare": bool(out in IGNORE_OUTPUTS),
+                "MAE": float(basic["MAE"][j]),
+                "RMSE": float(basic["RMSE"][j]),
+                "R2": float(basic["R2"][j]),
+                "PICP90": float(prob90["PICP"][j]),
+                "MPIW90": float(prob90["MPIW"][j]),
+                "CRPS": float(prob90["CRPS"][j]),
+                "y_true_std": float(np.std(Y_test[:, j])),
+                "y_pred_std": float(np.std(mu_raw[:, j])),
+            }
+            per_output_rows.append(row)
+            all_per_output_rows.append(row)
+
+        df_tag = pd.DataFrame(per_output_rows)
+
+        # overall comparable outputs
+        agg_all = aggregate_metrics_for_subset(df_tag, comparable_outputs)
+        agg_primary = aggregate_metrics_for_subset(df_tag, comparable_primary)
+
+        summary_rows.append({
+            "model_tag": tag,
+            "scope": "all_comparable_outputs",
+            "test_nll_standardized": test_nll,
+            **agg_all,
+        })
+
+        summary_rows.append({
+            "model_tag": tag,
+            "scope": "primary_outputs_only",
+            "test_nll_standardized": test_nll,
+            **agg_primary,
+        })
+
+        for out in comparable_primary:
+            r = df_tag[df_tag["output"] == out].iloc[0]
+            primary_rows.append({
+                "model_tag": tag,
+                "output": out,
+                "MAE": float(r["MAE"]),
+                "RMSE": float(r["RMSE"]),
+                "R2": float(r["R2"]),
+                "PICP90": float(r["PICP90"]),
+                "MPIW90": float(r["MPIW90"]),
+                "CRPS": float(r["CRPS"]),
+                "y_true_std": float(r["y_true_std"]),
+                "y_pred_std": float(r["y_pred_std"]),
+            })
+
+        summary_json_obj["artifacts"][tag] = {
+            "artifact_dir": art["artifact_dir"],
+            "ckpt_path": art["ckpt_path"],
+            "scaler_path": art["scaler_path"],
+            "best_json_path": art["best_json_path"],
+            "best_value": art["best_obj"].get("best_value", None),
+            "best_params": art["best_obj"].get("best_params", {}),
+        }
+
+    # save detailed per-output table
+    df_per = pd.DataFrame(all_per_output_rows).sort_values(["output", "model_tag"]).reset_index(drop=True)
+    df_per.to_csv(PER_OUTPUT_CSV, index=False, encoding="utf-8-sig")
+
+    # save summary
+    df_summary = pd.DataFrame(summary_rows)
+    df_summary.to_csv(SUMMARY_CSV, index=False, encoding="utf-8-sig")
+
+    # save primary-only table
+    df_primary = pd.DataFrame(primary_rows).sort_values(["output", "model_tag"]).reset_index(drop=True)
+    df_primary.to_csv(PRIMARY_CSV, index=False, encoding="utf-8-sig")
+
+    # very simple winner hints
+    winner_hint = {}
+    for out in comparable_primary:
+        tmp = df_primary[df_primary["output"] == out].copy()
+        tmp = tmp.sort_values(["MAE", "RMSE", "CRPS"], ascending=[True, True, True])
+        winner_hint[out] = {
+            "recommended_by_error": tmp.iloc[0]["model_tag"],
+            "rows": tmp.to_dict(orient="records"),
+        }
+
+    summary_json_obj["model_rank_hint"] = winner_hint
+
+    with open(SUMMARY_JSON, "w", encoding="utf-8") as f:
+        json.dump(summary_json_obj, f, indent=2, ensure_ascii=False)
+
+    print("\n[DONE] model comparison finished.")
+    print(f"[DONE] {SUMMARY_CSV}")
+    print(f"[DONE] {PRIMARY_CSV}")
+    print(f"[DONE] {PER_OUTPUT_CSV}")
+    print(f"[DONE] {SUMMARY_JSON}")
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+逻辑名称: run_iter1_iter2_forward_compare
+类别: C_sensitivity_and_comparison
+用途: iter1 与 iter2 的 forward UQ 结果比较脚本。
+实际文件: run_iter1_iter2_forward_compare.py
+存在: 是
+大小: 2.2 KB
+修改时间: 2026-03-24 14:50:49
+候选路径:
+  - run_iter1_iter2_forward_compare.py
+------------------------------------------------------------------------------------------------------------------------
+import pandas as pd
+from pathlib import Path
+
+ROOT = Path("/home/tjzs/Documents/0310")
+DATA_DIR = ROOT / "experiments_phys_levels"
+OUT_FILE = DATA_DIR / "paper_iter1_iter2_forward_compare.csv"
+
+LEVELS = [0, 2]
+
+OUTPUTS = [
+    "keff",
+    "avg_fuel_temp",
+    "max_fuel_temp",
+    "max_monolith_temp",
+    "max_global_stress",
+    "wall2",
+]
+
+def process_level(level):
+    file_path = DATA_DIR / f"forward_uq_all_outputs_level{level}.csv"
+    df = pd.read_csv(file_path)
+
+    rows = []
+
+    for out in OUTPUTS:
+        name_iter1 = f"iteration1_{out}"
+        name_iter2 = f"iteration2_{out}"
+
+        row1 = df[df["output"] == name_iter1]
+        row2 = df[df["output"] == name_iter2]
+
+        if row1.empty or row2.empty:
+            print(f"[WARN] Missing rows for {out} in level {level}")
+            continue
+
+        row1 = row1.iloc[0]
+        row2 = row2.iloc[0]
+
+        iter1_mean = float(row1["mean"])
+        iter1_std = float(row1["std"])
+        iter1_q95 = float(row1["q95"])
+
+        iter2_mean = float(row2["mean"])
+        iter2_std = float(row2["std"])
+        iter2_q95 = float(row2["q95"])
+
+        rows.append({
+            "level": level,
+            "output": out,
+
+            "iter1_mean": iter1_mean,
+            "iter1_std": iter1_std,
+            "iter1_q95": iter1_q95,
+
+            "iter2_mean": iter2_mean,
+            "iter2_std": iter2_std,
+            "iter2_q95": iter2_q95,
+
+            "mean_shift": iter2_mean - iter1_mean,
+            "std_ratio": iter2_std / (iter1_std + 1e-12),
+            "q95_shift": iter2_q95 - iter1_q95,
+
+            "mean_shift_direction": (
+                "increase" if iter2_mean > iter1_mean else "decrease"
+            ),
+            "uncertainty_change": (
+                "amplified" if iter2_std > iter1_std else "reduced"
+            ),
+            "tail_change": (
+                "higher" if iter2_q95 > iter1_q95 else "lower"
+            ),
+        })
+
+    return rows
+
+def main():
+    all_rows = []
+
+    for lvl in LEVELS:
+        rows = process_level(lvl)
+        all_rows.extend(rows)
+
+    df_out = pd.DataFrame(all_rows)
+    df_out.to_csv(OUT_FILE, index=False, encoding="utf-8-sig")
+
+    print(f"[DONE] Saved: {OUT_FILE}")
+    print(df_out)
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+逻辑名称: run_iter1_iter2_sobol_compare
+类别: C_sensitivity_and_comparison
+用途: iter1 与 iter2 的 Sobol 主导因子比较脚本。
+实际文件: run_iter1_iter2_sobol_compare.py
+存在: 是
+大小: 6.7 KB
+修改时间: 2026-03-24 15:50:34
+候选路径:
+  - run_iter1_iter2_sobol_compare.py
+------------------------------------------------------------------------------------------------------------------------
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+ROOT = Path("/home/tjzs/Documents/0310")
+DATA_DIR = ROOT / "experiments_phys_levels"
+
+INPUT_FILE = DATA_DIR / "paper_sobol_results_with_ci_all_iters.csv"
+
+OUT_COMPARE = DATA_DIR / "paper_iter1_iter2_sobol_compare.csv"
+OUT_SHIFT = DATA_DIR / "paper_iter1_iter2_sobol_shift_summary.csv"
+OUT_KEFF = DATA_DIR / "paper_iter2_keff_sobol_summary.csv"
+
+LEVELS = [0, 2]
+
+# 这里只比较真正适合做 iter1 vs iter2 的输出
+COMPARE_BASE_OUTPUTS = [
+    "avg_fuel_temp",
+    "max_fuel_temp",
+    "max_monolith_temp",
+    "max_global_stress",
+    "wall2",
+]
+
+# keff 单独处理，只保留 iter2
+KEFF_OUTPUT = "iteration2_keff"
+
+TOPK = 3
+
+
+def classify_stability(row):
+    return float(row["ST_ci_low"]) > 0
+
+
+def load_data():
+    return pd.read_csv(INPUT_FILE)
+
+
+def build_compare_table(df):
+    rows = []
+
+    for level in LEVELS:
+        for base_out in COMPARE_BASE_OUTPUTS:
+            out1 = f"iteration1_{base_out}"
+            out2 = f"iteration2_{base_out}"
+
+            sub1 = df[(df["level"] == level) & (df["output"] == out1)].copy()
+            sub2 = df[(df["level"] == level) & (df["output"] == out2)].copy()
+
+            if sub1.empty or sub2.empty:
+                print(f"[WARN] Missing Sobol rows for level={level}, output={base_out}")
+                continue
+
+            sub1["stable"] = sub1.apply(classify_stability, axis=1)
+            sub2["stable"] = sub2.apply(classify_stability, axis=1)
+
+            sub1 = sub1.sort_values("ST_mean", ascending=False).reset_index(drop=True)
+            sub2 = sub2.sort_values("ST_mean", ascending=False).reset_index(drop=True)
+
+            rank1 = {r["input"]: i + 1 for i, (_, r) in enumerate(sub1.iterrows())}
+            rank2 = {r["input"]: i + 1 for i, (_, r) in enumerate(sub2.iterrows())}
+
+            all_inputs = sorted(set(sub1["input"]).union(set(sub2["input"])))
+
+            for inp in all_inputs:
+                r1 = sub1[sub1["input"] == inp]
+                r2 = sub2[sub2["input"] == inp]
+
+                iter1_st = float(r1["ST_mean"].iloc[0]) if not r1.empty else np.nan
+                iter2_st = float(r2["ST_mean"].iloc[0]) if not r2.empty else np.nan
+
+                rows.append({
+                    "level": level,
+                    "base_output": base_out,
+                    "input": inp,
+
+                    "iter1_rank": rank1.get(inp, np.nan),
+                    "iter2_rank": rank2.get(inp, np.nan),
+
+                    "iter1_ST_mean": iter1_st,
+                    "iter2_ST_mean": iter2_st,
+
+                    "iter1_ST_ci_low": float(r1["ST_ci_low"].iloc[0]) if not r1.empty else np.nan,
+                    "iter1_ST_ci_high": float(r1["ST_ci_high"].iloc[0]) if not r1.empty else np.nan,
+
+                    "iter2_ST_ci_low": float(r2["ST_ci_low"].iloc[0]) if not r2.empty else np.nan,
+                    "iter2_ST_ci_high": float(r2["ST_ci_high"].iloc[0]) if not r2.empty else np.nan,
+
+                    "iter1_stable": bool(r1["stable"].iloc[0]) if not r1.empty else False,
+                    "iter2_stable": bool(r2["stable"].iloc[0]) if not r2.empty else False,
+
+                    "ST_shift": iter2_st - iter1_st if pd.notna(iter1_st) and pd.notna(iter2_st) else np.nan,
+                    "rank_shift": (
+                        rank2.get(inp, np.nan) - rank1.get(inp, np.nan)
+                        if pd.notna(rank1.get(inp, np.nan)) and pd.notna(rank2.get(inp, np.nan))
+                        else np.nan
+                    ),
+                })
+
+    return pd.DataFrame(rows)
+
+
+def build_shift_summary(df_compare):
+    rows = []
+
+    if df_compare.empty:
+        return pd.DataFrame(columns=[
+            "level", "base_output",
+            "iter1_top3", "iter2_top3",
+            "top3_overlap_count",
+            "stable_iter1_top", "stable_iter2_top",
+            "same_top1", "same_top3_set"
+        ])
+
+    for level in LEVELS:
+        for base_out in COMPARE_BASE_OUTPUTS:
+            sub = df_compare[
+                (df_compare["level"] == level) &
+                (df_compare["base_output"] == base_out)
+            ].copy()
+
+            if sub.empty:
+                continue
+
+            sub1_top = sub.sort_values("iter1_rank").head(TOPK)
+            sub2_top = sub.sort_values("iter2_rank").head(TOPK)
+
+            top1 = list(sub1_top["input"])
+            top2 = list(sub2_top["input"])
+            overlap = len(set(top1).intersection(set(top2)))
+
+            stable_iter1 = list(
+                sub[sub["iter1_stable"]].sort_values("iter1_rank")["input"].head(TOPK)
+            )
+            stable_iter2 = list(
+                sub[sub["iter2_stable"]].sort_values("iter2_rank")["input"].head(TOPK)
+            )
+
+            rows.append({
+                "level": level,
+                "base_output": base_out,
+                "iter1_top3": ", ".join(top1),
+                "iter2_top3": ", ".join(top2),
+                "top3_overlap_count": overlap,
+                "stable_iter1_top": ", ".join(stable_iter1),
+                "stable_iter2_top": ", ".join(stable_iter2),
+                "same_top1": (top1[0] == top2[0]) if len(top1) > 0 and len(top2) > 0 else False,
+                "same_top3_set": (set(top1) == set(top2)) if len(top1) == 3 and len(top2) == 3 else False,
+            })
+
+    return pd.DataFrame(rows)
+
+
+def build_iter2_keff_summary(df):
+    rows = []
+
+    for level in LEVELS:
+        sub = df[(df["level"] == level) & (df["output"] == KEFF_OUTPUT)].copy()
+        if sub.empty:
+            print(f"[WARN] Missing {KEFF_OUTPUT} for level={level}")
+            continue
+
+        sub["stable"] = sub.apply(classify_stability, axis=1)
+        sub = sub.sort_values("ST_mean", ascending=False).reset_index(drop=True)
+
+        for rank, (_, r) in enumerate(sub.iterrows(), start=1):
+            rows.append({
+                "level": level,
+                "output": KEFF_OUTPUT,
+                "input": r["input"],
+                "rank_by_ST": rank,
+                "ST_mean": float(r["ST_mean"]),
+                "ST_ci_low": float(r["ST_ci_low"]),
+                "ST_ci_high": float(r["ST_ci_high"]),
+                "stable": bool(r["stable"]),
+                "recommend_interpretation": "yes" if (bool(r["stable"]) and rank <= TOPK) else "no",
+            })
+
+    return pd.DataFrame(rows)
+
+
+def main():
+    df = load_data()
+
+    df_compare = build_compare_table(df)
+    df_shift = build_shift_summary(df_compare)
+    df_keff = build_iter2_keff_summary(df)
+
+    df_compare.to_csv(OUT_COMPARE, index=False, encoding="utf-8-sig")
+    df_shift.to_csv(OUT_SHIFT, index=False, encoding="utf-8-sig")
+    df_keff.to_csv(OUT_KEFF, index=False, encoding="utf-8-sig")
+
+    print(f"[DONE] Saved: {OUT_COMPARE}")
+    print(f"[DONE] Saved: {OUT_SHIFT}")
+    print(f"[DONE] Saved: {OUT_KEFF}")
+    print(df_shift)
+    print(df_keff)
+
+
+if __name__ == "__main__":
+    main()
+
 ========================================================================================================================
-[分组] C_inverse_pipeline
-[分组说明] 主文 inverse benchmark、收缩分析与 full/reduced 对照主链。
+[分组] D_inverse_uq_main
+[分组说明] inverse UQ、benchmark、收缩与二维可行域分析主链。
 ========================================================================================================================
 
 ########################################################################################################################
-文件: run_inverse_benchmark_fixed_surrogate.py
-类别: C_inverse_pipeline
-用途: 在固定 surrogate 条件下执行 inverse benchmark，是当前主文 inverse UQ 的核心脚本。
+逻辑名称: run_calibration_benchmark
+类别: D_inverse_uq_main
+用途: reduced/full inverse benchmark 的主脚本。
+实际文件: run_calibration_benchmark.py
+存在: 是
+大小: 26.3 KB
+修改时间: 2026-03-24 17:50:37
+候选路径:
+  - run_calibration_benchmark.py
+------------------------------------------------------------------------------------------------------------------------
+# run_calibration_benchmark.py
+# ============================================================
+# Repeated synthetic calibration benchmark for inverse UQ
+#
+# Supports:
+#   - full inverse (all INPUT_COLS)
+#   - reduced inverse (selected dominant parameters)
+#
+# Main outputs:
+#   - calibration_benchmark_case_summary_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_parameter_recovery_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_observation_fit_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_parameter_recovery_summary_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_observation_fit_summary_full.csv / _reduced_maintext.csv
+#   - calibration_benchmark_meta_full.json / _reduced_maintext.json
+#   - inverse_diagnostics_summary_full.json / _reduced_maintext.json
+#   - calibration_benchmark_compare_full_vs_reduced.csv
+#
+# Optional per-case outputs:
+#   - benchmark_caseXXX_prior_samples_full.csv / _reduced_maintext.csv
+#   - benchmark_caseXXX_posterior_samples_full.csv / _reduced_maintext.csv
+#   - benchmark_caseXXX_posterior_predictive_full.csv / _reduced_maintext.csv
+#   - benchmark_caseXXX_full_chain_full.csv / _reduced_maintext.csv
+# ============================================================
+
+import os
+import json
+import math
+import random
+import numpy as np
+import pandas as pd
+import torch
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from paper_experiment_config import (
+    OUT_DIR,
+    INPUT_COLS,
+    OUTPUT_COLS,
+    ITER1_IDX,
+    ITER2_IDX,
+    THRESHOLD_SWEEP,
+    SEED,
+)
+from run_phys_levels_main import (
+    load_dataset,
+    get_device,
+    train_with_params,
+)
+
+# ============================================================
+# User settings 2
+# ============================================================
+
+FINAL_LEVEL = 2
+CALIB_HOLDOUT_FRAC = 0.15
+CASE_SELECTION = "stress_stratified"   # "random" or "stress_stratified"
+
+OBS_COLS = [
+    "iteration2_max_global_stress",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_wall2",
+    "iteration2_keff",
+]
+
+PRIOR_TYPE = "trunc_gaussian"    # "trunc_gaussian" or "uniform"
+
+RUN_TAG = "reduced_maintext"   # "full" or "reduced_maintext"
+
+if RUN_TAG == "full":
+    CALIBRATION_INPUT_COLS = INPUT_COLS
+
+elif RUN_TAG == "reduced_maintext":
+    # Main-text steady-state risk reduced set
+    # Chosen from stable dominant contributors of:
+    #   - iteration2_max_global_stress
+    #   - iteration2_keff
+    # Final set:
+    #   E_intercept, alpha_base, alpha_slope, nu
+    CALIBRATION_INPUT_COLS = ["E_intercept", "alpha_base", "alpha_slope", "nu"]
+
+else:
+    raise ValueError("RUN_TAG must be 'full' or 'reduced_maintext'")
+
+N_CASES = 20
+N_POST_SAMPLES = 1200
+N_BURNIN = 2000
+N_TOTAL = 8000
+BURN_IN = 2000
+THIN = 5
+
+OBS_NOISE_FRAC = 0.02
+PROPOSAL_SCALE = 0.15
+
+SAVE_PRIOR_SAMPLES = True
+N_PRIOR_EXPORT = 5000
+
+SAVE_PER_CASE_POSTERIOR = True
+SAVE_FULL_CHAIN_FOR_REP_CASES = True
+REPRESENTATIVE_CASE_FOR_TRACE_MODE = "closest_to_threshold"   # "first", "closest_to_threshold"
+PRIMARY_STRESS_THRESHOLD = 131.0
+REP_CASE_STRESS_WINDOW = 5.0
+
+# ============================================================
+# Utilities
+# ============================================================
+
+def seed_all(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def ensure_dir(path: str):
+    os.makedirs(path, exist_ok=True)
+
+
+def save_json(obj, path):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(obj, f, indent=2, ensure_ascii=False)
+
+
+def load_best_params(level: int):
+    path = os.path.join(OUT_DIR, f"best_level{level}.json")
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"Missing best params file: {path}\n"
+            f"Please run `python run_phys_levels_main.py` first."
+        )
+    with open(path, "r", encoding="utf-8") as f:
+        obj = json.load(f)
+    return obj["best_params"]
+
+
+def build_run_suffix():
+    return f"_{RUN_TAG}"
+
+
+def subset_input_array(x_full: np.ndarray, full_cols, sub_cols):
+    idx = [full_cols.index(c) for c in sub_cols]
+    return x_full[:, idx]
+
+
+def expand_reduced_to_full(x_reduced: np.ndarray, reduced_cols, full_reference_row: np.ndarray, full_cols):
+    out = np.tile(full_reference_row.reshape(1, -1), (x_reduced.shape[0], 1))
+    for j, c in enumerate(reduced_cols):
+        full_j = full_cols.index(c)
+        out[:, full_j] = x_reduced[:, j]
+    return out
+
+
+def sample_uniform_prior(n: int, bounds_dict: dict, cols: list, rng: np.random.RandomState):
+    arr = np.zeros((n, len(cols)), dtype=float)
+    for j, c in enumerate(cols):
+        lo, hi = bounds_dict[c]
+        arr[:, j] = rng.uniform(lo, hi, size=n)
+    return arr
+
+def sample_trunc_gaussian_prior(n: int, prior_stats: dict, cols: list, rng: np.random.RandomState):
+    """
+    Draw independent samples from per-parameter truncated Gaussian priors:
+      x ~ N(mean, std^2), truncated to [min, max]
+    using rejection sampling.
+
+    Returns
+    -------
+    arr : np.ndarray, shape [n, len(cols)]
+    """
+    arr = np.zeros((n, len(cols)), dtype=float)
+
+    for j, c in enumerate(cols):
+        mu = float(prior_stats[c]["mean"])
+        sd = float(prior_stats[c]["std"])
+        lo = float(prior_stats[c]["min"])
+        hi = float(prior_stats[c]["max"])
+
+        vals = []
+        batch = max(1000, n)
+
+        while len(vals) < n:
+            cand = rng.normal(loc=mu, scale=sd, size=batch)
+            cand = cand[(cand >= lo) & (cand <= hi)]
+            if cand.size > 0:
+                vals.extend(cand.tolist())
+
+        arr[:, j] = np.asarray(vals[:n], dtype=float)
+
+    return arr
+
+def split_for_benchmark(df):
+    """
+    Split full dataset into:
+      - emulator set: used to train surrogate
+      - calibration pool: used only for synthetic truths / inverse benchmark
+    """
+    X = df[INPUT_COLS].to_numpy(dtype=float)
+    Y = df[OUTPUT_COLS].to_numpy(dtype=float)
+
+    X_emul, X_calib, Y_emul, Y_calib = train_test_split(
+        X, Y, test_size=CALIB_HOLDOUT_FRAC, random_state=SEED
+    )
+
+    X_tr, X_va, Y_tr, Y_va = train_test_split(
+        X_emul, Y_emul, test_size=0.1765, random_state=SEED
+    )
+
+    sx = StandardScaler().fit(X_tr)
+    sy = StandardScaler().fit(Y_tr)
+
+    Xtr_s = sx.transform(X_tr)
+    Xva_s = sx.transform(X_va)
+    Xcal_s = sx.transform(X_calib)
+
+    Ytr_s = sy.transform(Y_tr)
+    Yva_s = sy.transform(Y_va)
+    Ycal_s = sy.transform(Y_calib)
+
+    return {
+        "X_tr": X_tr,
+        "X_va": X_va,
+        "X_cal": X_calib,
+        "Y_tr": Y_tr,
+        "Y_va": Y_va,
+        "Y_cal": Y_calib,
+        "Xtr_s": Xtr_s,
+        "Xva_s": Xva_s,
+        "Xcal_s": Xcal_s,
+        "Ytr_s": Ytr_s,
+        "Yva_s": Yva_s,
+        "Ycal_s": Ycal_s,
+        "sx": sx,
+        "sy": sy,
+    }
+
+
+def build_training_args(split, device):
+    delta_tr = split["Ytr_s"][:, ITER2_IDX] - split["Ytr_s"][:, ITER1_IDX]
+    bias_delta = delta_tr.mean(axis=0)
+    bias_delta_t = torch.tensor(bias_delta, dtype=torch.float32, device=device)
+
+    x_tr = torch.tensor(split["Xtr_s"], dtype=torch.float32, device=device)
+    y_tr = torch.tensor(split["Ytr_s"], dtype=torch.float32, device=device)
+    x_va = torch.tensor(split["Xva_s"], dtype=torch.float32, device=device)
+    y_va = torch.tensor(split["Yva_s"], dtype=torch.float32, device=device)
+
+    return {
+        "x_tr": x_tr,
+        "y_tr": y_tr,
+        "x_va": x_va,
+        "y_va": y_va,
+        "Xtr_np": split["Xtr_s"],
+        "Ytr_np": split["Ytr_s"],
+        "bias_delta_t": bias_delta_t,
+        "device": device,
+    }
+
+
+@torch.no_grad()
+def predict_single_x_full(model, sx, sy, x_full_raw, device):
+    x_s = sx.transform(x_full_raw.reshape(1, -1))
+    x = torch.tensor(x_s, dtype=torch.float32, device=device)
+    mu_s, logvar_s = model(x)
+
+    mu_s = mu_s.detach().cpu().numpy()[0]
+    logvar_s = logvar_s.detach().cpu().numpy()[0]
+
+    mu_raw = sy.inverse_transform(mu_s.reshape(1, -1))[0]
+    sigma_raw = np.sqrt(np.exp(logvar_s)) * sy.scale_
+    return mu_raw, sigma_raw
+
+
+def get_prior_stats(split):
+    X_ref_full = split["X_tr"]
+    X_ref_sub = subset_input_array(X_ref_full, INPUT_COLS, CALIBRATION_INPUT_COLS)
+
+    stats = {}
+    for i, c in enumerate(CALIBRATION_INPUT_COLS):
+        col = X_ref_sub[:, i]
+        stats[c] = {
+            "mean": float(np.mean(col)),
+            "std": float(np.std(col) + 1e-12),
+            "min": float(np.min(col)),
+            "max": float(np.max(col)),
+        }
+    return stats
+
+
+def log_prior_sub(theta_sub, prior_stats, prior_type="trunc_gaussian"):
+    lp = 0.0
+    for i, c in enumerate(CALIBRATION_INPUT_COLS):
+        xi = theta_sub[i]
+        lo = prior_stats[c]["min"]
+        hi = prior_stats[c]["max"]
+
+        if xi < lo or xi > hi:
+            return -np.inf
+
+        if prior_type == "uniform":
+            continue
+        elif prior_type == "trunc_gaussian":
+            mu = prior_stats[c]["mean"]
+            sd = prior_stats[c]["std"]
+            z = (xi - mu) / sd
+            lp += -0.5 * z * z - math.log(sd) - 0.5 * math.log(2 * math.pi)
+        else:
+            raise ValueError(f"Unsupported PRIOR_TYPE: {prior_type}")
+
+    return float(lp)
+
+
+def reflect_to_bounds_sub(theta_sub, prior_stats):
+    y = theta_sub.copy()
+    for i, c in enumerate(CALIBRATION_INPUT_COLS):
+        lo = prior_stats[c]["min"]
+        hi = prior_stats[c]["max"]
+        if y[i] < lo:
+            y[i] = lo + (lo - y[i])
+        if y[i] > hi:
+            y[i] = hi - (y[i] - hi)
+        y[i] = min(max(y[i], lo), hi)
+    return y
+
+
+def log_likelihood_sub(
+    theta_sub,
+    model,
+    sx,
+    sy,
+    x_ref_full,
+    y_obs,
+    obs_idx,
+    obs_noise_sigma,
+    device
+):
+    x_full = expand_reduced_to_full(
+        theta_sub.reshape(1, -1),
+        reduced_cols=CALIBRATION_INPUT_COLS,
+        full_reference_row=x_ref_full,
+        full_cols=INPUT_COLS
+    )[0]
+
+    mu_raw, sigma_raw = predict_single_x_full(model, sx, sy, x_full, device)
+
+    ll = 0.0
+    for k, j in enumerate(obs_idx):
+        mu = float(mu_raw[j])
+        sigma_model = max(float(sigma_raw[j]), 1e-12)
+        sigma_obs = max(float(obs_noise_sigma[k]), 1e-12)
+        sigma_total = math.sqrt(sigma_model**2 + sigma_obs**2)
+
+        r = y_obs[k] - mu
+        ll += -0.5 * (r / sigma_total) ** 2 - math.log(sigma_total) - 0.5 * math.log(2 * math.pi)
+
+    return float(ll)
+
+
+def log_posterior_sub(
+    theta_sub,
+    prior_stats,
+    model,
+    sx,
+    sy,
+    x_ref_full,
+    y_obs,
+    obs_idx,
+    obs_noise_sigma,
+    device
+):
+    lp = log_prior_sub(theta_sub, prior_stats, prior_type=PRIOR_TYPE)
+    if not np.isfinite(lp):
+        return -np.inf
+    ll = log_likelihood_sub(theta_sub, model, sx, sy, x_ref_full, y_obs, obs_idx, obs_noise_sigma, device)
+    return lp + ll
+
+
+def run_mh_sub(
+    x0_sub,
+    prior_stats,
+    model,
+    sx,
+    sy,
+    x_ref_full,
+    y_obs,
+    obs_idx,
+    obs_noise_sigma,
+    device
+):
+    theta_curr = x0_sub.copy()
+    curr_lp = log_posterior_sub(
+        theta_curr, prior_stats, model, sx, sy,
+        x_ref_full, y_obs, obs_idx, obs_noise_sigma, device
+    )
+
+    proposal_std = np.array(
+        [prior_stats[c]["std"] * PROPOSAL_SCALE for c in CALIBRATION_INPUT_COLS],
+        dtype=float
+    )
+    proposal_std = np.maximum(proposal_std, 1e-12)
+
+    chain = np.zeros((N_TOTAL, len(CALIBRATION_INPUT_COLS)), dtype=float)
+    logp_chain = np.zeros(N_TOTAL, dtype=float)
+
+    n_accept = 0
+
+    for t in range(N_TOTAL):
+        prop = theta_curr + np.random.normal(0.0, proposal_std, size=len(CALIBRATION_INPUT_COLS))
+        prop = reflect_to_bounds_sub(prop, prior_stats)
+
+        prop_lp = log_posterior_sub(
+            prop, prior_stats, model, sx, sy,
+            x_ref_full, y_obs, obs_idx, obs_noise_sigma, device
+        )
+
+        if np.log(np.random.rand()) < (prop_lp - curr_lp):
+            theta_curr = prop
+            curr_lp = prop_lp
+            n_accept += 1
+
+        chain[t] = theta_curr
+        logp_chain[t] = curr_lp
+
+    accept_rate = n_accept / float(N_TOTAL)
+    return chain, logp_chain, accept_rate
+
+
+def posterior_predictive_from_subspace(samples_sub, model, sx, sy, x_ref_full, device):
+    mus = []
+    sigmas = []
+
+    X_full = expand_reduced_to_full(
+        samples_sub,
+        reduced_cols=CALIBRATION_INPUT_COLS,
+        full_reference_row=x_ref_full,
+        full_cols=INPUT_COLS
+    )
+
+    for x_full in X_full:
+        mu_raw, sigma_raw = predict_single_x_full(model, sx, sy, x_full, device)
+        mus.append(mu_raw)
+        sigmas.append(sigma_raw)
+
+    mus = np.asarray(mus)
+    sigmas = np.asarray(sigmas)
+    y_pred = np.random.normal(loc=mus, scale=np.maximum(sigmas, 1e-12))
+    return mus, sigmas, y_pred
+
+
+def choose_case_indices(split):
+    """
+    Select multiple synthetic truths from calibration pool.
+    """
+    n_pool = split["X_cal"].shape[0]
+    if N_CASES > n_pool:
+        raise ValueError(f"N_CASES={N_CASES} exceeds calibration pool size {n_pool}")
+
+    if CASE_SELECTION == "random":
+        idx = np.random.choice(n_pool, size=N_CASES, replace=False)
+        return np.sort(idx)
+
+    elif CASE_SELECTION == "stress_stratified":
+        stress_idx = OUTPUT_COLS.index("iteration2_max_global_stress")
+        stress = split["Y_cal"][:, stress_idx]
+
+        order = np.argsort(stress)
+        bins = np.array_split(order, N_CASES)
+
+        chosen = []
+        for b in bins:
+            if len(b) == 0:
+                continue
+            chosen.append(np.random.choice(b))
+        return np.array(chosen, dtype=int)
+
+    else:
+        raise ValueError(f"Unsupported CASE_SELECTION: {CASE_SELECTION}")
+
+
+def compute_feasible_fraction(samples_sub, model, sx, sy, x_ref_full, device):
+    stress_idx = OUTPUT_COLS.index("iteration2_max_global_stress")
+    X_full = expand_reduced_to_full(
+        samples_sub,
+        reduced_cols=CALIBRATION_INPUT_COLS,
+        full_reference_row=x_ref_full,
+        full_cols=INPUT_COLS
+    )
+
+    mus = []
+    for x_full in X_full:
+        mu_raw, _ = predict_single_x_full(model, sx, sy, x_full, device)
+        mus.append(mu_raw)
+    mus = np.asarray(mus)
+
+    stress_mu = mus[:, stress_idx]
+
+    rows = []
+    for thr in THRESHOLD_SWEEP:
+        mask = stress_mu <= thr
+        rows.append({
+            "threshold_MPa": float(thr),
+            "n_posterior_samples": int(samples_sub.shape[0]),
+            "n_feasible": int(np.sum(mask)),
+            "feasible_fraction": float(np.mean(mask)),
+        })
+    return rows
+
+
+def main():
+    seed_all(SEED)
+    ensure_dir(OUT_DIR)
+    device = get_device()
+    run_suffix = build_run_suffix()
+
+    # 1) data split
+    df = load_dataset()
+    split = split_for_benchmark(df)
+
+    # 2) train clean surrogate only on emulator set
+    best_params = load_best_params(FINAL_LEVEL)
+    args = build_training_args(split, device)
+
+    model, mono_pairs = train_with_params(
+        best_params=best_params,
+        level=FINAL_LEVEL,
+        x_tr=args["x_tr"],
+        y_tr=args["y_tr"],
+        x_va=args["x_va"],
+        y_va=args["y_va"],
+        Xtr_np=args["Xtr_np"],
+        Ytr_np=args["Ytr_np"],
+        bias_delta_t=args["bias_delta_t"],
+        device=args["device"],
+    )
+
+    # 3) benchmark setup
+    prior_stats = get_prior_stats(split)
+    obs_idx = [OUTPUT_COLS.index(c) for c in OBS_COLS]
+
+    y_train_std = np.std(split["Y_tr"][:, obs_idx], axis=0) + 1e-12
+    obs_noise_sigma = OBS_NOISE_FRAC * y_train_std
+
+    case_indices = choose_case_indices(split)
+
+    case_summary_rows = []
+    param_recovery_rows = []
+    obs_fit_rows = []
+
+    # for comparison table
+    # compare_rows = []
+
+    for bench_id, case_idx in enumerate(case_indices):
+        x_true_full = split["X_cal"][case_idx]
+        y_true = split["Y_cal"][case_idx]
+        y_obs = y_true[obs_idx].copy()
+
+        x_true_sub = subset_input_array(
+            x_true_full.reshape(1, -1), INPUT_COLS, CALIBRATION_INPUT_COLS
+        )[0]
+
+        # fill non-calibrated parameters with training mean
+        x_ref_full = np.mean(split["X_tr"], axis=0)
+
+        # initialize at prior mean
+        x0_sub = np.array([prior_stats[c]["mean"] for c in CALIBRATION_INPUT_COLS], dtype=float)
+
+        # export prior samples
+        if SAVE_PRIOR_SAMPLES:
+            rng_prior = np.random.RandomState(SEED + 10000 + bench_id)
+
+            if PRIOR_TYPE == "uniform":
+                prior_sub = sample_uniform_prior(
+                    n=N_PRIOR_EXPORT,
+                    bounds_dict={c: (prior_stats[c]["min"], prior_stats[c]["max"]) for c in CALIBRATION_INPUT_COLS},
+                    cols=CALIBRATION_INPUT_COLS,
+                    rng=rng_prior
+                )
+            elif PRIOR_TYPE == "trunc_gaussian":
+                prior_sub = sample_trunc_gaussian_prior(
+                    n=N_PRIOR_EXPORT,
+                    prior_stats=prior_stats,
+                    cols=CALIBRATION_INPUT_COLS,
+                    rng=rng_prior
+                )
+            else:
+                raise ValueError(f"Unsupported PRIOR_TYPE for prior export: {PRIOR_TYPE}")
+
+            pd.DataFrame(prior_sub, columns=CALIBRATION_INPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_prior_samples{build_run_suffix()}.csv"),
+                index=False, encoding="utf-8-sig"
+            )
+
+        chain, logp_chain, accept_rate = run_mh_sub(
+            x0_sub=x0_sub,
+            prior_stats=prior_stats,
+            model=model,
+            sx=split["sx"],
+            sy=split["sy"],
+            x_ref_full=x_ref_full,
+            y_obs=y_obs,
+            obs_idx=obs_idx,
+            obs_noise_sigma=obs_noise_sigma,
+            device=device,
+        )
+
+        post = chain[BURN_IN::THIN]
+        logp_post = logp_chain[BURN_IN::THIN]
+
+        # posterior summary for parameters
+        for i, c in enumerate(CALIBRATION_INPUT_COLS):
+            v = post[:, i]
+            q05 = float(np.quantile(v, 0.05))
+            q25 = float(np.quantile(v, 0.25))
+            q50 = float(np.quantile(v, 0.50))
+            q75 = float(np.quantile(v, 0.75))
+            q95 = float(np.quantile(v, 0.95))
+            true_val = float(x_true_sub[i])
+
+            param_recovery_rows.append({
+                "benchmark_case_id": int(bench_id),
+                "pool_case_index": int(case_idx),
+                "parameter": c,
+                "true_value": true_val,
+                "posterior_mean": float(np.mean(v)),
+                "posterior_std": float(np.std(v)),
+                "abs_error_mean": abs(float(np.mean(v)) - true_val),
+                "covered_90": bool((true_val >= q05) and (true_val <= q95)),
+                "covered_50": bool((true_val >= q25) and (true_val <= q75)),
+                "width_90": q95 - q05,
+                "width_50": q75 - q25,
+                "q05": q05,
+                "q50": q50,
+                "q95": q95,
+            })
+
+        # posterior predictive
+        mus, sigmas, y_pred = posterior_predictive_from_subspace(
+            post, model, split["sx"], split["sy"], x_ref_full, device
+        )
+
+        for k, c in enumerate(OBS_COLS):
+            j = OUTPUT_COLS.index(c)
+            pred_mean = float(np.mean(y_pred[:, j]))
+            pred_std = float(np.std(y_pred[:, j]))
+            q05 = float(np.quantile(y_pred[:, j], 0.05))
+            q95 = float(np.quantile(y_pred[:, j], 0.95))
+            q025 = float(np.quantile(y_pred[:, j], 0.025))
+            q975 = float(np.quantile(y_pred[:, j], 0.975))
+            obs_val = float(y_obs[k])
+
+            obs_fit_rows.append({
+                "benchmark_case_id": int(bench_id),
+                "pool_case_index": int(case_idx),
+                "observable": c,
+                "y_obs": obs_val,
+                "posterior_pred_mean": pred_mean,
+                "posterior_pred_std": pred_std,
+                "abs_error_mean": abs(pred_mean - obs_val),
+                "covered_90": bool((obs_val >= q05) and (obs_val <= q95)),
+                "covered_95": bool((obs_val >= q025) and (obs_val <= q975)),
+                "width_90": q95 - q05,
+                "width_95": q975 - q025,
+            })
+
+        # feasible fractions under thresholds
+        feasible_rows = compute_feasible_fraction(
+            post, model, split["sx"], split["sy"], x_ref_full, device
+        )
+        feasible_map = {r["threshold_MPa"]: r["feasible_fraction"] for r in feasible_rows}
+
+        # case-level summary
+        case_summary_rows.append({
+            "benchmark_case_id": int(bench_id),
+            "pool_case_index": int(case_idx),
+            "accept_rate": float(accept_rate),
+            "n_post_samples": int(post.shape[0]),
+            "obs_stress": float(y_obs[OBS_COLS.index("iteration2_max_global_stress")]),
+            "obs_keff": float(y_obs[OBS_COLS.index("iteration2_keff")]),
+            "mean_abs_obs_fit_error": float(np.mean([
+                r["abs_error_mean"] for r in obs_fit_rows if r["benchmark_case_id"] == int(bench_id)
+            ])),
+            "obs_coverage90_mean": float(np.mean([
+                float(r["covered_90"]) for r in obs_fit_rows if r["benchmark_case_id"] == int(bench_id)
+            ])),
+            "feasible_fraction_110": float(feasible_map.get(110.0, np.nan)),
+            "feasible_fraction_120": float(feasible_map.get(120.0, np.nan)),
+            "feasible_fraction_131": float(feasible_map.get(131.0, np.nan)),
+        })
+
+        # save representative full chain
+        save_this_chain = False
+        if SAVE_FULL_CHAIN_FOR_REP_CASES:
+            if REPRESENTATIVE_CASE_FOR_TRACE_MODE == "first" and bench_id == 0:
+                save_this_chain = True
+            elif REPRESENTATIVE_CASE_FOR_TRACE_MODE == "closest_to_threshold":
+                if abs(y_obs[OBS_COLS.index("iteration2_max_global_stress")] - PRIMARY_STRESS_THRESHOLD) <= REP_CASE_STRESS_WINDOW:
+                    save_this_chain = True
+
+        if save_this_chain:
+            pd.DataFrame(chain, columns=CALIBRATION_INPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_full_chain{build_run_suffix()}.csv"),
+                index=False, encoding="utf-8-sig"
+            )
+
+        if SAVE_PER_CASE_POSTERIOR:
+            pd.DataFrame(post, columns=CALIBRATION_INPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_samples{build_run_suffix()}.csv"),
+                index=False, encoding="utf-8-sig"
+            )
+            pd.DataFrame(y_pred, columns=OUTPUT_COLS).to_csv(
+                os.path.join(OUT_DIR, f"benchmark_case{bench_id:03d}_posterior_predictive{build_run_suffix()}.csv"),
+                index=False, encoding="utf-8-sig"
+            )
+
+        print(f"[OK] Finished benchmark case {bench_id+1}/{len(case_indices)}")
+
+    # 4) save raw outputs
+    df_case = pd.DataFrame(case_summary_rows)
+    df_param = pd.DataFrame(param_recovery_rows)
+    df_obs = pd.DataFrame(obs_fit_rows)
+
+    df_case.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_case_summary{run_suffix}.csv"),
+        index=False, encoding="utf-8-sig"
+    )
+    df_param.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_parameter_recovery{run_suffix}.csv"),
+        index=False, encoding="utf-8-sig"
+    )
+    df_obs.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_observation_fit{run_suffix}.csv"),
+        index=False, encoding="utf-8-sig"
+    )
+
+    # 5) aggregate summaries for paper
+    df_param_agg = df_param.groupby("parameter").agg(
+        mean_abs_error=("abs_error_mean", "mean"),
+        mean_width90=("width_90", "mean"),
+        coverage90=("covered_90", "mean"),
+        coverage50=("covered_50", "mean"),
+    ).reset_index()
+    df_param_agg.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_parameter_recovery_summary{run_suffix}.csv"),
+        index=False, encoding="utf-8-sig"
+    )
+
+    df_obs_agg = df_obs.groupby("observable").agg(
+        mean_abs_error=("abs_error_mean", "mean"),
+        mean_width90=("width_90", "mean"),
+        coverage90=("covered_90", "mean"),
+        coverage95=("covered_95", "mean"),
+    ).reset_index()
+    df_obs_agg.to_csv(
+        os.path.join(OUT_DIR, f"calibration_benchmark_observation_fit_summary{run_suffix}.csv"),
+        index=False, encoding="utf-8-sig"
+    )
+
+    diag = {
+        "run_tag": RUN_TAG,
+        "n_benchmark_cases": int(len(df_case)),
+        "mean_accept_rate": float(df_case["accept_rate"].mean()),
+        "mean_obs_fit_error": float(df_case["mean_abs_obs_fit_error"].mean()),
+        "mean_obs_coverage90": float(df_case["obs_coverage90_mean"].mean()),
+        "mean_feasible_fraction_110": float(df_case["feasible_fraction_110"].mean()),
+        "mean_feasible_fraction_120": float(df_case["feasible_fraction_120"].mean()),
+        "mean_feasible_fraction_131": float(df_case["feasible_fraction_131"].mean()),
+    }
+    save_json(diag, os.path.join(OUT_DIR, f"inverse_diagnostics_summary{run_suffix}.json"))
+
+    meta = {
+        "final_level": FINAL_LEVEL,
+        "run_tag": RUN_TAG,
+        "calibration_input_cols": CALIBRATION_INPUT_COLS,
+        "calibration_holdout_frac": CALIB_HOLDOUT_FRAC,
+        "n_cases": N_CASES,
+        "case_selection": CASE_SELECTION,
+        "obs_cols": OBS_COLS,
+        "prior_type": PRIOR_TYPE,
+        "n_mcmc": N_TOTAL,
+        "burn_in": BURN_IN,
+        "thin": THIN,
+        "obs_noise_frac": OBS_NOISE_FRAC,
+        "proposal_scale": PROPOSAL_SCALE,
+        "save_per_case_posterior": SAVE_PER_CASE_POSTERIOR,
+    }
+    save_json(meta, os.path.join(OUT_DIR, f"calibration_benchmark_meta{run_suffix}.json"))
+
+    # 6) comparison table
+    compare_row = {
+        "run_tag": RUN_TAG,
+        "n_cases": int(len(df_case)),
+        "n_calibration_parameters": int(len(CALIBRATION_INPUT_COLS)),
+        "mean_accept_rate": float(df_case["accept_rate"].mean()),
+        "mean_obs_fit_error": float(df_case["mean_abs_obs_fit_error"].mean()),
+        "mean_obs_coverage90": float(df_case["obs_coverage90_mean"].mean()),
+        "mean_feasible_fraction_110": float(df_case["feasible_fraction_110"].mean()),
+        "mean_feasible_fraction_120": float(df_case["feasible_fraction_120"].mean()),
+        "mean_feasible_fraction_131": float(df_case["feasible_fraction_131"].mean()),
+    }
+
+    compare_path = os.path.join(OUT_DIR, "calibration_benchmark_compare_full_vs_reduced.csv")
+    df_row = pd.DataFrame([compare_row])
+    if os.path.exists(compare_path):
+        df_old = pd.read_csv(compare_path)
+        df_new = pd.concat([df_old, df_row], ignore_index=True)
+        df_new = df_new.drop_duplicates(subset=["run_tag"], keep="last")
+    else:
+        df_new = df_row
+    df_new.to_csv(compare_path, index=False, encoding="utf-8-sig")
+
+    print(f"[DONE] Repeated synthetic calibration benchmark completed ({RUN_TAG}).")
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+逻辑名称: run_inverse_benchmark_fixed_surrogate
+类别: D_inverse_uq_main
+用途: 固定 surrogate 条件下的 inverse benchmark 版本脚本。
+实际文件: run_inverse_benchmark_fixed_surrogate.py
 存在: 是
 大小: 26.2 KB
+修改时间: 2026-03-24 21:27:14
+候选路径:
+  - run_inverse_benchmark_fixed_surrogate.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_inverse_benchmark_fixed_surrogate.py
 # ============================================================
@@ -3881,11 +5998,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_inverse_diagnostics.py
-类别: C_inverse_pipeline
-用途: 汇总 inverse benchmark 结果，生成参数恢复、观测拟合、接受率和可行域等诊断结果。
+逻辑名称: run_inverse_diagnostics
+类别: D_inverse_uq_main
+用途: inverse benchmark 结果汇总、诊断与图输入整理脚本。
+实际文件: run_inverse_diagnostics.py
 存在: 是
 大小: 10.7 KB
+修改时间: 2026-03-18 14:30:42
+候选路径:
+  - run_inverse_diagnostics.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_inverse_diagnostics.py
 # ============================================================
@@ -4215,11 +6336,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_inverse_full_vs_reduced_compare.py
-类别: C_inverse_pipeline
-用途: 比较 full inverse 与 reduced inverse 的观测层面和参数层面差异。
+逻辑名称: run_inverse_full_vs_reduced_compare
+类别: D_inverse_uq_main
+用途: full inverse 与 reduced inverse 的结果对比脚本。
+实际文件: run_inverse_full_vs_reduced_compare.py
 存在: 是
 大小: 9.1 KB
+修改时间: 2026-03-24 18:10:51
+候选路径:
+  - run_inverse_full_vs_reduced_compare.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_inverse_full_vs_reduced_compare.py
 # ============================================================
@@ -4449,11 +6574,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_prior_posterior_contraction_summary.py
-类别: C_inverse_pipeline
-用途: 量化 prior 到 posterior 的宽度收缩、方差收缩和均值偏移。
+逻辑名称: run_prior_posterior_contraction_summary
+类别: D_inverse_uq_main
+用途: prior-posterior contraction 定量汇总脚本。
+实际文件: run_prior_posterior_contraction_summary.py
 存在: 是
 大小: 5.5 KB
+修改时间: 2026-03-23 15:19:47
+候选路径:
+  - run_prior_posterior_contraction_summary.py
 ------------------------------------------------------------------------------------------------------------------------
 import os
 import json
@@ -4624,17 +6753,16 @@ def main():
 if __name__ == "__main__":
     main()
 
-========================================================================================================================
-[分组] D_feasible_region_and_plotting
-[分组说明] 二维可行域导出与主文图绘制脚本。
-========================================================================================================================
-
 ########################################################################################################################
-文件: run_export_2d_feasible_region.py
-类别: D_feasible_region_and_plotting
-用途: 导出二维主导参数平面上的 prior / posterior / feasible region 数据。
+逻辑名称: run_export_2d_feasible_region
+类别: D_inverse_uq_main
+用途: 导出二维 dominant-parameter plane 的 prior/posterior/feasible region 数据。
+实际文件: run_export_2d_feasible_region.py
 存在: 是
 大小: 8.7 KB
+修改时间: 2026-03-26 20:12:32
+候选路径:
+  - run_export_2d_feasible_region.py
 ------------------------------------------------------------------------------------------------------------------------
 import os
 import json
@@ -4921,11 +7049,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: plot_2d_inverse_feasible_region_final.py
-类别: D_feasible_region_and_plotting
-用途: 绘制最终版二维 feasible-region 与 posterior contraction 图。
+逻辑名称: plot_2d_inverse_feasible_region_final
+类别: D_inverse_uq_main
+用途: 二维 feasible-region 与 posterior contraction 最终版绘图脚本。
+实际文件: plot_2d_inverse_feasible_region_final.py
 存在: 是
 大小: 7.6 KB
+修改时间: 2026-03-23 16:25:20
+候选路径:
+  - plot_2d_inverse_feasible_region_final.py
 ------------------------------------------------------------------------------------------------------------------------
 import os
 import json
@@ -5211,404 +7343,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: plot_forward_uq_and_sobol_figures.py
-类别: D_feasible_region_and_plotting
-用途: 绘制正向 UQ、risk curve、Sobol、CVR 等主文图。
-存在: 是
-大小: 12.2 KB
-------------------------------------------------------------------------------------------------------------------------
-# plot_forward_uq_and_sobol_figures.py
-# ============================================================
-# Purpose:
-#   Plot forward-UQ and Sobol figures directly from saved result files.
-#
-# This script DOES NOT retrain any model.
-# It only reads saved summary CSVs and exports figures.
-#
-# Required input files:
-#   1) paper_forward_uq_summary.csv
-#      - used for: forward-UQ global summary and threshold risk
-#
-#   2) forward_uq_primary_outputs_level0.csv
-#      - used for: primary output distribution summary (baseline)
-#
-#   3) forward_uq_primary_outputs_level2.csv
-#      - used for: primary output distribution summary (regularized)
-#
-#   4) forward_uq_failure_prob_level0.csv
-#      - used for: threshold-risk curve (baseline)
-#
-#   5) forward_uq_failure_prob_level2.csv
-#      - used for: threshold-risk curve (regularized)
-#
-#   6) forward_uq_cvr_level0.csv
-#      - used for: CVR bar chart (baseline)
-#
-#   7) forward_uq_cvr_level2.csv
-#      - used for: CVR bar chart (regularized)
-#
-#   8) paper_sobol_results.csv
-#      - used for: Sobol bar charts
-#
-# Optional input files:
-#   9) forward_uq_joint_stress_keff_level0.csv
-#   10) forward_uq_joint_stress_keff_level2.csv
-#      - used for: stress-keff joint scatter
-#
-# ============================================================
-
-import os
-import json
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-# ============================================================
-# User settings
-# ============================================================
-
-OUT_DIR = "./experiments_phys_levels"
-FIG_DIR = os.path.join(OUT_DIR, "paper_forward_figures_final")
-
-PRIMARY_OUTPUTS = [
-    "iteration2_keff",
-    "iteration2_max_fuel_temp",
-    "iteration2_max_monolith_temp",
-    "iteration2_max_global_stress",
-    "iteration2_wall2",
-]
-
-PRIMARY_STRESS_OUTPUT = "iteration2_max_global_stress"
-PRIMARY_KEFF_OUTPUT = "iteration2_keff"
-
-THRESHOLDS = [110.0, 120.0, 131.0]
-
-DPI = 300
-
-# Which outputs to show for Sobol
-SOBOL_OUTPUTS = [
-    "iteration2_max_global_stress",
-    "iteration2_keff",
-]
-
-# ============================================================
-# Utilities
-# ============================================================
-
-def ensure_dir(path: str):
-    os.makedirs(path, exist_ok=True)
-
-
-def load_csv_required(path: str) -> pd.DataFrame:
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Missing required file: {path}")
-    return pd.read_csv(path)
-
-
-def load_csv_optional(path: str):
-    if not os.path.exists(path):
-        return None
-    return pd.read_csv(path)
-
-
-def savefig(path: str):
-    plt.tight_layout()
-    plt.savefig(path, dpi=DPI, bbox_inches="tight")
-    plt.close()
-
-
-# ============================================================
-# Figure 1
-# Forward-UQ distribution summary for primary outputs
-#
-# Files used:
-#   - forward_uq_primary_outputs_level0.csv
-#   - forward_uq_primary_outputs_level2.csv
-#
-# Meaning:
-#   Compare mean / q05 / q50 / q95 for the five primary outputs
-#   between baseline and regularized model.
-# ============================================================
-
-def plot_primary_output_distributions(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
-    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2))
-
-    # Panel A: stress
-    for ax, outputs, title in zip(
-        axes,
-        [
-            ["iteration2_max_global_stress"],
-            ["iteration2_max_fuel_temp", "iteration2_max_monolith_temp"],
-            ["iteration2_wall2", "iteration2_keff"],
-        ],
-        [
-            "Stress",
-            "Temperatures",
-            "Geometry + reactivity",
-        ]
-    ):
-        sub0 = df0[df0["output"].isin(outputs)].copy()
-        sub2 = df2[df2["output"].isin(outputs)].copy()
-
-        # keep same order as outputs list
-        sub0["output"] = pd.Categorical(sub0["output"], categories=outputs, ordered=True)
-        sub2["output"] = pd.Categorical(sub2["output"], categories=outputs, ordered=True)
-        sub0 = sub0.sort_values("output")
-        sub2 = sub2.sort_values("output")
-
-        x = np.arange(len(outputs))
-        offset = 0.12
-
-        # baseline
-        ax.errorbar(
-            x - offset,
-            sub0["q50"],
-            yerr=[sub0["q50"] - sub0["q05"], sub0["q95"] - sub0["q50"]],
-            fmt="o",
-            capsize=4,
-            label="Baseline (Level0)"
-        )
-
-        # regularized
-        ax.errorbar(
-            x + offset,
-            sub2["q50"],
-            yerr=[sub2["q50"] - sub2["q05"], sub2["q95"] - sub2["q50"]],
-            fmt="s",
-            capsize=4,
-            label="Regularized (Level2)"
-        )
-
-        ax.set_xticks(x)
-        ax.set_xticklabels(outputs, rotation=30, ha="right")
-        ax.set_title(title)
-        ax.set_ylabel("Value")
-
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=True)
-    fig.suptitle("Forward uncertainty propagation: primary output distributions", y=1.03)
-    savefig(save_path)
-
-
-# ============================================================
-# Figure 2
-# Threshold-risk curve
-#
-# Files used:
-#   - forward_uq_failure_prob_level0.csv
-#   - forward_uq_failure_prob_level2.csv
-#
-# Meaning:
-#   Show failure probability vs stress threshold
-# ============================================================
-
-def plot_threshold_risk_curve(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
-    plt.figure(figsize=(6.0, 4.5))
-    plt.plot(df0["threshold_MPa"], df0["p_fail"], marker="o", label="Baseline (Level0)")
-    plt.plot(df2["threshold_MPa"], df2["p_fail"], marker="s", label="Regularized (Level2)")
-    plt.xlabel("Stress threshold (MPa)")
-    plt.ylabel("Failure probability")
-    plt.title("Stress exceedance probability versus threshold")
-    plt.legend(frameon=True)
-    savefig(save_path)
-
-
-# ============================================================
-# Figure 3
-# CVR / uncertainty amplification
-#
-# Files used:
-#   - forward_uq_cvr_level0.csv
-#   - forward_uq_cvr_level2.csv
-#
-# Meaning:
-#   Show which output amplifies uncertainty most strongly
-# ============================================================
-
-def plot_cvr_comparison(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
-    # keep only primary outputs and fixed order
-    df0 = df0.set_index("output").loc[PRIMARY_OUTPUTS].reset_index()
-    df2 = df2.set_index("output").loc[PRIMARY_OUTPUTS].reset_index()
-
-    x = np.arange(len(PRIMARY_OUTPUTS))
-    width = 0.35
-
-    plt.figure(figsize=(7.6, 4.8))
-    plt.bar(x - width/2, df0["CVR"], width=width, label="Baseline (Level0)")
-    plt.bar(x + width/2, df2["CVR"], width=width, label="Regularized (Level2)")
-    plt.xticks(x, PRIMARY_OUTPUTS, rotation=30, ha="right")
-    plt.ylabel("CVR")
-    plt.title("Uncertainty amplification across primary outputs")
-    plt.legend(frameon=True)
-    savefig(save_path)
-
-
-# ============================================================
-# Figure 4
-# Sobol bars for stress and keff
-#
-# File used:
-#   - paper_sobol_results.csv
-#
-# Meaning:
-#   Show dominant uncertainty sources for the key outputs
-# ============================================================
-
-def plot_sobol_bars(df_sobol: pd.DataFrame, save_path: str):
-    fig, axes = plt.subplots(1, len(SOBOL_OUTPUTS), figsize=(12.0, 4.8), sharey=False)
-    if len(SOBOL_OUTPUTS) == 1:
-        axes = [axes]
-
-    for ax, out_name in zip(axes, SOBOL_OUTPUTS):
-        sub = df_sobol[df_sobol["output"] == out_name].copy()
-
-        # 0 vs 2 only
-        sub = sub[sub["level"].isin([0, 2])]
-
-        # pivot into wide format
-        p0 = sub[sub["level"] == 0].set_index("input")
-        p2 = sub[sub["level"] == 2].set_index("input")
-
-        inputs = list(p0.index)
-        x = np.arange(len(inputs))
-        width = 0.35
-
-        ax.bar(x - width/2, p0.loc[inputs, "S1"], width=width, label="Level0 S1")
-        ax.bar(x + width/2, p2.loc[inputs, "S1"], width=width, label="Level2 S1")
-
-        ax.set_xticks(x)
-        ax.set_xticklabels(inputs, rotation=30, ha="right")
-        ax.set_ylabel("First-order Sobol index")
-        ax.set_title(out_name)
-
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=True)
-    fig.suptitle("Variance-based global sensitivity analysis", y=1.03)
-    savefig(save_path)
-
-
-# ============================================================
-# Figure 5 (optional)
-# Stress-keff joint scatter
-#
-# Files used:
-#   - forward_uq_joint_stress_keff_level0.csv
-#   - forward_uq_joint_stress_keff_level2.csv
-#
-# Meaning:
-#   Show the coupled forward-UQ joint response of stress and keff
-# ============================================================
-
-def plot_joint_stress_keff(df0: pd.DataFrame, df2: pd.DataFrame, save_path: str):
-    if df0 is None or df2 is None:
-        print("[SKIP] joint stress-keff files not found")
-        return
-
-    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.6), sharex=True, sharey=True)
-
-    axes[0].scatter(
-        df0["iteration2_max_global_stress"],
-        df0["iteration2_keff"],
-        s=8
-    )
-    axes[0].set_title("Baseline (Level0)")
-    axes[0].set_xlabel("iteration2_max_global_stress")
-    axes[0].set_ylabel("iteration2_keff")
-
-    axes[1].scatter(
-        df2["iteration2_max_global_stress"],
-        df2["iteration2_keff"],
-        s=8
-    )
-    axes[1].set_title("Regularized (Level2)")
-    axes[1].set_xlabel("iteration2_max_global_stress")
-
-    fig.suptitle("Joint forward-UQ response of stress and keff", y=1.02)
-    savefig(save_path)
-
-
-# ============================================================
-# Main
-# ============================================================
-
-def main():
-    ensure_dir(FIG_DIR)
-
-    # Required files
-    df_forward_summary = load_csv_required(os.path.join(OUT_DIR, "paper_forward_uq_summary.csv"))
-    df_primary0 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_primary_outputs_level0.csv"))
-    df_primary2 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_primary_outputs_level2.csv"))
-    df_fail0 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_failure_prob_level0.csv"))
-    df_fail2 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_failure_prob_level2.csv"))
-    df_cvr0 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_cvr_level0.csv"))
-    df_cvr2 = load_csv_required(os.path.join(OUT_DIR, "forward_uq_cvr_level2.csv"))
-    df_sobol = load_csv_required(os.path.join(OUT_DIR, "paper_sobol_results.csv"))
-
-    # Optional files
-    df_joint0 = load_csv_optional(os.path.join(OUT_DIR, "forward_uq_joint_stress_keff_level0.csv"))
-    df_joint2 = load_csv_optional(os.path.join(OUT_DIR, "forward_uq_joint_stress_keff_level2.csv"))
-
-    # Export figures
-    plot_primary_output_distributions(
-        df_primary0, df_primary2,
-        os.path.join(FIG_DIR, "forward_primary_output_distributions.png")
-    )
-
-    plot_threshold_risk_curve(
-        df_fail0, df_fail2,
-        os.path.join(FIG_DIR, "forward_threshold_risk_curve.png")
-    )
-
-    plot_cvr_comparison(
-        df_cvr0, df_cvr2,
-        os.path.join(FIG_DIR, "forward_cvr_comparison.png")
-    )
-
-    plot_sobol_bars(
-        df_sobol,
-        os.path.join(FIG_DIR, "forward_sobol_bars.png")
-    )
-
-    plot_joint_stress_keff(
-        df_joint0, df_joint2,
-        os.path.join(FIG_DIR, "forward_joint_stress_keff.png")
-    )
-
-    summary = {
-        "figure_dir": FIG_DIR,
-        "main_figure_files": [
-            "forward_primary_output_distributions.png",
-            "forward_threshold_risk_curve.png",
-            "forward_cvr_comparison.png",
-            "forward_sobol_bars.png",
-        ],
-        "optional_figure_files": [
-            "forward_joint_stress_keff.png",
-        ],
-        "notes": [
-            "Main-text priority: threshold risk curve, CVR comparison, Sobol bars.",
-            "Primary-output distribution figure is split into 3 panels to avoid unreadable mixed scales.",
-            "Joint stress-keff scatter is optional and more suitable for appendix or discussion.",
-            "This script only reads saved result files and does not rerun forward-UQ or Sobol analysis."
-        ]
-    }
-
-    with open(os.path.join(FIG_DIR, "plotting_readme.json"), "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2, ensure_ascii=False)
-
-    print("[DONE] Forward-UQ / Sobol plotting script finished.")
-    print(json.dumps(summary, indent=2, ensure_ascii=False))
-
-
-if __name__ == "__main__":
-    main()
-
-########################################################################################################################
-文件: plot_inverse_figures.py
-类别: D_feasible_region_and_plotting
-用途: 绘制 inverse benchmark 主图，包括参数恢复、观测拟合和代表性 case 图。
+逻辑名称: plot_inverse_figures
+类别: D_inverse_uq_main
+用途: inverse benchmark 主图绘图脚本。
+实际文件: plot_inverse_figures.py
 存在: 是
 大小: 15.6 KB
+修改时间: 2026-03-16 16:45:57
+候选路径:
+  - plot_inverse_figures.py
 ------------------------------------------------------------------------------------------------------------------------
 # plot_inverse_figures.py
 # ============================================================
@@ -6087,16 +7830,20 @@ if __name__ == "__main__":
     main()
 
 ========================================================================================================================
-[分组] E_speed_ood_and_supporting_analysis
-[分组说明] 速度、OOD 与 iter1/iter2 对比等补充分析。
+[分组] E_speed_ood_and_supporting
+[分组说明] 速度、OOD 等补充性实验代码。
 ========================================================================================================================
 
 ########################################################################################################################
-文件: run_speedup_benchmark.py
-类别: E_speed_ood_and_supporting_analysis
-用途: 执行代理模型与高保真流程的速度对比基准测试。
+逻辑名称: run_speedup_benchmark
+类别: E_speed_ood_and_supporting
+用途: 代理模型与高保真程序的速度对比脚本。
+实际文件: run_speedup_benchmark.py
 存在: 是
 大小: 4.8 KB
+修改时间: 2026-03-26 20:12:06
+候选路径:
+  - run_speedup_benchmark.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_speedup_benchmark.py
 # ============================================================
@@ -6257,11 +8004,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_practical_speed_benchmark.py
-类别: E_speed_ood_and_supporting_analysis
-用途: 记录实际运行环境下的 HF CPU 与 surrogate GPU 的 wall-clock 对比。
+逻辑名称: run_practical_speed_benchmark
+类别: E_speed_ood_and_supporting
+用途: 记录实际 wall-clock 的实用速度基准脚本。
+实际文件: run_practical_speed_benchmark.py
 存在: 是
 大小: 9.5 KB
+修改时间: 2026-03-18 19:10:52
+候选路径:
+  - run_practical_speed_benchmark.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_practical_speed_benchmark.py
 # ============================================================
@@ -6601,11 +8352,15 @@ if __name__ == "__main__":
     main()
 
 ########################################################################################################################
-文件: run_ood_evaluation.py
-类别: E_speed_ood_and_supporting_analysis
-用途: 对选定参数进行 OOD 外推测试，作为附录/讨论支撑。
+逻辑名称: run_ood_evaluation
+类别: E_speed_ood_and_supporting
+用途: OOD 泛化评估脚本。
+实际文件: run_ood_evaluation.py
 存在: 是
 大小: 10.0 KB
+修改时间: 2026-03-13 13:09:35
+候选路径:
+  - run_ood_evaluation.py
 ------------------------------------------------------------------------------------------------------------------------
 # run_ood_evaluation.py
 # ============================================================
@@ -6910,310 +8665,1098 @@ def main():
 if __name__ == "__main__":
     main()
 
+========================================================================================================================
+[分组] F_project_maintenance
+[分组说明] 项目维护和打包相关工具代码。
+========================================================================================================================
+
 ########################################################################################################################
-文件: run_iter1_iter2_forward_compare.py
-类别: E_speed_ood_and_supporting_analysis
-用途: 比较 iter1 与 iter2 输出在 forward UQ 下的统计差异。
+逻辑名称: bundle_code_to_txt
+类别: F_project_maintenance
+用途: 代码打包脚本本体。
+实际文件: bundle_code_to_txt.py
 存在: 是
-大小: 2.2 KB
+大小: 11.8 KB
+修改时间: 2026-03-29 13:05:28
+候选路径:
+  - bundle_code_to_txt.py
 ------------------------------------------------------------------------------------------------------------------------
-import pandas as pd
+import json
 from pathlib import Path
+from datetime import datetime
 
 ROOT = Path("/home/tjzs/Documents/0310")
-DATA_DIR = ROOT / "experiments_phys_levels"
-OUT_FILE = DATA_DIR / "paper_iter1_iter2_forward_compare.csv"
+OUT_FILE = ROOT / "upload_bundle_code.txt"
 
-LEVELS = [0, 2]
+# ============================================================
+# 每个逻辑代码项允许配置多个候选路径
+# 脚本会自动选择第一个存在的文件
+# ============================================================
 
-OUTPUTS = [
-    "keff",
-    "avg_fuel_temp",
-    "max_fuel_temp",
-    "max_monolith_temp",
-    "max_global_stress",
-    "wall2",
-]
+FILE_GROUPS = {
+    "A_core_config_and_training": [
+        {
+            "name": "paper_experiment_config",
+            "candidates": [
+                "paper_experiment_config.py",
+            ],
+            "purpose": "统一管理论文实验配置，包括输入/输出、主输出、阈值、seed、路径等。",
+        },
+        {
+            "name": "run_phys_levels_main",
+            "candidates": [
+                "run_phys_levels_main.py",
+            ],
+            "purpose": "核心模型定义、训练函数、基础评估函数所在主脚本，是下游所有实验的底层依赖。",
+        },
+        {
+            "name": "run_fixed_surrogate_train_base",
+            "candidates": [
+                "run_fixed_surrogate_train_base.py",
+            ],
+            "purpose": "固定数据划分上的 baseline/base 模型训练脚本。",
+        },
+        {
+            "name": "run_prepare_fixed_surrogate",
+            "candidates": [
+                "run_prepare_fixed_surrogate.py",
+            ],
+            "purpose": "固定 split 的准备脚本，用于冻结 train/val/test 划分。",
+        },
+    ],
 
-def process_level(level):
-    file_path = DATA_DIR / f"forward_uq_all_outputs_level{level}.csv"
-    df = pd.read_csv(file_path)
+    "B_forward_uq_and_risk": [
+        {
+            "name": "run_forward_uq_analysis",
+            "candidates": [
+                "run_forward_uq_analysis.py",
+                "new_run_forward_uq_analysis.py",
+            ],
+            "purpose": "正向不确定性传播主脚本，导出输出分布、失效概率、联合样本和 CVR。",
+        },
+        {
+            "name": "run_safety_threshold_analysis",
+            "candidates": [
+                "run_safety_threshold_analysis.py",
+            ],
+            "purpose": "测试集阈值风险分析脚本，用于比较 truth / mean / predictive risk。",
+        },
+        {
+            "name": "plot_forward_uq_and_sobol_figures",
+            "candidates": [
+                "plot_forward_uq_and_sobol_figures.py",
+            ],
+            "purpose": "forward UQ、threshold risk、Sobol、CVR 等主文图绘图脚本。",
+        },
+    ],
 
-    rows = []
+    "C_sensitivity_and_comparison": [
+        {
+            "name": "run_sobol_analysis",
+            "candidates": [
+                "run_sobol_analysis.py",
+            ],
+            "purpose": "Sobol 全局敏感性分析主脚本。",
+        },
+        {
+            "name": "run_sobol_ci_methods_summary",
+            "candidates": [
+                "run_sobol_ci_methods_summary.py",
+            ],
+            "purpose": "将 Sobol+CI 结果整理成 methods/results 可直接使用的 summary。",
+        },
+        {
+            "name": "run_dataset_sensitivity_analysis",
+            "candidates": [
+                "run_dataset_sensitivity_analysis.py",
+            ],
+            "purpose": "直接基于固定数据集做 Spearman 敏感性分析，用于与 surrogate Sobol 对照。",
+        },
+        {
+            "name": "run_compare_fixed_models",
+            "candidates": [
+                "run_compare_fixed_models.py",
+            ],
+            "purpose": "固定 baseline 与 fixed level2 的测试集性能对比脚本。",
+        },
+        {
+            "name": "run_iter1_iter2_forward_compare",
+            "candidates": [
+                "run_iter1_iter2_forward_compare.py",
+            ],
+            "purpose": "iter1 与 iter2 的 forward UQ 结果比较脚本。",
+        },
+        {
+            "name": "run_iter1_iter2_sobol_compare",
+            "candidates": [
+                "run_iter1_iter2_sobol_compare.py",
+            ],
+            "purpose": "iter1 与 iter2 的 Sobol 主导因子比较脚本。",
+        },
+    ],
 
-    for out in OUTPUTS:
-        name_iter1 = f"iteration1_{out}"
-        name_iter2 = f"iteration2_{out}"
+    "D_inverse_uq_main": [
+        {
+            "name": "run_calibration_benchmark",
+            "candidates": [
+                "run_calibration_benchmark.py",
+            ],
+            "purpose": "reduced/full inverse benchmark 的主脚本。",
+        },
+        {
+            "name": "run_inverse_benchmark_fixed_surrogate",
+            "candidates": [
+                "run_inverse_benchmark_fixed_surrogate.py",
+            ],
+            "purpose": "固定 surrogate 条件下的 inverse benchmark 版本脚本。",
+        },
+        {
+            "name": "run_inverse_diagnostics",
+            "candidates": [
+                "run_inverse_diagnostics.py",
+            ],
+            "purpose": "inverse benchmark 结果汇总、诊断与图输入整理脚本。",
+        },
+        {
+            "name": "run_inverse_full_vs_reduced_compare",
+            "candidates": [
+                "run_inverse_full_vs_reduced_compare.py",
+            ],
+            "purpose": "full inverse 与 reduced inverse 的结果对比脚本。",
+        },
+        {
+            "name": "run_prior_posterior_contraction_summary",
+            "candidates": [
+                "run_prior_posterior_contraction_summary.py",
+            ],
+            "purpose": "prior-posterior contraction 定量汇总脚本。",
+        },
+        {
+            "name": "run_export_2d_feasible_region",
+            "candidates": [
+                "run_export_2d_feasible_region.py",
+            ],
+            "purpose": "导出二维 dominant-parameter plane 的 prior/posterior/feasible region 数据。",
+        },
+        {
+            "name": "plot_2d_inverse_feasible_region_final",
+            "candidates": [
+                "plot_2d_inverse_feasible_region_final.py",
+            ],
+            "purpose": "二维 feasible-region 与 posterior contraction 最终版绘图脚本。",
+        },
+        {
+            "name": "plot_inverse_figures",
+            "candidates": [
+                "plot_inverse_figures.py",
+            ],
+            "purpose": "inverse benchmark 主图绘图脚本。",
+        },
+    ],
 
-        row1 = df[df["output"] == name_iter1]
-        row2 = df[df["output"] == name_iter2]
+    "E_speed_ood_and_supporting": [
+        {
+            "name": "run_speedup_benchmark",
+            "candidates": [
+                "run_speedup_benchmark.py",
+            ],
+            "purpose": "代理模型与高保真程序的速度对比脚本。",
+        },
+        {
+            "name": "run_practical_speed_benchmark",
+            "candidates": [
+                "run_practical_speed_benchmark.py",
+            ],
+            "purpose": "记录实际 wall-clock 的实用速度基准脚本。",
+        },
+        {
+            "name": "run_ood_evaluation",
+            "candidates": [
+                "run_ood_evaluation.py",
+            ],
+            "purpose": "OOD 泛化评估脚本。",
+        },
+    ],
 
-        if row1.empty or row2.empty:
-            print(f"[WARN] Missing rows for {out} in level {level}")
-            continue
+    "F_project_maintenance": [
+        {
+            "name": "bundle_code_to_txt",
+            "candidates": [
+                "bundle_code_to_txt.py",
+            ],
+            "purpose": "代码打包脚本本体。",
+        },
+        {
+            "name": "bundle_results_to_txt",
+            "candidates": [
+                "bundle_results_to_txt.py",
+            ],
+            "purpose": "结果打包脚本本体。",
+        },
+        {
+            "name": "cleanup_legacy_files",
+            "candidates": [
+                "cleanup_legacy_files.py",
+            ],
+            "purpose": "历史遗留文件整理脚本。",
+        },
+    ],
+}
 
-        row1 = row1.iloc[0]
-        row2 = row2.iloc[0]
+GROUP_PURPOSE = {
+    "A_core_config_and_training": "模型定义、固定数据划分与训练主链。",
+    "B_forward_uq_and_risk": "正向不确定性传播与风险分析主链。",
+    "C_sensitivity_and_comparison": "Sobol、数据集敏感性与模型对比分析主链。",
+    "D_inverse_uq_main": "inverse UQ、benchmark、收缩与二维可行域分析主链。",
+    "E_speed_ood_and_supporting": "速度、OOD 等补充性实验代码。",
+    "F_project_maintenance": "项目维护和打包相关工具代码。",
+}
 
-        iter1_mean = float(row1["mean"])
-        iter1_std = float(row1["std"])
-        iter1_q95 = float(row1["q95"])
 
-        iter2_mean = float(row2["mean"])
-        iter2_std = float(row2["std"])
-        iter2_q95 = float(row2["q95"])
+def resolve_existing_path(candidates):
+    for rel in candidates:
+        path = ROOT / rel
+        if path.exists():
+            return rel, path
+    return None, None
 
-        rows.append({
-            "level": level,
-            "output": out,
 
-            "iter1_mean": iter1_mean,
-            "iter1_std": iter1_std,
-            "iter1_q95": iter1_q95,
+def read_text_file(path: Path) -> str:
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        return f.read()
 
-            "iter2_mean": iter2_mean,
-            "iter2_std": iter2_std,
-            "iter2_q95": iter2_q95,
 
-            "mean_shift": iter2_mean - iter1_mean,
-            "std_ratio": iter2_std / (iter1_std + 1e-12),
-            "q95_shift": iter2_q95 - iter1_q95,
+def file_size_kb(path: Path) -> str:
+    if path is None or (not path.exists()):
+        return "N/A"
+    return f"{path.stat().st_size / 1024:.1f} KB"
 
-            "mean_shift_direction": (
-                "increase" if iter2_mean > iter1_mean else "decrease"
-            ),
-            "uncertainty_change": (
-                "amplified" if iter2_std > iter1_std else "reduced"
-            ),
-            "tail_change": (
-                "higher" if iter2_q95 > iter1_q95 else "lower"
-            ),
-        })
 
-    return rows
+def modified_time(path: Path) -> str:
+    if path is None or (not path.exists()):
+        return "N/A"
+    return datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+
 
 def main():
-    all_rows = []
+    lines = []
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    missing_items = []
 
-    for lvl in LEVELS:
-        rows = process_level(lvl)
-        all_rows.extend(rows)
+    lines.append("0310 项目代码汇总（精选版，自动候选路径解析）\n")
+    lines.append("=" * 120 + "\n")
+    lines.append(f"生成时间: {now}\n")
+    lines.append(f"项目根目录: {ROOT}\n\n")
 
-    df_out = pd.DataFrame(all_rows)
-    df_out.to_csv(OUT_FILE, index=False, encoding="utf-8-sig")
+    lines.append("【目录索引】\n")
+    for group, items in FILE_GROUPS.items():
+        lines.append(f"\n- {group}\n")
+        lines.append(f"  说明: {GROUP_PURPOSE.get(group, '待补充')}\n")
+        for item in items:
+            rel, path = resolve_existing_path(item["candidates"])
+            chosen = rel if rel is not None else "未找到"
+            lines.append(f"    * {item['name']}\n")
+            lines.append(f"      当前文件: {chosen}\n")
+            lines.append(f"      用途: {item['purpose']}\n")
+    lines.append("\n\n")
 
-    print(f"[DONE] Saved: {OUT_FILE}")
-    print(df_out)
+    for group, items in FILE_GROUPS.items():
+        lines.append("=" * 120 + "\n")
+        lines.append(f"[分组] {group}\n")
+        lines.append(f"[分组说明] {GROUP_PURPOSE.get(group, '待补充')}\n")
+        lines.append("=" * 120 + "\n\n")
 
-if __name__ == "__main__":
-    main()
+        for item in items:
+            rel, path = resolve_existing_path(item["candidates"])
+            exists = path is not None and path.exists()
 
-########################################################################################################################
-文件: run_iter1_iter2_sobol_compare.py
-类别: E_speed_ood_and_supporting_analysis
-用途: 比较 iter1 与 iter2 输出的 Sobol 主导因子变化。
-存在: 是
-大小: 6.7 KB
-------------------------------------------------------------------------------------------------------------------------
-import pandas as pd
-import numpy as np
-from pathlib import Path
+            lines.append("#" * 120 + "\n")
+            lines.append(f"逻辑名称: {item['name']}\n")
+            lines.append(f"类别: {group}\n")
+            lines.append(f"用途: {item['purpose']}\n")
+            lines.append(f"实际文件: {rel if rel is not None else '未找到'}\n")
+            lines.append(f"存在: {'是' if exists else '否'}\n")
+            lines.append(f"大小: {file_size_kb(path)}\n")
+            lines.append(f"修改时间: {modified_time(path)}\n")
+            lines.append("候选路径:\n")
+            for c in item["candidates"]:
+                lines.append(f"  - {c}\n")
+            lines.append("-" * 120 + "\n")
 
-ROOT = Path("/home/tjzs/Documents/0310")
-DATA_DIR = ROOT / "experiments_phys_levels"
-
-INPUT_FILE = DATA_DIR / "paper_sobol_results_with_ci_all_iters.csv"
-
-OUT_COMPARE = DATA_DIR / "paper_iter1_iter2_sobol_compare.csv"
-OUT_SHIFT = DATA_DIR / "paper_iter1_iter2_sobol_shift_summary.csv"
-OUT_KEFF = DATA_DIR / "paper_iter2_keff_sobol_summary.csv"
-
-LEVELS = [0, 2]
-
-# 这里只比较真正适合做 iter1 vs iter2 的输出
-COMPARE_BASE_OUTPUTS = [
-    "avg_fuel_temp",
-    "max_fuel_temp",
-    "max_monolith_temp",
-    "max_global_stress",
-    "wall2",
-]
-
-# keff 单独处理，只保留 iter2
-KEFF_OUTPUT = "iteration2_keff"
-
-TOPK = 3
-
-
-def classify_stability(row):
-    return float(row["ST_ci_low"]) > 0
-
-
-def load_data():
-    return pd.read_csv(INPUT_FILE)
-
-
-def build_compare_table(df):
-    rows = []
-
-    for level in LEVELS:
-        for base_out in COMPARE_BASE_OUTPUTS:
-            out1 = f"iteration1_{base_out}"
-            out2 = f"iteration2_{base_out}"
-
-            sub1 = df[(df["level"] == level) & (df["output"] == out1)].copy()
-            sub2 = df[(df["level"] == level) & (df["output"] == out2)].copy()
-
-            if sub1.empty or sub2.empty:
-                print(f"[WARN] Missing Sobol rows for level={level}, output={base_out}")
-                continue
-
-            sub1["stable"] = sub1.apply(classify_stability, axis=1)
-            sub2["stable"] = sub2.apply(classify_stability, axis=1)
-
-            sub1 = sub1.sort_values("ST_mean", ascending=False).reset_index(drop=True)
-            sub2 = sub2.sort_values("ST_mean", ascending=False).reset_index(drop=True)
-
-            rank1 = {r["input"]: i + 1 for i, (_, r) in enumerate(sub1.iterrows())}
-            rank2 = {r["input"]: i + 1 for i, (_, r) in enumerate(sub2.iterrows())}
-
-            all_inputs = sorted(set(sub1["input"]).union(set(sub2["input"])))
-
-            for inp in all_inputs:
-                r1 = sub1[sub1["input"] == inp]
-                r2 = sub2[sub2["input"] == inp]
-
-                iter1_st = float(r1["ST_mean"].iloc[0]) if not r1.empty else np.nan
-                iter2_st = float(r2["ST_mean"].iloc[0]) if not r2.empty else np.nan
-
-                rows.append({
-                    "level": level,
-                    "base_output": base_out,
-                    "input": inp,
-
-                    "iter1_rank": rank1.get(inp, np.nan),
-                    "iter2_rank": rank2.get(inp, np.nan),
-
-                    "iter1_ST_mean": iter1_st,
-                    "iter2_ST_mean": iter2_st,
-
-                    "iter1_ST_ci_low": float(r1["ST_ci_low"].iloc[0]) if not r1.empty else np.nan,
-                    "iter1_ST_ci_high": float(r1["ST_ci_high"].iloc[0]) if not r1.empty else np.nan,
-
-                    "iter2_ST_ci_low": float(r2["ST_ci_low"].iloc[0]) if not r2.empty else np.nan,
-                    "iter2_ST_ci_high": float(r2["ST_ci_high"].iloc[0]) if not r2.empty else np.nan,
-
-                    "iter1_stable": bool(r1["stable"].iloc[0]) if not r1.empty else False,
-                    "iter2_stable": bool(r2["stable"].iloc[0]) if not r2.empty else False,
-
-                    "ST_shift": iter2_st - iter1_st if pd.notna(iter1_st) and pd.notna(iter2_st) else np.nan,
-                    "rank_shift": (
-                        rank2.get(inp, np.nan) - rank1.get(inp, np.nan)
-                        if pd.notna(rank1.get(inp, np.nan)) and pd.notna(rank2.get(inp, np.nan))
-                        else np.nan
-                    ),
+            if exists:
+                try:
+                    lines.append(read_text_file(path))
+                except Exception as e:
+                    lines.append(f"[读取失败] {e}\n")
+            else:
+                missing_items.append({
+                    "group": group,
+                    "name": item["name"],
+                    "candidates": item["candidates"],
                 })
+                lines.append("[文件不存在]\n")
 
-    return pd.DataFrame(rows)
+            lines.append("\n\n")
 
+    lines.append("=" * 120 + "\n")
+    lines.append("[缺失代码项汇总]\n")
+    lines.append("=" * 120 + "\n")
 
-def build_shift_summary(df_compare):
-    rows = []
+    if len(missing_items) == 0:
+        lines.append("所有逻辑代码项均已找到对应文件。\n")
+    else:
+        for miss in missing_items:
+            lines.append(f"- 分组: {miss['group']}\n")
+            lines.append(f"  逻辑名称: {miss['name']}\n")
+            lines.append("  候选路径:\n")
+            for c in miss["candidates"]:
+                lines.append(f"    * {c}\n")
+            lines.append("\n")
 
-    if df_compare.empty:
-        return pd.DataFrame(columns=[
-            "level", "base_output",
-            "iter1_top3", "iter2_top3",
-            "top3_overlap_count",
-            "stable_iter1_top", "stable_iter2_top",
-            "same_top1", "same_top3_set"
-        ])
+    with open(OUT_FILE, "w", encoding="utf-8") as f:
+        f.write("".join(lines))
 
-    for level in LEVELS:
-        for base_out in COMPARE_BASE_OUTPUTS:
-            sub = df_compare[
-                (df_compare["level"] == level) &
-                (df_compare["base_output"] == base_out)
-            ].copy()
-
-            if sub.empty:
-                continue
-
-            sub1_top = sub.sort_values("iter1_rank").head(TOPK)
-            sub2_top = sub.sort_values("iter2_rank").head(TOPK)
-
-            top1 = list(sub1_top["input"])
-            top2 = list(sub2_top["input"])
-            overlap = len(set(top1).intersection(set(top2)))
-
-            stable_iter1 = list(
-                sub[sub["iter1_stable"]].sort_values("iter1_rank")["input"].head(TOPK)
-            )
-            stable_iter2 = list(
-                sub[sub["iter2_stable"]].sort_values("iter2_rank")["input"].head(TOPK)
-            )
-
-            rows.append({
-                "level": level,
-                "base_output": base_out,
-                "iter1_top3": ", ".join(top1),
-                "iter2_top3": ", ".join(top2),
-                "top3_overlap_count": overlap,
-                "stable_iter1_top": ", ".join(stable_iter1),
-                "stable_iter2_top": ", ".join(stable_iter2),
-                "same_top1": (top1[0] == top2[0]) if len(top1) > 0 and len(top2) > 0 else False,
-                "same_top3_set": (set(top1) == set(top2)) if len(top1) == 3 and len(top2) == 3 else False,
-            })
-
-    return pd.DataFrame(rows)
-
-
-def build_iter2_keff_summary(df):
-    rows = []
-
-    for level in LEVELS:
-        sub = df[(df["level"] == level) & (df["output"] == KEFF_OUTPUT)].copy()
-        if sub.empty:
-            print(f"[WARN] Missing {KEFF_OUTPUT} for level={level}")
-            continue
-
-        sub["stable"] = sub.apply(classify_stability, axis=1)
-        sub = sub.sort_values("ST_mean", ascending=False).reset_index(drop=True)
-
-        for rank, (_, r) in enumerate(sub.iterrows(), start=1):
-            rows.append({
-                "level": level,
-                "output": KEFF_OUTPUT,
-                "input": r["input"],
-                "rank_by_ST": rank,
-                "ST_mean": float(r["ST_mean"]),
-                "ST_ci_low": float(r["ST_ci_low"]),
-                "ST_ci_high": float(r["ST_ci_high"]),
-                "stable": bool(r["stable"]),
-                "recommend_interpretation": "yes" if (bool(r["stable"]) and rank <= TOPK) else "no",
-            })
-
-    return pd.DataFrame(rows)
-
-
-def main():
-    df = load_data()
-
-    df_compare = build_compare_table(df)
-    df_shift = build_shift_summary(df_compare)
-    df_keff = build_iter2_keff_summary(df)
-
-    df_compare.to_csv(OUT_COMPARE, index=False, encoding="utf-8-sig")
-    df_shift.to_csv(OUT_SHIFT, index=False, encoding="utf-8-sig")
-    df_keff.to_csv(OUT_KEFF, index=False, encoding="utf-8-sig")
-
-    print(f"[DONE] Saved: {OUT_COMPARE}")
-    print(f"[DONE] Saved: {OUT_SHIFT}")
-    print(f"[DONE] Saved: {OUT_KEFF}")
-    print(df_shift)
-    print(df_keff)
+    print(f"[DONE] 已生成: {OUT_FILE}")
+    if len(missing_items) > 0:
+        print(f"[WARN] 有 {len(missing_items)} 个逻辑代码项未找到，详情见文件末尾的“缺失代码项汇总”。")
+    else:
+        print("[OK] 所有逻辑代码项都已成功解析。")
 
 
 if __name__ == "__main__":
     main()
 
+########################################################################################################################
+逻辑名称: bundle_results_to_txt
+类别: F_project_maintenance
+用途: 结果打包脚本本体。
+实际文件: bundle_results_to_txt.py
+存在: 是
+大小: 14.7 KB
+修改时间: 2026-03-29 13:05:09
+候选路径:
+  - bundle_results_to_txt.py
+------------------------------------------------------------------------------------------------------------------------
+import json
+from pathlib import Path
+from datetime import datetime
+
+ROOT = Path("/home/tjzs/Documents/0310")
+OUT_FILE = ROOT / "upload_bundle_results.txt"
+
+# ============================================================
+# 每个逻辑结果项允许配置多个候选路径
+# 脚本会自动选择第一个存在的文件
+# ============================================================
+
+FILE_GROUPS = {
+    "A_model_performance": [
+        {
+            "name": "paper_metrics_table",
+            "candidates": [
+                "experiments_phys_levels/paper_metrics_table.csv",
+            ],
+            "purpose": "主模型性能总表，是正文模型对比与最终模型选择的核心表。",
+        },
+        {
+            "name": "focus_metrics_level0",
+            "candidates": [
+                "experiments_phys_levels/fixed_surrogate_fixed_base/paper_focus_metrics_level0.csv",
+                "experiments_phys_levels/paper_focus_metrics_level0.csv",
+            ],
+            "purpose": "baseline 模型在主输出上的聚焦性能表。",
+        },
+        {
+            "name": "focus_metrics_level2",
+            "candidates": [
+                "experiments_phys_levels/fixed_surrogate_fixed_level2/paper_focus_metrics_level2.csv",
+                "experiments_phys_levels/paper_focus_metrics_level2.csv",
+                "experiments_phys_levels/paper_fixed_model_compare_primary.csv",
+            ],
+            "purpose": "regularized 主模型在主输出上的聚焦性能表；若单独 focus 文件不存在，则回退到模型主输出对比表。",
+        },
+        {
+            "name": "fixed_model_compare_summary",
+            "candidates": [
+                "experiments_phys_levels/paper_fixed_model_compare_summary.csv",
+            ],
+            "purpose": "fixed baseline 与 fixed level2 的总体对比表。",
+        },
+        {
+            "name": "fixed_model_compare_per_output",
+            "candidates": [
+                "experiments_phys_levels/paper_fixed_model_compare_per_output.csv",
+            ],
+            "purpose": "fixed baseline 与 fixed level2 的逐输出对比表。",
+        },
+    ],
+
+    "B_forward_uq_and_risk": [
+        {
+            "name": "paper_forward_uq_summary",
+            "candidates": [
+                "experiments_phys_levels/paper_forward_uq_summary.csv",
+            ],
+            "purpose": "正向不确定性传播总表，包含 stress / keff 统计、阈值失效概率和 overall CVR。",
+        },
+        {
+            "name": "paper_safety_threshold_summary",
+            "candidates": [
+                "experiments_phys_levels/paper_safety_threshold_summary.csv",
+            ],
+            "purpose": "test-set 主阈值风险分析表，用于比较 predictive risk、mean-only risk 与真值风险。",
+        },
+        {
+            "name": "forward_failure_prob_level0",
+            "candidates": [
+                "experiments_phys_levels/forward_uq_failure_prob_level0.csv",
+                "experiments_phys_levels/forward_uq_failure_prob_pred_level0.csv",
+            ],
+            "purpose": "baseline 的 forward UQ 阈值失效概率结果。",
+        },
+        {
+            "name": "forward_failure_prob_level2",
+            "candidates": [
+                "experiments_phys_levels/forward_uq_failure_prob_level2.csv",
+                "experiments_phys_levels/forward_uq_failure_prob_pred_level2.csv",
+            ],
+            "purpose": "level2 的 forward UQ 阈值失效概率结果。",
+        },
+    ],
+
+    "C_sobol_and_ci": [
+        {
+            "name": "paper_sobol_results_with_ci",
+            "candidates": [
+                "experiments_phys_levels/paper_sobol_results_with_ci.csv",
+            ],
+            "purpose": "Sobol 原始主结果，包含 S1 / ST 及其 CI，是结果解释的底层表。",
+        },
+        {
+            "name": "paper_sobol_methods_ready_summary",
+            "candidates": [
+                "experiments_phys_levels/paper_sobol_methods_ready_summary.csv",
+            ],
+            "purpose": "Sobol+CI 的方法学整理表，标记稳定主导项和跨零项。",
+        },
+        {
+            "name": "paper_sobol_results_ready_top_factors",
+            "candidates": [
+                "experiments_phys_levels/paper_sobol_results_ready_top_factors.csv",
+            ],
+            "purpose": "可直接写入结果部分的 Sobol 主导因子摘要表。",
+        },
+        {
+            "name": "dataset_sensitivity_top3",
+            "candidates": [
+                "experiments_phys_levels/dataset_sensitivity_top3.csv",
+            ],
+            "purpose": "基于固定数据集的 Spearman top3 因子汇总，用于与 surrogate Sobol 结果对照。",
+        },
+        {
+            "name": "dataset_sensitivity_spearman",
+            "candidates": [
+                "experiments_phys_levels/dataset_sensitivity_spearman.csv",
+            ],
+            "purpose": "固定数据集上的 Spearman 敏感性全表。",
+        },
+    ],
+
+    "D_inverse_benchmark_maintext": [
+        {
+            "name": "inverse_benchmark_meta_reduced_maintext",
+            "candidates": [
+                "experiments_phys_levels/inverse_benchmark_meta_reduced_maintext.json",
+                "experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_meta_reduced_maintext.json",
+            ],
+            "purpose": "maintext 版本 reduced inverse benchmark 的配置与运行元数据。",
+        },
+        {
+            "name": "inverse_benchmark_case_summary_reduced_maintext",
+            "candidates": [
+                "experiments_phys_levels/inverse_benchmark_case_summary_reduced_maintext.csv",
+                "experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_case_summary_reduced_maintext.csv",
+            ],
+            "purpose": "maintext 版本 reduced inverse 的 case 级 benchmark 汇总表。",
+        },
+        {
+            "name": "inverse_benchmark_parameter_recovery_summary_reduced_maintext",
+            "candidates": [
+                "experiments_phys_levels/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv",
+                "experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv",
+            ],
+            "purpose": "maintext 版本 reduced inverse 的参数恢复性总结。",
+        },
+        {
+            "name": "inverse_benchmark_observation_fit_summary_reduced_maintext",
+            "candidates": [
+                "experiments_phys_levels/inverse_benchmark_observation_fit_summary_reduced_maintext.csv",
+                "experiments_phys_levels/_legacy_unused_20260325_161538/inverse_benchmark_observation_fit_summary_reduced_maintext.csv",
+            ],
+            "purpose": "maintext 版本 reduced inverse 的观测拟合总结。",
+        },
+    ],
+
+    "E_inverse_comparison_and_contraction": [
+        {
+            "name": "paper_inverse_full_vs_reduced_summary",
+            "candidates": [
+                "experiments_phys_levels/paper_inverse_full_vs_reduced_summary.csv",
+            ],
+            "purpose": "full inverse 与 reduced inverse 的总体对比表。",
+        },
+        {
+            "name": "paper_inverse_full_vs_reduced_parameter_table",
+            "candidates": [
+                "experiments_phys_levels/paper_inverse_full_vs_reduced_parameter_table.csv",
+            ],
+            "purpose": "full vs reduced 在参数恢复上的对比表。",
+        },
+        {
+            "name": "paper_inverse_full_vs_reduced_observable_table",
+            "candidates": [
+                "experiments_phys_levels/paper_inverse_full_vs_reduced_observable_table.csv",
+            ],
+            "purpose": "full vs reduced 在观测拟合上的对比表。",
+        },
+        {
+            "name": "paper_prior_posterior_contraction_summary_reduced",
+            "candidates": [
+                "experiments_phys_levels/paper_prior_posterior_contraction_summary_reduced.csv",
+                "experiments_phys_levels/_legacy_unused_20260325_161538/paper_prior_posterior_contraction_summary_reduced.csv",
+            ],
+            "purpose": "reduced inverse 的 prior-posterior 收缩量化结果。",
+        },
+    ],
+
+    "F_speed_ood_and_supporting_results": [
+        {
+            "name": "paper_speed_benchmark_detailed",
+            "candidates": [
+                "experiments_phys_levels/paper_speed_benchmark_detailed.json",
+            ],
+            "purpose": "高保真 CPU 与代理 GPU 工作流实际 wall-clock 对比记录。",
+        },
+        {
+            "name": "paper_ood_results",
+            "candidates": [
+                "experiments_phys_levels/paper_ood_results.csv",
+            ],
+            "purpose": "OOD 汇总结果，适合附录和局限性讨论。",
+        },
+        {
+            "name": "paper_iter1_iter2_forward_compare",
+            "candidates": [
+                "experiments_phys_levels/paper_iter1_iter2_forward_compare.csv",
+                "experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_forward_compare.csv",
+            ],
+            "purpose": "iter1 与 iter2 的 forward UQ 对比结果。",
+        },
+        {
+            "name": "paper_iter1_iter2_sobol_compare",
+            "candidates": [
+                "experiments_phys_levels/paper_iter1_iter2_sobol_compare.csv",
+                "experiments_phys_levels/_legacy_unused_20260325_161538/paper_iter1_iter2_sobol_compare.csv",
+            ],
+            "purpose": "iter1 与 iter2 的 Sobol 主导因子变化结果。",
+        },
+    ],
+}
+
+GROUP_PURPOSE = {
+    "A_model_performance": "模型训练后在测试集上的核心性能结果，用于模型选择。",
+    "B_forward_uq_and_risk": "主文 forward uncertainty-to-risk 分析链。",
+    "C_sobol_and_ci": "主文/方法中关于敏感性与置信区间解释的核心结果。",
+    "D_inverse_benchmark_maintext": "当前主文采用的 reduced maintext inverse benchmark 结果。",
+    "E_inverse_comparison_and_contraction": "full/reduced 对照与 posterior contraction 结果。",
+    "F_speed_ood_and_supporting_results": "速度、OOD 与 iter1/iter2 差异等补充性结果。",
+}
+
+
+def resolve_existing_path(candidates):
+    for rel in candidates:
+        path = ROOT / rel
+        if path.exists():
+            return rel, path
+    return None, None
+
+
+def read_text_file(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix == ".json":
+        with open(path, "r", encoding="utf-8") as f:
+            obj = json.load(f)
+        return json.dumps(obj, ensure_ascii=False, indent=2)
+    else:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            return f.read()
+
+
+def file_size_kb(path: Path) -> str:
+    if path is None or (not path.exists()):
+        return "N/A"
+    return f"{path.stat().st_size / 1024:.1f} KB"
+
+
+def modified_time(path: Path) -> str:
+    if path is None or (not path.exists()):
+        return "N/A"
+    return datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def main():
+    lines = []
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    missing_items = []
+
+    lines.append("0310 项目结果汇总（精选版，自动候选路径解析）\n")
+    lines.append("=" * 120 + "\n")
+    lines.append(f"生成时间: {now}\n")
+    lines.append(f"项目根目录: {ROOT}\n\n")
+
+    # ========================================================
+    # 目录索引
+    # ========================================================
+    lines.append("【目录索引】\n")
+    for group, items in FILE_GROUPS.items():
+        lines.append(f"\n- {group}\n")
+        lines.append(f"  说明: {GROUP_PURPOSE.get(group, '待补充')}\n")
+        for item in items:
+            rel, path = resolve_existing_path(item["candidates"])
+            if rel is None:
+                chosen = "未找到"
+            else:
+                chosen = rel
+            lines.append(f"    * {item['name']}\n")
+            lines.append(f"      当前文件: {chosen}\n")
+            lines.append(f"      用途: {item['purpose']}\n")
+    lines.append("\n\n")
+
+    # ========================================================
+    # 逐组写入内容
+    # ========================================================
+    for group, items in FILE_GROUPS.items():
+        lines.append("=" * 120 + "\n")
+        lines.append(f"[分组] {group}\n")
+        lines.append(f"[分组说明] {GROUP_PURPOSE.get(group, '待补充')}\n")
+        lines.append("=" * 120 + "\n\n")
+
+        for item in items:
+            rel, path = resolve_existing_path(item["candidates"])
+            exists = path is not None and path.exists()
+
+            lines.append("#" * 120 + "\n")
+            lines.append(f"逻辑名称: {item['name']}\n")
+            lines.append(f"类别: {group}\n")
+            lines.append(f"用途: {item['purpose']}\n")
+            lines.append(f"实际文件: {rel if rel is not None else '未找到'}\n")
+            lines.append(f"存在: {'是' if exists else '否'}\n")
+            lines.append(f"大小: {file_size_kb(path)}\n")
+            lines.append(f"修改时间: {modified_time(path)}\n")
+            lines.append("候选路径:\n")
+            for c in item["candidates"]:
+                lines.append(f"  - {c}\n")
+            lines.append("-" * 120 + "\n")
+
+            if exists:
+                try:
+                    lines.append(read_text_file(path))
+                except Exception as e:
+                    lines.append(f"[读取失败] {e}\n")
+            else:
+                missing_items.append({
+                    "group": group,
+                    "name": item["name"],
+                    "candidates": item["candidates"],
+                })
+                lines.append("[文件不存在]\n")
+
+            lines.append("\n\n")
+
+    # ========================================================
+    # 缺失文件汇总
+    # ========================================================
+    lines.append("=" * 120 + "\n")
+    lines.append("[缺失文件汇总]\n")
+    lines.append("=" * 120 + "\n")
+
+    if len(missing_items) == 0:
+        lines.append("所有逻辑结果项均已找到对应文件。\n")
+    else:
+        for miss in missing_items:
+            lines.append(f"- 分组: {miss['group']}\n")
+            lines.append(f"  逻辑名称: {miss['name']}\n")
+            lines.append("  候选路径:\n")
+            for c in miss["candidates"]:
+                lines.append(f"    * {c}\n")
+            lines.append("\n")
+
+    with open(OUT_FILE, "w", encoding="utf-8") as f:
+        f.write("".join(lines))
+
+    print(f"[DONE] 已生成: {OUT_FILE}")
+    if len(missing_items) > 0:
+        print(f"[WARN] 有 {len(missing_items)} 个逻辑结果项未找到，详情见文件末尾的“缺失文件汇总”。")
+    else:
+        print("[OK] 所有逻辑结果项都已成功解析。")
+
+
+if __name__ == "__main__":
+    main()
+
+########################################################################################################################
+逻辑名称: cleanup_legacy_files
+类别: F_project_maintenance
+用途: 历史遗留文件整理脚本。
+实际文件: cleanup_legacy_files.py
+存在: 是
+大小: 11.6 KB
+修改时间: 2026-03-25 16:15:38
+候选路径:
+  - cleanup_legacy_files.py
+------------------------------------------------------------------------------------------------------------------------
+# cleanup_legacy_files.py
+# ============================================================
+# Move historical / currently-unused files into a timestamped
+# legacy folder, instead of deleting them.
+#
+# Default behavior:
+#   - DRY_RUN = True  -> preview only
+#   - DRY_RUN = False -> actually move files
+# ============================================================
+
+import shutil
+from pathlib import Path
+from datetime import datetime
+
+ROOT = Path("/home/tjzs/Documents/0310")
+EXP = ROOT / "experiments_phys_levels"
+BENCH = EXP / "benchmark_case"
+
+DRY_RUN = False
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+LEGACY_DIR = EXP / f"_legacy_unused_{timestamp}"
+LEGACY_BENCH_DIR = LEGACY_DIR / "benchmark_case"
+
+# ------------------------------------------------------------
+# 1) Root-level legacy result files in experiments_phys_levels
+#    Keep:
+#      - fixed_split/
+#      - fixed_surrogate_fixed_level2/
+#      - fixed_surrogate_fixed_base/
+#      - current paper outputs
+#    Move:
+#      - old mixed root-level training artifacts
+#      - old calibration/inverse intermediate outputs
+#      - old duplicate summary files
+# ------------------------------------------------------------
+ROOT_FILES_TO_MOVE = [
+    # old root-level best/checkpoint/scaler/metrics artifacts
+    "best_level0.json",
+    "best_level1.json",
+    "best_level2.json",
+    "best_level3.json",
+    "best_level4.json",
+    "checkpoint_level0.pt",
+    "checkpoint_level1.pt",
+    "checkpoint_level2.pt",
+    "checkpoint_level4.pt",
+    "meta_stats.json",
+    "metrics_level0.json",
+    "metrics_level1.json",
+    "metrics_level2.json",
+    "metrics_level3.json",
+    "metrics_level4.json",
+    "sanity_level0.csv",
+    "sanity_level0.json",
+    "sanity_level1.csv",
+    "sanity_level1.json",
+    "sanity_level2.csv",
+    "sanity_level2.json",
+    "sanity_level4.csv",
+    "sanity_level4.json",
+    "scalers_level0.pkl",
+    "scalers_level1.pkl",
+    "scalers_level2.pkl",
+    "scalers_level4.pkl",
+    "test_predictions_level0.json",
+    "test_predictions_level1.json",
+    "test_predictions_level2.json",
+    "test_predictions_level4.json",
+    "paper_focus_metrics_level0.csv",
+    "paper_focus_metrics_level1.csv",
+    "paper_focus_metrics_level2.csv",
+    "paper_focus_metrics_level4.csv",
+    "paper_metrics_per_dim_level0.csv",
+    "paper_metrics_per_dim_level1.csv",
+    "paper_metrics_per_dim_level2.csv",
+    "paper_metrics_per_dim_level3.csv",
+    "paper_metrics_per_dim_level4.csv",
+
+    # old calibration / inverse mixed outputs
+    "calibration_benchmark_case_summary.csv",
+    "calibration_benchmark_case_summary_full.csv",
+    "calibration_benchmark_case_summary_reduced.csv",
+    "calibration_benchmark_case_summary_reduced_maintext.csv",
+    "calibration_benchmark_meta.json",
+    "calibration_benchmark_meta_full.json",
+    "calibration_benchmark_meta_reduced.json",
+    "calibration_benchmark_meta_reduced_maintext.json",
+    "calibration_benchmark_observation_fit.csv",
+    "calibration_benchmark_observation_fit_full.csv",
+    "calibration_benchmark_observation_fit_reduced.csv",
+    "calibration_benchmark_observation_fit_reduced_maintext.csv",
+    "calibration_benchmark_observation_fit_summary.csv",
+    "calibration_benchmark_observation_fit_summary_full.csv",
+    "calibration_benchmark_observation_fit_summary_reduced.csv",
+    "calibration_benchmark_observation_fit_summary_reduced_maintext.csv",
+    "calibration_benchmark_parameter_recovery.csv",
+    "calibration_benchmark_parameter_recovery_full.csv",
+    "calibration_benchmark_parameter_recovery_reduced.csv",
+    "calibration_benchmark_parameter_recovery_reduced_maintext.csv",
+    "calibration_benchmark_parameter_recovery_summary.csv",
+    "calibration_benchmark_parameter_recovery_summary_full.csv",
+    "calibration_benchmark_parameter_recovery_summary_reduced.csv",
+    "calibration_benchmark_parameter_recovery_summary_reduced_maintext.csv",
+
+    "calibration_feasible_region_overview.csv",
+    "calibration_feasible_region_summary_thr120.csv",
+    "calibration_feasible_region_summary_thr131.csv",
+    "calibration_logposterior_trace.csv",
+    "calibration_observation_fit.csv",
+    "calibration_posterior_predictive_mu.csv",
+    "calibration_posterior_predictive_samples.csv",
+    "calibration_posterior_predictive_sigma.csv",
+    "calibration_posterior_samples.csv",
+    "calibration_posterior_summary.csv",
+    "calibration_run_meta.json",
+
+    "inverse_benchmark_case_summary_reduced_maintext.csv",
+    "inverse_benchmark_meta_reduced_maintext.json",
+    "inverse_benchmark_observation_fit_reduced_maintext.csv",
+    "inverse_benchmark_observation_fit_summary_reduced_maintext.csv",
+    "inverse_benchmark_parameter_recovery_reduced_maintext.csv",
+    "inverse_benchmark_parameter_recovery_summary_reduced_maintext.csv",
+    "inverse_calibration_pool.csv",
+    "inverse_case_indices_reduced_maintext.csv",
+    "inverse_diagnostics_summary.json",
+    "inverse_diagnostics_summary_full.json",
+    "inverse_diagnostics_summary_reduced.json",
+    "inverse_diagnostics_summary_reduced_maintext.json",
+    "inverse_emulator_pool.csv",
+    "inverse_split_meta.json",
+
+    # old compare / contraction intermediates
+    "paper_prior_posterior_contraction_reduced.csv",
+    "paper_prior_posterior_contraction_summary_reduced.csv",
+    "paper_prior_posterior_contraction_summary_reduced.json",
+
+    # old iter compare intermediates
+    "paper_iter1_iter2_forward_compare.csv",
+    "paper_iter1_iter2_sobol_compare.csv",
+    "paper_iter1_iter2_sobol_shift_summary.csv",
+    "paper_iter2_keff_sobol_summary.csv",
+
+    # old safety threshold level-wise raw files
+    "safety_threshold_analysis_level0.json",
+    "safety_threshold_analysis_level1.json",
+    "safety_threshold_analysis_level2.json",
+    "safety_threshold_analysis_level4.json",
+    "safety_threshold_sweep_level0.csv",
+    "safety_threshold_sweep_level1.csv",
+    "safety_threshold_sweep_level2.csv",
+    "safety_threshold_sweep_level4.csv",
+
+    # old ood raw files
+    "ood_level0_alpha_slope.json",
+    "ood_level1_alpha_slope.json",
+    "ood_level2_alpha_slope.json",
+    "ood_level4_alpha_slope.json",
+
+    # old misc
+    "all_levels_summary.json",
+]
+
+# ------------------------------------------------------------
+# 2) Keep these important/current files/directories in place
+# ------------------------------------------------------------
+KEEP_TOP_LEVEL_NAMES = {
+    "fixed_split",
+    "fixed_surrogate_fixed_level2",
+    "fixed_surrogate_fixed_base",
+
+    "paper_forward_uq_summary.csv",
+    "paper_safety_threshold_summary.csv",
+    "paper_safety_threshold_sweep_all_levels.csv",
+    "paper_sobol_results.csv",
+    "paper_sobol_results_with_ci.csv",
+    "paper_sobol_results_with_ci_all_iters.csv",
+    "paper_sobol_methods_ready_summary.csv",
+    "paper_sobol_methods_ready_summary.json",
+    "paper_sobol_results_ready_top_factors.csv",
+    "paper_metrics_table.csv",
+    "paper_inverse_full_vs_reduced_summary.csv",
+    "paper_inverse_full_vs_reduced_summary.json",
+    "paper_inverse_full_vs_reduced_parameter_table.csv",
+    "paper_inverse_full_vs_reduced_observable_table.csv",
+    "paper_speed_benchmark_detailed.json",
+    "paper_speedup_benchmark.json",
+    "paper_ood_results.csv",
+    "paper_ood_meta.json",
+    "paper_ood_per_dim_level0.csv",
+    "paper_ood_per_dim_level2.csv",
+
+    "forward_uq_all_outputs_level0.csv",
+    "forward_uq_all_outputs_level2.csv",
+    "forward_uq_primary_outputs_level0.csv",
+    "forward_uq_primary_outputs_level2.csv",
+    "forward_uq_failure_prob_level0.csv",
+    "forward_uq_failure_prob_level2.csv",
+    "forward_uq_cvr_level0.csv",
+    "forward_uq_cvr_level2.csv",
+    "forward_uq_cvr_summary_level0.json",
+    "forward_uq_cvr_summary_level2.json",
+    "forward_uq_joint_stress_keff_level0.csv",
+    "forward_uq_joint_stress_keff_level2.csv",
+    "forward_uq_input_samples.csv",
+    "forward_uq_samples_level0.npz",
+    "forward_uq_samples_level2.npz",
+
+    "paper_forward_figures_final",
+    "paper_inverse_figures_final",
+    "paper_inverse_2d_figures_final",
+    "benchmark_case",
+}
+
+# ------------------------------------------------------------
+# 3) benchmark_case cleanup rule:
+#    Move old variants, keep only *_reduced_maintext.csv
+# ------------------------------------------------------------
+def is_benchmark_legacy_file(name: str) -> bool:
+    if not name.endswith(".csv"):
+        return False
+
+    # keep current maintext reduced outputs
+    if name.endswith("_reduced_maintext.csv"):
+        return False
+
+    # move old variants
+    if (
+        "_full_chain.csv" in name
+        or "_posterior_predictive.csv" in name
+        or "_posterior_samples.csv" in name
+        or "_prior_samples.csv" in name
+        or "_full_chain_full.csv" in name
+        or "_posterior_predictive_full.csv" in name
+        or "_posterior_samples_full.csv" in name
+        or "_prior_samples_full.csv" in name
+        or "_full_chain_reduced.csv" in name
+        or "_posterior_predictive_reduced.csv" in name
+        or "_posterior_samples_reduced.csv" in name
+        or "_prior_samples_reduced.csv" in name
+    ):
+        return True
+
+    return False
+
+
+def ensure_parent(path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+
+def move_path(src: Path, dst: Path):
+    ensure_parent(dst)
+    if DRY_RUN:
+        print(f"[DRY] MOVE: {src} -> {dst}")
+    else:
+        shutil.move(str(src), str(dst))
+        print(f"[OK] MOVE: {src} -> {dst}")
+
+
+def main():
+    if not EXP.exists():
+        raise FileNotFoundError(f"Not found: {EXP}")
+
+    print("=" * 80)
+    print(f"ROOT: {ROOT}")
+    print(f"EXP : {EXP}")
+    print(f"LEGACY_DIR: {LEGACY_DIR}")
+    print(f"DRY_RUN = {DRY_RUN}")
+    print("=" * 80)
+
+    planned = []
+
+    # --------------------------------------------------------
+    # A. explicitly listed root files
+    # --------------------------------------------------------
+    for rel in ROOT_FILES_TO_MOVE:
+        src = EXP / rel
+        if src.exists():
+            dst = LEGACY_DIR / rel
+            planned.append((src, dst))
+
+    # --------------------------------------------------------
+    # B. benchmark_case old variants
+    # --------------------------------------------------------
+    if BENCH.exists():
+        for src in sorted(BENCH.iterdir()):
+            if src.is_file() and is_benchmark_legacy_file(src.name):
+                dst = LEGACY_BENCH_DIR / src.name
+                planned.append((src, dst))
+
+    # --------------------------------------------------------
+    # C. optional safety net:
+    #    find unknown loose files in EXP root that are not in keep-set
+    #    and not directories we want to preserve
+    # --------------------------------------------------------
+    for src in sorted(EXP.iterdir()):
+        if src.name.startswith("_legacy_unused_"):
+            continue
+        if src.name in KEEP_TOP_LEVEL_NAMES:
+            continue
+        if src.is_file():
+            dst = LEGACY_DIR / src.name
+            pair = (src, dst)
+            if pair not in planned:
+                planned.append(pair)
+
+    # deduplicate
+    unique = []
+    seen = set()
+    for src, dst in planned:
+        key = (str(src), str(dst))
+        if key not in seen:
+            seen.add(key)
+            unique.append((src, dst))
+    planned = unique
+
+    print(f"[INFO] Planned moves: {len(planned)}")
+    for src, dst in planned:
+        print(f"  - {src.relative_to(ROOT)}  ->  {dst.relative_to(ROOT)}")
+
+    if not planned:
+        print("[INFO] Nothing to move.")
+        return
+
+    if not DRY_RUN:
+        LEGACY_DIR.mkdir(parents=True, exist_ok=True)
+
+    for src, dst in planned:
+        move_path(src, dst)
+
+    print("=" * 80)
+    if DRY_RUN:
+        print("[DONE] Preview finished. Set DRY_RUN = False to actually move files.")
+    else:
+        print(f"[DONE] Legacy files moved to: {LEGACY_DIR}")
+    print("=" * 80)
+
+
+if __name__ == "__main__":
+    main()
+
+========================================================================================================================
+[缺失代码项汇总]
+========================================================================================================================
+所有逻辑代码项均已找到对应文件。

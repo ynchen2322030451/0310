@@ -39,7 +39,7 @@ INPUT_COLS = [
 ]
 
 OUT1 = [
-    "iteration1_keff",
+    # "iteration1_keff",
     "iteration1_avg_fuel_temp",
     "iteration1_max_fuel_temp",
     "iteration1_max_monolith_temp",
@@ -62,8 +62,8 @@ OUT2 = [
 
 OUTPUT_COLS = OUT1 + OUT2
 
-ITER1_IDX = list(range(0, 8))
-ITER2_IDX = list(range(8, 16))
+ITER1_IDX = list(range(0, 7))
+ITER2_IDX = list(range(7, 15))
 
 # -----------------------------
 # Main paper outputs
