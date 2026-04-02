@@ -1,36 +1,21 @@
 {
   "level": 2,
-  "run_tag": "fixed_level2",
-  "fixed_surrogate": true,
-  "split_meta_path": "experiments_phys_levels/fixed_split/split_meta.json",
-  "test_nll_standardized": 1.06260347366333,
-  "basic_all_mean": {
-    "MAE_mean": 4.591320037841797,
-    "RMSE_mean": 6.195223808288574,
-    "R2_mean": -1013116607.5906291
+  "tag": "fixed_level2",
+  "test_nll_standardized": 0.9661728739738464,
+  "primary_outputs": [
+    "iteration2_keff",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_max_global_stress",
+    "iteration2_wall2"
+  ],
+  "primary_metrics": {
+    "RMSE_mean": 6.089869499206543,
+    "R2_mean": 0.6512905955314636,
+    "PICP90_mean": 0.9858227848101265,
+    "MPIW90_mean": 28.079141776668433,
+    "CRPS_mean": 3.5284485128699536
   },
-  "basic_primary_mean": {
-    "MAE_mean": 5.515359878540039,
-    "RMSE_mean": 6.8390092849731445,
-    "R2_mean": 0.3952538013458252
-  },
-  "prob90_all_mean": {
-    "PICP_mean": 0.9795886075949367,
-    "MPIW_mean": 28.89998390301352,
-    "CRPS_mean": 3.4765076991987724
-  },
-  "prob90_primary_mean": {
-    "PICP_mean": 0.9726582278481011,
-    "MPIW_mean": 29.064806017347884,
-    "CRPS_mean": 3.936858948091867
-  },
-  "ineq_violation_rates_on_mu": {
-    "iter1_maxfuel_ge_avgfuel_viol_rate": 0.0,
-    "iter2_maxfuel_ge_avgfuel_viol_rate": 0.0,
-    "iter1_stress_nonneg_viol_rate": 0.0,
-    "iter2_stress_nonneg_viol_rate": 0.0
-  },
-  "n_train": 1840,
-  "n_val": 395,
-  "n_test": 395
+  "all_outputs_RMSE_mean": 5.932992458343506,
+  "all_outputs_R2_mean": 0.6832059065500895
 }

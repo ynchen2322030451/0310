@@ -1,0 +1,26 @@
+{
+  "stress_floor_MPa": 220.0,
+  "n_extreme_cases": 10,
+  "stress_range": [
+    220.5,
+    278.39
+  ],
+  "primary_threshold_MPa": 131.0,
+  "calibration_input_cols": [
+    "E_intercept",
+    "alpha_base",
+    "alpha_slope",
+    "nu"
+  ],
+  "obs_cols": [
+    "iteration2_max_global_stress",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_wall2",
+    "iteration2_keff"
+  ],
+  "mcmc_n_total": 8000,
+  "mcmc_burn_in": 2000,
+  "mcmc_thin": 5,
+  "obs_noise_frac": 0.02
+}

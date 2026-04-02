@@ -1,6 +1,6 @@
 {
-  "run_tag": "fixed_base",
   "level": 0,
+  "tag": "fixed_base",
   "input_cols": [
     "E_slope",
     "E_intercept",
@@ -12,7 +12,6 @@
     "SS316_alpha"
   ],
   "output_cols": [
-    "iteration1_keff",
     "iteration1_avg_fuel_temp",
     "iteration1_max_fuel_temp",
     "iteration1_max_monolith_temp",
@@ -80,12 +79,6 @@
     }
   },
   "output_stats": {
-    "iteration1_keff": {
-      "mean": 1.1133589146381255,
-      "std": 6.8075879422607896e-15,
-      "min": 1.113358914638101,
-      "max": 1.1133589146381508
-    },
     "iteration1_avg_fuel_temp": {
       "mean": 1015.882517110266,
       "std": 10.048808860739129,

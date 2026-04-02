@@ -33,6 +33,17 @@ DEVICE = "cuda"
 # -----------------------------
 # Input / output columns
 # -----------------------------
+
+DELTA_PAIRS = [
+    ("iteration1_avg_fuel_temp", "iteration2_avg_fuel_temp"),
+    ("iteration1_max_fuel_temp", "iteration2_max_fuel_temp"),
+    ("iteration1_max_monolith_temp", "iteration2_max_monolith_temp"),
+    ("iteration1_max_global_stress", "iteration2_max_global_stress"),
+    ("iteration1_monolith_new_temperature", "iteration2_monolith_new_temperature"),
+    ("iteration1_Hcore_after", "iteration2_Hcore_after"),
+    ("iteration1_wall2", "iteration2_wall2"),
+]
+
 INPUT_COLS = [
     "E_slope", "E_intercept", "nu", "alpha_base",
     "alpha_slope", "SS316_T_ref", "SS316_k_ref", "SS316_alpha"

@@ -1,0 +1,30 @@
+{
+  "E_intercept": {
+    "feature": "E_intercept",
+    "low_quantile_value": 174647571550.26813,
+    "high_quantile_value": 224909425156.1501,
+    "n_in": 2323,
+    "n_ood": 577
+  },
+  "alpha_base": {
+    "feature": "alpha_base",
+    "low_quantile_value": 8.742751793480454e-06,
+    "high_quantile_value": 1.1352009658839796e-05,
+    "n_in": 2320,
+    "n_ood": 580
+  },
+  "nu": {
+    "feature": "nu",
+    "low_quantile_value": 0.2724921850796282,
+    "high_quantile_value": 0.3493396295439041,
+    "n_in": 2325,
+    "n_ood": 575
+  },
+  "alpha_slope": {
+    "feature": "alpha_slope",
+    "low_quantile_value": 4.357069137620041e-09,
+    "high_quantile_value": 5.6506624928148705e-09,
+    "n_in": 2324,
+    "n_ood": 576
+  }
+}

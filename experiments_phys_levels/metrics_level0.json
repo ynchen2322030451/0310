@@ -1,49 +1,21 @@
 {
   "level": 0,
-  "test_nll_standardized": 0.35900554060935974,
-  "basic_all_mean": {
-    "MAE_mean": 2.794677257537842,
-    "RMSE_mean": 3.583746910095215,
-    "R2_mean": 0.7532432754834493
+  "tag": "fixed_base",
+  "test_nll_standardized": 0.903268575668335,
+  "primary_outputs": [
+    "iteration2_keff",
+    "iteration2_max_fuel_temp",
+    "iteration2_max_monolith_temp",
+    "iteration2_max_global_stress",
+    "iteration2_wall2"
+  ],
+  "primary_metrics": {
+    "RMSE_mean": 6.142625331878662,
+    "R2_mean": 0.6496223926544189,
+    "PICP90_mean": 0.969620253164557,
+    "MPIW90_mean": 26.307388448622437,
+    "CRPS_mean": 3.5433147020141846
   },
-  "basic_primary_mean": {
-    "MAE_mean": 2.7973599433898926,
-    "RMSE_mean": 3.522188901901245,
-    "R2_mean": 0.7898677110671997
-  },
-  "prob90_all_mean": {
-    "PICP_mean": 0.9295019157088122,
-    "MPIW_mean": 11.952533285925437,
-    "CRPS_mean": 1.9830915117941994
-  },
-  "prob90_primary_mean": {
-    "PICP_mean": 0.9333333333333332,
-    "MPIW_mean": 12.20424336945541,
-    "CRPS_mean": 1.9850332592135682
-  },
-  "ineq_violation_rates_on_mu": {
-    "iter1_maxfuel_ge_avgfuel_viol_rate": 0.0,
-    "iter2_maxfuel_ge_avgfuel_viol_rate": 0.0,
-    "iter1_stress_nonneg_viol_rate": 0.0,
-    "iter2_stress_nonneg_viol_rate": 0.0
-  },
-  "mono_pairs_top": [],
-  "focus_outputs": {
-    "iteration2_max_global_stress": {
-      "MAE": 6.250024795532227,
-      "RMSE": 7.931155204772949,
-      "R2": 0.9288990497589111,
-      "PICP90": 0.9310344827586207,
-      "MPIW90": 30.359931885138028,
-      "CRPS": 4.473391835215026
-    },
-    "iteration2_keff": {
-      "MAE": 0.00020661327289417386,
-      "RMSE": 0.00026244192849844694,
-      "R2": 0.8649820685386658,
-      "PICP90": 0.9563218390804598,
-      "MPIW90": 0.0011477204032730264,
-      "CRPS": 0.00015276707235585457
-    }
-  }
+  "all_outputs_RMSE_mean": 5.894139289855957,
+  "all_outputs_R2_mean": 0.6858047008514404
 }
