@@ -1,7 +1,7 @@
 {
   "level": 2,
   "tag": "fixed_level2",
-  "test_nll_standardized": 0.9661728739738464,
+  "test_nll_standardized": 0.3048211336135864,
   "primary_outputs": [
     "iteration2_keff",
     "iteration2_max_fuel_temp",
@@ -10,12 +10,12 @@
     "iteration2_wall2"
   ],
   "primary_metrics": {
-    "RMSE_mean": 6.089869499206543,
-    "R2_mean": 0.6512905955314636,
-    "PICP90_mean": 0.9858227848101265,
-    "MPIW90_mean": 28.079141776668433,
-    "CRPS_mean": 3.5284485128699536
+    "RMSE_mean": 3.500164747238159,
+    "R2_mean": 0.7945133686065674,
+    "PICP90_mean": 0.9333333333333333,
+    "MPIW90_mean": 11.818521511973893,
+    "CRPS_mean": 1.9481440306205164
   },
-  "all_outputs_RMSE_mean": 5.932992458343506,
-  "all_outputs_R2_mean": 0.6832059065500895
+  "all_outputs_RMSE_mean": 3.531994104385376,
+  "all_outputs_R2_mean": 0.7599819143613179
 }

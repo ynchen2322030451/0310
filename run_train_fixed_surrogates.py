@@ -63,7 +63,7 @@ from run_phys_levels_main import (
 # ============================================================
 
 TRAIN_LEVELS  = [0, 2]          # train both levels in one run
-REMAKE_SPLIT  = False           # True = overwrite existing frozen split
+REMAKE_SPLIT  = True           # True = overwrite existing frozen split
 TEST_FRAC     = 0.15
 VAL_FRAC      = 0.1765          # of train+val → gives ~68/15/15 overall
 

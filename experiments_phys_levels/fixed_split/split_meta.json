@@ -3,10 +3,10 @@
   "seed": 2026,
   "test_frac": 0.15,
   "val_frac_within_train": 0.1765,
-  "n_total": 2630,
-  "n_train": 1840,
-  "n_val": 395,
-  "n_test": 395,
+  "n_total": 2900,
+  "n_train": 2029,
+  "n_val": 436,
+  "n_test": 435,
   "input_cols": [
     "E_slope",
     "E_intercept",
@@ -18,7 +18,6 @@
     "SS316_alpha"
   ],
   "output_cols": [
-    "iteration1_keff",
     "iteration1_avg_fuel_temp",
     "iteration1_max_fuel_temp",
     "iteration1_max_monolith_temp",
